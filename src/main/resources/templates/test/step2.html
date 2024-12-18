@@ -76,145 +76,7 @@
 								</div>
 							</div>
 							<div class="view-que-list scroll-inner" style="display: -webkit-box;-webkit-box-orient:vertical">
-								<!-- 지문 없는 항목 -->
-								<div class="view-que-box">
-									<div class="que-top">
-										<div class="title">
-											<span class="num">[[${q.itemNo}]]</span> <!--문제 순서 -->
-											<div class="que-badge-group">
-												<span class="que-badge yellow">[[${q.difficultyName}]]</span> <!--문제 난이도 -->
-												<span class="que-badge gray">[[${q.questionFormName}]]</span> <!--문제 형태 -->
-											</div>
-										</div>
-										<div class="btn-wrap">
-											<button type="button" class="btn-error pop-btn" data-pop="error-report-pop"></button>
-											<button type="button" class="btn-delete"></button>
-										</div>
-									</div>
-									<div class="view-que">
-										<div class="que-content">
-											<p class="txt">
-												<!-- q: 질문 데이터 영역 -->
-												<img th:src="${q.questionUrl}" alt="질문"/>
-												<!-- q: 질문 데이터 영역 -->
-											</p>
-										</div>
-										<div class="que-bottom">
-											<div class="data-area">
-												<div class="que-info">
-													<p class="answer"><span class="label">해설</span></p>
-													<div class="data-answer-area">
-														<!-- s: 해설 데이터 영역 -->
-														<div class="paragraph" style="text-align: Justify">
-															<span class="txt">
-																<img th:src="${q.explainUrl}"  alt="해설"/>
-															</span>
-														</div>
-														<!-- e: 해설 데이터 영역 -->
-													</div>
-												</div>
-											</div>
-											<div class="data-area type01">
-												<div class="que-info">
-													<p class="answer"><span class="label type01">정답</span></p>
-													<div class="data-answer-area">
-														<!-- s: 정답 데이터 영역 -->
-														<div class="paragraph" style="text-align: Justify">
-															<span class="txt">
-																<img th:src="${q.nswerUrl}" alt="정답"/>
-															</span>
-														</div>
-														<!-- e: 정답 데이터 영역 -->
-													</div>
-												</div>
-												<button type="button" class="btn-similar-que btn-default"><i class="similar"></i> 유사 문제</button>
-											</div>
-										</div>
-									</div>
-									<div class="que-info-last">
-										<p class="chapter">[[${q.largeChapterName}]]>[[${q.mediumChapterName}]]>[[${q.smallChapterName}]]>[[${q.topicChapterName}]]</p>
-									</div>
-								</div>
-								<!--//지문 없는 항목 -->
-								<!--//지문 있는 항목 -->
-								<div class="view-que-box">
-									<div class="que-top">
-										<div class="title">
-											<span class="num">1 ~ 4</span>
-										</div>
-									</div>
-									<div class="view-que">
-										<div class="que-content">
-											<p class="txt">
-												<img th:src="${q.questionUrl}" alt="문제"/>
-											</p>
-										</div>
-										<div class="que-bottom">
-											<div class="passage-area">
-												<img th:src="${q.passageUrl}" alt="지문">
-											</div>
-										</div>
-									</div>
-								</div>
-								<!-- e: 지문 영역 -->
-								<div class="view-que-box">
-									<div class="que-top">
-										<div class="title">
-											<span class="num">[[${q.itemNo}]]</span> <!--문제 순서 -->
-											<div class="que-badge-group">
-												<span class="que-badge yellow">[[${q.difficultyName}]]</span> <!--문제 난이도 -->
-												<span class="que-badge gray">[[${q.questionFormName}]]</span> <!--문제 형태 -->
-											</div>
-										</div>
-										<div class="btn-wrap">
-											<button type="button" class="btn-error pop-btn" data-pop="error-report-pop"></button>
-											<button type="button" class="btn-delete"></button>
-										</div>
-									</div>
-									<div class="view-que">
-										<div class="que-content">
-											<p class="txt">
-												<!-- q: 질문 데이터 영역 -->
-												<img th:src="${q.questionUrl}"  alt="질문"/>
-												<!-- q: 질문 데이터 영역 -->
-											</p>
-										</div>
-										<div class="que-bottom">
-											<div class="data-area">
-												<div class="que-info">
-													<p class="answer"><span class="label">해설</span></p>
-													<div class="data-answer-area">
-														<!-- s: 해설 데이터 영역 -->
-														<div class="paragraph" style="text-align: Justify">
-															<span class="txt">
-																<img th:src="${q.explainUrl}" alt="해설"/>
-															</span>
-														</div>
-														<!-- e: 해설 데이터 영역 -->
-													</div>
-												</div>
-											</div>
-											<div class="data-area type01">
-												<div class="que-info">
-													<p class="answer"><span class="label type01">정답</span></p>
-													<div class="data-answer-area">
-														<!-- s: 정답 데이터 영역 -->
-														<div class="paragraph" style="text-align: Justify">
-															<span class="txt">
-																<img th:src="${q.answerUrl}" alt="정답"/>
-															</span>
-														</div>
-														<!-- e: 정답 데이터 영역 -->
-													</div>
-												</div>
-												<button type="button" class="btn-similar-que btn-default"><i class="similar"></i> 유사 문제</button>
-											</div>
-										</div>
-									</div>
-									<div class="que-info-last">
-										<p class="chapter">[[${q.largeChapterName}]]>[[${q.mediumChapterName}]]>[[${q.smallChapterName}]]>[[${q.topicChapterName}]]</p>
-									</div>
-								</div>
+
 							</div>
 							<div class="bottom-box">
 								<div class="que-badge-group type01">
@@ -264,7 +126,7 @@
 													<div class="col">
 														<a href="javascript:;">
 															<span class="dragHandle ui-sortable-handle"><img
-																	src="../images/common/ico_move_type01.png" alt=""></span>
+																	src="../../images/common/ico_move_type01.png" alt=""></span>
 															<span>1</span>
 															<!-- S 230808 tooltip-wrap 추가-->
 															<span class="tit">
@@ -426,88 +288,169 @@
 		<script th:inline="javascript">
 			//문항id 배열로 티셀파 문항 리스트 조회(img) 요청
 			const questionIds = [[${questionIds}]];
-			//console.log(questionIds);
-			async function getQuestionInfo(){
-				const response : Response = await fetch(`${API_BASE_URL}/item-img/item-list`,{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						questionIds: questionIds,
-					}),
+			const API_BASE_URL = '/bridge/t-sherpa'; // 프록시 서버 경로
+			async function getQuestionInfo() {
+				try {
+					const response = await fetch(`${API_BASE_URL}/item-img/item-list`, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify({
+							itemIdList: questionIds
+						})
+					});
+					const data = await response.json();
+					if (data.successYn === 'Y') {
+						const questions = data.itemList;
+						console.log("성공:", questions);
+						renderQuestions(questions);
+					} else {
+						console.error("실패:", data);
+					}
+				} catch (error) {
+					console.error("fetch 오류:", error);
+				}
+			}
+
+
+			//문제 데이터를 화면에 렌더링
+			function renderQuestions(questions) {
+				const container = document.querySelector(".view-que-list");
+				container.innerHTML = "";
+				questions.forEach((q, index) => {
+					const questionHTML = `
+						<div class="view-que-box">
+							<div class="que-top">
+								<div class="title">
+									<span class="num">${q.itemNo}</span> <!--문제 순서 -->
+									<div class="que-badge-group">
+										<span class="que-badge yellow">${q.difficultyName}</span> <!--문제 난이도 -->
+										<span class="que-badge gray">${q.questionFormName}</span> <!--문제 형태 -->
+									</div>
+								</div>
+								<div class="btn-wrap">
+									<button type="button" class="btn-error pop-btn" data-pop="error-report-pop"></button>
+									<button type="button" class="btn-delete"></button>
+								</div>
+							</div>
+							<div class="view-que">
+								<div class="que-content">
+									<p class="txt">
+									<!-- q: 질문 데이터 영역 -->
+									${q.questionUrl ? `<img src="${q.questionUrl}" alt="질문 이미지"/>` : ""}
+									<!-- q: 질문 데이터 영역 -->
+									</p>
+								</div>
+								<div class="que-bottom">
+									<div class="data-area">
+										<div class="que-info">
+											<p class="answer">
+												<span class="label">해설</span>
+											</p>
+											<div class="data-answer-area">
+											<!-- s: 해설 데이터 영역 -->
+											<div class="paragraph" style="text-align: Justify">
+											<span class="txt">
+												${q.explainUrl ? `<img src="${q.explainUrl}" alt="해설 이미지"/>` : ""}
+											</span>
+											</div>
+											<!-- e: 해설 데이터 영역 -->
+										</div>
+									</div>
+								</div>
+								<div class="data-area type01">
+									<div class="que-info">
+										<p class="answer"><span class="label type01">정답</span></p>
+										<div class="data-answer-area">
+											<!-- s: 정답 데이터 영역 -->
+											<div class="paragraph" style="text-align: Justify">
+											<span class="txt">
+											${q.answerUrl ? `<img src="${q.answerUrl}" alt="정답 이미지"/>` : ""}
+											</span>
+											</div>
+											<!-- e: 정답 데이터 영역 -->
+										</div>
+									</div>
+									<button type="button" class="btn-similar-que btn-default"><i class="similar"></i> 유사 문제</button>
+								</div>
+							</div>
+						</div>
+						<div class="que-info-last">
+						<p class="chapter">${q.largeChapterName}>${q.mediumChapterName}>${q.smallChapterName}>${q.topicChapterName}</p>
+						</div>
+					</div>
+					`;
+					container.insertAdjacentHTML("beforeend", questionHTML);
 				});
-				const data = await response.json();
-				if(data.successYn === 'Y'){
-					
-				}
 			}
 
-			document.addEventListener("DOMContentLoaded", getQuestionInfo())
+			// 페이지 로드 시 API 요청
+			document.addEventListener("DOMContentLoaded", getQuestionInfo);
 
-			//난이도 별 문항 수/총 문항 수 노출
-			function getLevelCnt(questionFormCode){
-				if(questionFormCode){
+				//난이도 별 문항 수/총 문항 수 노출
+				function getLevelCnt(questionFormCode) {
+					if (questionFormCode) {
 
+					}
 				}
-			}
 
-			// // tooltip hover
-			// let tipBtns = $(".btn-tip");
+				// // tooltip hover
+				// let tipBtns = $(".btn-tip");
 
-			// $(function () {
-			// 	tipBtns.on("mouseover", function () {
-			// 		let _this = $(this);
-			// 		let _tooltip = _this.next(".tooltip"); // 툴팁 요소를 바로 뒤에 있는 요소로 찾아옴
-			// 		let _tooltipPosition = _this.offset().top; // 버튼(_this)의 전체 문서에서의 위치값을 가져옴
+				// $(function () {
+				// 	tipBtns.on("mouseover", function () {
+				// 		let _this = $(this);
+				// 		let _tooltip = _this.next(".tooltip"); // 툴팁 요소를 바로 뒤에 있는 요소로 찾아옴
+				// 		let _tooltipPosition = _this.offset().top; // 버튼(_this)의 전체 문서에서의 위치값을 가져옴
 
-			// 		console.log(_tooltipPosition);
+				// 		console.log(_tooltipPosition);
 
-			// 		if (_tooltipPosition > 490) {
-			// 			_tooltip.css("top", "-130px"); // 툴팁 위치 변경
-			// 			_tooltip.addClass("before-active"); // 클래스 추가
-			// 		}
-			// 	});
-			// });
-			$(function () {
-				let _leg = $('.view-que').length;
-				let arr = [];
-
-				viewListFunc();
-
-				$(".view-que-list").change(function () {
+				// 		if (_tooltipPosition > 490) {
+				// 			_tooltip.css("top", "-130px"); // 툴팁 위치 변경
+				// 			_tooltip.addClass("before-active"); // 클래스 추가
+				// 		}
+				// 	});
+				// });
+				$(function () {
 					let _leg = $('.view-que').length;
 					let arr = [];
 
 					viewListFunc();
-				})
 
-				function viewListFunc() {
-					$('.col').on('click', function () {
+					$(".view-que-list").change(function () {
+						let _leg = $('.view-que').length;
+						let arr = [];
 
-						let _idx = $(this).index();
-
-						for (var i = 0; i < _leg; i++) {
-							arr.push($('.view-que').eq(i).offset().top - 280);
-						}
-
-						console.log(arr);
-
-						$('.view-que-list').animate({
-							scrollTop: arr[_idx]
-						}, 400);
-
-						let _this = $(this);
-						if (!_this.hasClass('active')) {
-							_this.parents('.test.ui-sortable').find('.col').removeClass('active');
-							_this.addClass('active');
-							$('.view-que-box').removeClass('active');
-							$('.view-que-box').eq(_idx).addClass('active');
-						};
-
+						viewListFunc();
 					})
-				}
-			})
+
+					function viewListFunc() {
+						$('.col').on('click', function () {
+
+							let _idx = $(this).index();
+
+							for (var i = 0; i < _leg; i++) {
+								arr.push($('.view-que').eq(i).offset().top - 280);
+							}
+
+							console.log(arr);
+
+							$('.view-que-list').animate({
+								scrollTop: arr[_idx]
+							}, 400);
+
+							let _this = $(this);
+							if (!_this.hasClass('active')) {
+								_this.parents('.test.ui-sortable').find('.col').removeClass('active');
+								_this.addClass('active');
+								$('.view-que-box').removeClass('active');
+								$('.view-que-box').eq(_idx).addClass('active');
+							}
+							;
+						})
+					}
+				})
 		</script>
 	</div>
 </body>
