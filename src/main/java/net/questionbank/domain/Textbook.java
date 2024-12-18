@@ -13,6 +13,8 @@ public class Textbook {
     private int textbookId;
     @Column(nullable = false, columnDefinition = "VARCHAR(20)")
     private String title;
+    @Column(nullable = false, columnDefinition = "VARCHAR(5)")
+    private String author;
     @ManyToOne
     @JoinColumn(name = "subjectId")
     @ToString.Exclude
