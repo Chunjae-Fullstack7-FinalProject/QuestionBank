@@ -15,6 +15,15 @@
         .header h1 {
             font-size: 2.5rem;
         }
+
+        /* 저자 이름 강조 스타일 */
+        .author-name {
+            font-size: 1.5rem; /* 저자 이름 글씨 크기 증가 */
+            font-weight: bold;
+            color: #007bff; /* 강조 색상 */
+        }
+
+        /* 상단 탭 스타일 */
         .tabs a {
             margin-right: 15px;
         }
@@ -22,22 +31,34 @@
             font-weight: bold;
             color: #007bff;
         }
-        .book-item {
+
+        /* textbook-item 스타일 */
+        .textbook-item {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px; /* 각 항목 간 간격 좁히기 */
+            padding: 10px;
         }
-        .book-item img {
+
+        .textbook-item img {
             width: 180px;
             height: 240px;
             margin-bottom: 10px;
         }
-        .book-item p {
-            font-size: 1rem;
+
+        .textbook-item p {
+            font-size: 1.2rem; /* 제목 글씨 크기 증가 */
             font-weight: bold;
+            margin-bottom: 10px; /* 제목과 버튼 간격 조정 */
         }
-        .book-item .button {
+
+        .textbook-item .button {
             display: inline-block;
             margin-top: 10px;
+        }
+
+        /* row의 간격을 좁히기 위한 추가 스타일 */
+        .row {
+            gap: 15px; /* 각 항목 간 간격을 조금 좁혀줌 */
         }
     </style>
 </head>
@@ -66,10 +87,13 @@
         <a href="#" class="btn btn-outline-secondary ms-2">과학</a>
     </div>
 
-    <!-- 교재 목록 -->
-    <div layout:fragment="textbook">
+    <!-- 리스트 출력 부분-->
+    <div>
+        <div id="author-area">
 
+        </div>
     </div>
+
 
 </div>
 
@@ -94,6 +118,111 @@
 
         new_form.appendTo('body');
         new_form.submit();
+    }
+
+    // 기본 과목인 '국어'의 subjectId 값을 미리 설정
+    const subjectId = 'KO';
+
+    function fetchSubjectData(subjectId) {
+
+        const requestData = {
+            subjectId: subjectId
+        };
+
+        fetch('/api/mainList', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        })
+            .then(response => response.json())  // 응답을 JSON 형식으로 변환
+            .then(data => {
+                if (data && data.status === 'success') {
+                    // 응답 데이터가 성공적으로 처리되면 handleResponseData 호출
+                    handleResponseData(data.data);
+                } else {
+                    console.error('응답 실패:', data.message);
+                }
+            })
+            .catch(error => {
+                // 네트워크 에러 처리
+                console.error('에러 발생:', error);
+            });
+    }
+    // 페이지 로드 시 기본 과목 정보 요청
+    fetchSubjectData(subjectId);
+
+    // 응답 데이터 처리 함수
+    function handleResponseData(mainList) {
+        if (!Array.isArray(mainList)) {
+            console.error('응답 데이터는 배열이어야 합니다.');
+            return;
+        }
+
+        // 기존의 author-area를 비워두기
+        const authorContainer = document.getElementById('author-area');
+        authorContainer.innerHTML = '';
+
+        // mainList를 순회하며 각 author와 textbooks를 처리
+        mainList.forEach(author => {
+            const authorName = author.authorName;
+            const textbooks = author.textbooks;
+
+            // 저자 영역을 생성
+            const authorSection = document.createElement('div');
+            authorSection.classList.add('mb-4');
+
+            const authorTitle = document.createElement('h4');
+            authorTitle.textContent = `${authorName}`;
+            authorSection.appendChild(authorTitle);
+
+            const hr = document.createElement('hr');
+            authorSection.appendChild(hr);
+
+            const rowDiv = document.createElement('div');
+            rowDiv.classList.add('row', 'row-cols-1', 'row-cols-md-2', 'row-cols-lg-4', 'g-4');
+
+            // textbooks 배열을 순회하면서 교과서 항목을 생성
+            textbooks.forEach(textbook => {
+                const textbookItem = document.createElement('div');
+                textbookItem.classList.add('textbook-item');
+
+                // 교과서 이미지
+                const img = document.createElement('img');
+                img.src = 'https://via.placeholder.com/180x240';  // 실제 이미지 경로로 변경
+                img.alt = '교재 이미지';
+                textbookItem.appendChild(img);
+
+                // 교과서 제목
+                const p = document.createElement('p');
+                p.textContent = textbook.title;
+                textbookItem.appendChild(p);
+
+                // 시험지 만들기 버튼
+                const button = document.createElement('a');
+                button.href = 'javascript:';
+                button.setAttribute('onclick', `customExamPopup(${textbook.textbookId})`);
+                button.title = '새창 열림';
+                button.classList.add('btn', 'btn-primary');
+
+                const icon = document.createElement('i');
+                icon.classList.add('icon', 'icon-memo-center');
+                button.appendChild(icon);
+                button.appendChild(document.createTextNode(' 시험지 만들기'));
+
+                textbookItem.appendChild(button);
+
+                // 교과서 항목을 rowDiv에 추가
+                rowDiv.appendChild(textbookItem);
+            });
+
+            // authorSection에 rowDiv를 추가
+            authorSection.appendChild(rowDiv);
+
+            // authorContainer에 authorSection을 추가
+            authorContainer.appendChild(authorSection);
+        });
     }
 </script>
 </body>

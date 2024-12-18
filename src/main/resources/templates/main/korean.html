@@ -10,7 +10,7 @@
     <div class="col">
       <div class="book-item" th:each="item:${textbooks}">
         <img src="https://via.placeholder.com/180x240" alt="교재 이미지">
-        <p>국어 1-1</p>
+        <p th:text="${item.title}"></p>
         <a href="javascript:" th:onclick="customExamPopup(${textbookId});" title="새창 열림" class="btn btn-primary">
           <i class="icon icon-memo-center"></i> 시험지 만들기
         </a>
