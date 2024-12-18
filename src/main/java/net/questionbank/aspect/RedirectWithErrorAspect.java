@@ -43,4 +43,15 @@ public class RedirectWithErrorAspect {
         }
         return "redirect:" + redirectUrl;
     }
+    @Around("within(@net.questionbank.annotation.RedirectWithError *)")
+    public Object within(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+        RedirectWithError redirectWithError = proceedingJoinPoint.getTarget()
+                .getClass()
+                .getAnnotation(RedirectWithError.class);
+
+        if (redirectWithError == null) {
+            throw new IllegalStateException("Missing @RedirectWithError annotation");
+        }
+        return redirectWithError(proceedingJoinPoint, redirectWithError);
+    }
 }
