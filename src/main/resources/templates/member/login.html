@@ -4,24 +4,135 @@
     <meta charset="UTF-8">
     <title>Login</title>
     <style>
-        body{
-            color : #F2F2F2;
+        /* Reset 기본 스타일 초기화 */
+        /* Reset 기본 스타일 초기화 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
         }
-        .login-container{
-            width : 780px;
-        }
-    </style>
 
+        body {
+            background-color: #F8F8F8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background-color: #FFFFFF;
+            width: 400px;
+            padding: 30px 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .login-header {
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            display: inline-block;
+            background: url('/images/common/tsherpa-logo.png') no-repeat center;
+            background-size: contain;
+            width: 100px;
+            height: 100px;
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #222;
+        }
+
+        .slogan {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .form-container input[type="text"],
+        .form-container input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border: 1px solid #E0E0E0;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #FAFAFA;
+        }
+
+        .form-container input[type="text"]::placeholder,
+        .form-container input[type="password"]::placeholder {
+            color: #CCCCCC;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        .link-container {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .link-container a {
+            text-decoration: none;
+            color: #666;
+        }
+
+        .link-container a:hover {
+            text-decoration: underline;
+            color: #0078FF;
+        }
+
+        .btn-main {
+            width: 100%;
+            padding: 12px;
+            background-color: #0078FF;
+            color: #FFF;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-main:hover {
+            background-color: #005FCC;
+        }
+
+    </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
-            <span class="logo"></span>
-        </div>
-        <div class="login-body">
-
-        </div>
-
+<div class="login-container">
+    <div class="login-header">
+        <span class="logo"></span><h1 class="title">로그인</h1>
     </div>
+    <div class="login-body">
+        <div class="slogan">
+            T셀파에 오시는 선생님들을 환영합니다.<br>
+            T셀파에서는 선생님들의 역량 강화 및 수업에<br>
+            도움을 드리기 위해 최선을 다하도록 하겠습니다.
+        </div>
+        <div class="form-container">
+            <input class="id-input" type="text" id="memberId" name="memberId" placeholder="아이디">
+            <input class="pwd-input" type="password" id="pwd" name="pwd" placeholder="비밀번호">
+            <div class="link-container">
+                <a href="#">회원가입</a>
+            </div>
+            <input class="btn-main" type="submit" value="로그인">
+        </div>
+    </div>
+</div>
 </body>
 </html>
