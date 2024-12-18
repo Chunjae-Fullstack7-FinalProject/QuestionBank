@@ -1,5 +1,6 @@
 package net.questionbank.domain;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@Builder
 public class Test {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
