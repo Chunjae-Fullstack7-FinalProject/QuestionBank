@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultrag.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문제은행</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- 추가적인 커스터마이징을 위한 스타일 -->
+    <style>
+        .header h1 {
+            font-size: 2.5rem;
+        }
+        .tabs a {
+            margin-right: 15px;
+        }
+        .tabs a.active {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .book-item {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .book-item img {
+            width: 180px;
+            height: 240px;
+            margin-bottom: 10px;
+        }
+        .book-item p {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .book-item .button {
+            display: inline-block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <!-- 제목 -->
+    <div class="header text-center mb-4">
+        <h1>문제은행 <span style="color: #666; font-size: 1.2rem;">BETA</span></h1>
+        <p>문제출제, 시험지 편집까지! 편리하게 시험지 제작 서비스를 제공합니다.</p>
+    </div>
+
+    <!-- 상단 탭 -->
+    <div class="d-flex justify-content-center mb-4">
+        <a href="#" class="btn btn-outline-primary active">중학</a>
+        <a href="#" class="btn btn-outline-primary ms-2">시험지 보관함</a>
+    </div>
+
+    <!-- 과목 탭 -->
+    <div class="d-flex justify-content-center mb-4">
+        <a href="#" class="btn btn-outline-secondary active">국어</a>
+        <a href="#" class="btn btn-outline-secondary ms-2">영어</a>
+        <a href="#" class="btn btn-outline-secondary ms-2">수학</a>
+        <a href="#" class="btn btn-outline-secondary ms-2">사회</a>
+        <a href="#" class="btn btn-outline-secondary ms-2">역사</a>
+        <a href="#" class="btn btn-outline-secondary ms-2">도덕</a>
+        <a href="#" class="btn btn-outline-secondary ms-2">과학</a>
+    </div>
+
+    <!-- 교재 목록 -->
+    <div layout:fragment="textbook">
+
+    </div>
+
+</div>
+
+<!-- Bootstrap JS, Popper.js -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function customExamPopup(subjectId) {
+        let pop_title = "win_pop";
+        let url = 'http://localhost:8080/admin/asdf';
+        window.open("", pop_title, 'width=1400,height=1024,status=no,toolbar=no,scrollbars=no, left=500, top=0');
+
+        let new_form = $('<form></form>');
+        new_form.attr("name", "new_form");
+        new_form.attr("charset", "UTF-8");
+        new_form.attr("method", "post");
+        new_form.attr("action", url);
+        new_form.attr("target", pop_title);
+
+        new_form.append($('<input/>', {type: 'hidden', name: 'subjectId', value: subjectId}));
+
+        new_form.appendTo('body');
+        new_form.submit();
+    }
+</script>
+</body>
+</html>
