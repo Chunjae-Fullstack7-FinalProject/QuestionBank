@@ -13,7 +13,7 @@ public class Test {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int testId;
-    @Column(nullable = false, columnDefinition = "VARCHAR(100)")
+    @Column(nullable = true, columnDefinition = "VARCHAR(100)")
     private String title;
     @Column(columnDefinition = "datetime default now()")
     private LocalDateTime createdAt;
