@@ -21,4 +21,5 @@ public class MemberLoginDTO {
     @NotBlank(message = "비밀번호는 필수입니다.")
     //@Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{10,20}$", message = "비밀번호는 영어, 숫자, 특수문자를 포함해야 하며, 10~20자여야 합니다.")
     private String pwd;
+    private String name;
 }
