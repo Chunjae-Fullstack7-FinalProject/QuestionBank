@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequiredArgsConstructor
 @Log4j2
-@RequestMapping("/admin")
+@RequestMapping("/main")
 public class Test {
-    @GetMapping("/asdf")
+    @GetMapping("/korean")
     public String asdf() {
-        return "common/common";
+        return "main/korean";
     }
 }
