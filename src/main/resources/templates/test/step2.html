@@ -315,17 +315,28 @@
 			}
 			//검색 조건 버튼 이벤트
 			function searchQuestions(status){
-				//console.log(status);
-				let searchQuestionList = [...questions];
+				console.log(status);
+				let searchList = [];
 				switch(status){
 					case "문제+정답 보기":
-						renderQuestions();
+						searchList = questions.map(q => ({
+							...q, // 전체 데이터를 복사
+							explainUrl: null
+						}));
+						renderQuestions(searchList);
 						break;
 					case "문제+해설+정답 보기":
+						renderQuestions(questions);
 						break;
 					case "편집단계에서만 적용되는 보기 옵션":
 						break;
 					default: //문제만 보기
+						searchList = questions.map(q => ({
+							...q,
+							explainUrl: null,
+							answerUrl: null,
+						}))
+						renderQuestions(searchList);
 						break;
 				}
 			}
@@ -369,6 +380,7 @@
 
 			//문제 데이터를 화면에 렌더링
 			function renderQuestions(questions) {
+				console.log(questions);
 				const container = document.querySelector(".view-que-list");
 				container.innerHTML = "";
 				questions.forEach((q, index) => {
@@ -398,9 +410,7 @@
 								<div class="que-bottom">
 									<div class="data-area">
 										<div class="que-info">
-											<p class="answer">
-												<span class="label">해설</span>
-											</p>
+											${q.explainUrl ? `<p class="answer"><span class="label">해설</span></p>` :  ""}
 											<div class="data-answer-area">
 											<!-- s: 해설 데이터 영역 -->
 											<div class="paragraph" style="text-align: Justify">
