@@ -33,7 +33,12 @@ public class TestController {
                 , "493122"
                 , "493123"
                 , "487816"
-                , "494528"};
+                , "494528"
+                ,"487866"
+                ,"487867"
+                ,"487886"
+                ,"487868"
+                ,"493179"};
         model.addAttribute("questionIds", questionIds);
         return "test/step2";
     }

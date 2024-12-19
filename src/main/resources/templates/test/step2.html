@@ -49,6 +49,9 @@
 										<button type="button" class="select-btn">문제만 보기</button>
 										<ul class="select-list" style="display: none;">
 											<li>
+												<a href="javascript:;">문제만 보기</a>
+											</li>
+											<li>
 												<a href="javascript:;">문제+정답 보기</a>
 											</li>
 											<li>
@@ -60,8 +63,11 @@
 										</ul>
 									</div>
 									<div class="select-wrap">
-										<button type="button" class="select-btn">사용자 정렬</button>
+										<button type="button" class="select-btn">단원순</button>
 										<ul class="select-list">
+											<li>
+												<a href="javascript:;">사용자 정렬</a>
+											</li>
 											<li>
 												<a href="javascript:;">단원순</a>
 											</li>
@@ -305,7 +311,7 @@
 					if (data.successYn === 'Y') {
 						questions = data.itemList;
 						console.log("성공:", questions);
-						renderQuestions(questions);
+						searchQuestions("");
 					} else {
 						console.error("실패:", data);
 					}
@@ -318,15 +324,21 @@
 				console.log(status);
 				let searchList = [];
 				switch(status){
+					case "문제만 보기":
+						searchList = questions.map(q => ({
+							...q,
+							explainUrl: null,
+							answerUrl: null,
+						}))
+						break;
 					case "문제+정답 보기":
 						searchList = questions.map(q => ({
 							...q, // 전체 데이터를 복사
 							explainUrl: null
 						}));
-						renderQuestions(searchList);
 						break;
 					case "문제+해설+정답 보기":
-						renderQuestions(questions);
+						searchList = questions
 						break;
 					case "편집단계에서만 적용되는 보기 옵션":
 						break;
@@ -336,46 +348,51 @@
 							explainUrl: null,
 							answerUrl: null,
 						}))
-						renderQuestions(searchList);
 						break;
 				}
+				renderQuestions(searchList);
 			}
 
 			//검색 이벤트 리스너
 			document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
 				button.addEventListener("click", (e) =>{
 					const status = e.target.textContent.trim();
-					if(["문제+정답 보기", "문제+해설+정답 보기", "편집단계에서만 적용되는 보기 옵션"].includes(status)){
+					if(["문제만 보기", "문제+정답 보기", "문제+해설+정답 보기", "편집단계에서만 적용되는 보기 옵션"].includes(status)){
 						searchQuestions(status);
 					}
 				})
 			})
 
-			// //정렬 조건 버튼 이벤트
-			// function sortQuestions(status){
-			// 	//기존 데이터를 사용해야함
-			// 	let sortQuestionsList = [...questions];
-			// 	switch (status){
-			// 		case "단원순":
-			// 			break;
-			// 		case "난이도순":
-			// 			break;
-			// 		case "문제 형태순":
-			// 			break;
-			// 		default: //사용자 정렬
-			// 			break;
-			// 	}
-			// }
-			//
-			// //정렬 이벤트 리스너
-			// document.querySelector(".select-wrap .select-list a").forEach(button =>{
-			// 	button.addEventListener("click", (e) => {
-			// 		const status = e.target.textContent.trim();
-			// 		if (["단원순", "난이도순", "문제 형태순"].includes(status)) {
-			// 			sortQuestions(status);
-			// 		}
-			// 	})
-			// })
+			//정렬 조건 버튼 이벤트
+			function sortQuestions(status){
+				//기존 데이터를 사용해야함
+				let sortQuestionsList = [...questions];
+				switch (status){
+					case "단원순":
+						sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
+						break;
+					case "난이도순":
+						const level = {"최하": 1, "하": 2, "중": 3, "상": 4, "최상": 5};
+						sortQuestionsList.sort((a, b) => (level[a.difficultyName] || 0) - (level[b.difficultyName] || 0));
+						break;
+					case "문제 형태순":
+						break;
+					default: //단원순
+						sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
+						break;
+				}
+				renderQuestions(sortQuestionsList);
+			}
+
+			//정렬 이벤트 리스너
+			document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
+				button.addEventListener("click", (e) => {
+					const status = e.target.textContent.trim();
+					if (["단원순", "난이도순", "문제 형태순"].includes(status)) {
+						sortQuestions(status);
+					}
+				})
+			})
 
 
 			//문제 데이터를 화면에 렌더링
@@ -388,7 +405,7 @@
 						<div class="view-que-box">
 							<div class="que-top">
 								<div class="title">
-									<span class="num">${q.itemNo}</span> <!--문제 순서 -->
+									<span class="num">${index+1}</span> <!--문제 순서 -->
 									<div class="que-badge-group">
 										<span class="que-badge yellow">${q.difficultyName}</span> <!--문제 난이도 -->
 										<span class="que-badge gray">${q.questionFormName}</span> <!--문제 형태 -->
@@ -424,7 +441,7 @@
 								</div>
 								<div class="data-area type01">
 									<div class="que-info">
-										<p class="answer"><span class="label type01">정답</span></p>
+									${q.answerUrl ? `<p class="answer"><span class="label">정답</span></p>` :  ""}
 										<div class="data-answer-area">
 											<!-- s: 정답 데이터 영역 -->
 											<div class="paragraph" style="text-align: Justify">
