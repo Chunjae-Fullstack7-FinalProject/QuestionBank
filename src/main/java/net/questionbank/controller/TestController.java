@@ -36,8 +36,8 @@ public class TestController {
         Long testSubjectId = 1154L;
 
         model.addAttribute("testInfo", step3Service.testInfo(itemIdList==null?ids:itemIdList, subjectId==null?testSubjectId:subjectId));
-        model.addAttribute("subjectId", subjectId);
-        model.addAttribute("itemIdList", itemIdList);
+        model.addAttribute("subjectId", subjectId==null?testSubjectId:subjectId);
+        model.addAttribute("itemIdList", itemIdList==null?ids:itemIdList);
         return "test/sub04_01";
     }
 

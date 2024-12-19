@@ -18,6 +18,19 @@
 	<script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
 	<script src="../inc/js/common.js"></script>
+	<style>
+		.loading-on {
+			top: 50%;
+			left: 50%;
+			position: absolute;
+			background-color: gray;
+			width: 100%;
+			z-index: 11;
+		}
+		.loading-off {
+			display: none;
+		}
+	</style>
 </head>
 
 <body>
@@ -116,11 +129,22 @@
 			</div>
 
 
+			<div class="pop-content loading-on">
+				<div class="loading-cnt">
+					<img src="../images/common/loading_icon.gif" alt="로딩중">
+					<div class="txt-box">
+						<span class="tit">LOADING<br>잠시만 기다려주세요.</span>
+						<span class="txt">이 화면이 지속되면 페이지를 <em>새로고침</em> 해 주세요.</span>
+					</div>
+				</div>
+			</div>
 		</div>
 		<div class="dim"></div>
 	</div>
 <script>
-
+	const itemIdList = [[${itemIdList}]];
+	document.querySelectorAll(".done").forEach(value => value.addEventListener("click", e => {
+	}))
 </script>
 </body>
 
