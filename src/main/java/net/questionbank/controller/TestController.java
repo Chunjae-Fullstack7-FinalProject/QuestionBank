@@ -2,6 +2,7 @@ package net.questionbank.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import net.questionbank.annotation.Logging;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequiredArgsConstructor
 @Log4j2
-@RequestMapping("customExam/step2")
+@RequestMapping("/customExam")
 public class TestController {
 
     /*
@@ -18,7 +19,7 @@ public class TestController {
     step1에서 받은 과목 id 값
     step2/sub03_01_01로 리턴
      */
-    @GetMapping("/editQuestion")
+    @GetMapping("/step2")
     public String getItemIds(Model model){
         String[] questionIds ={"494519", "494552"
                 , "494553"

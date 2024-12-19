@@ -126,35 +126,6 @@
 											<span>문제 형태</span>
 											<span>난이도</span>
 										</div>
-										<div class="tbody">
-											<div class="scroll-inner">
-												<div class="test ui-sortable" id="table-1">
-													<div class="col">
-														<a href="javascript:;">
-															<span class="dragHandle ui-sortable-handle"><img
-																	src="../../images/common/ico_move_type01.png" alt=""></span>
-															<span>1</span>
-															<!-- S 230808 tooltip-wrap 추가-->
-															<span class="tit">
-																<div class="txt">자연수의 성질&gt;소인수분해&gt;거듭제곱&gt;거듭제곱으로표현</div>
-																<div class="tooltip-wrap">
-																	<button type="button" class="btn-tip"></button>
-																	<div class="tooltip type01">
-																		<div class="tool-type01">
-																			시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~</div>
-																	</div>
-																</div>
-															</span>
-															<!-- E 230808 tooltip-wrap 추가-->
-															<span>주관식</span>
-															<span>
-																<span class="que-badge">하</span>
-															</span>
-														</a>
-													</div>
-												</div>
-											</div>
-										</div>
 									</div>
 									<div class="bottom-box">
 										<div class="que-badge-group">
@@ -311,7 +282,7 @@
 					if (data.successYn === 'Y') {
 						questions = data.itemList;
 						console.log("성공:", questions);
-						searchQuestions("");
+						sortByPassageId(questions);
 					} else {
 						console.error("실패:", data);
 					}
@@ -367,14 +338,60 @@
 			function sortQuestions(status){
 				//기존 데이터를 사용해야함
 				let sortQuestionsList = [...questions];
+				console.log(sortQuestionsList);
 				switch (status){
 					case "단원순":
 						sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
 						break;
 					case "난이도순":
-						const level = {"최하": 1, "하": 2, "중": 3, "상": 4, "최상": 5};
-						sortQuestionsList.sort((a, b) => (level[a.difficultyName] || 0) - (level[b.difficultyName] || 0));
-						break;
+						const level = { "최하": 1, "하": 2, "중": 3, "상": 4, "최상": 5 };
+
+						//지문별로 그룹화 (단일 문항 포함)
+						const groupedByPassage = questions.reduce((groups, question) => {
+							const passageId = question.passageId || `null`;
+							if (!groups[passageId]) {
+								groups[passageId] = [];
+							}
+							groups[passageId].push(question);
+							return groups;
+						}, {});
+
+						//그룹 정보 계산 (지문별 데이터 생성)
+						const groupedArray = Object.entries(groupedByPassage).map(([passageId, questions]) => {
+							const minDifficulty = Math.min(
+									...questions.map(q => level[q.difficultyName] || Infinity)
+							);
+							const chapterName = questions[0].largeChapterName || "기타";
+							const singleQuestion = passageId.startsWith("null");
+							return { passageId, questions, minDifficulty, chapterName, singleQuestion };
+						});
+
+						//그룹 정렬 (난이도와 단원 순서)
+						groupedArray.sort((a, b) => {
+							//난이도 순으로 정렬
+							if (a.minDifficulty !== b.minDifficulty) {
+								return a.minDifficulty - b.minDifficulty;
+							}
+							//단일 문항을 앞에 두기
+							if (a.singleQuestion !== b.singleQuestion) {
+								return a.singleQuestion ? -1 : 1;
+							}
+							//단원 순서로 정렬
+							return (a.chapterName || "").localeCompare(b.chapterName || "");
+						});
+
+						//그룹 내 문항 정렬 (난이도 순)
+						groupedArray.forEach(group => {
+							group.questions.sort((a, b) => {
+								const difficultyA = level[a.difficultyName] || Infinity;
+								const difficultyB = level[b.difficultyName] || Infinity;
+								return difficultyA - difficultyB;
+							});
+						});
+
+						//정렬된 그룹의 문항 배열로 다시 만듦
+						sortQuestionsList = groupedArray.flatMap(group => group.questions);
+						break
 					case "문제 형태순":
 						break;
 					default: //단원순
@@ -394,15 +411,83 @@
 				})
 			})
 
+			//지문 정렬(그룹 -> 정렬)
+			function sortByPassageId(questions){
+				//console.log(questions);
+				//그룹화
+				const groupList = questions.reduce((groups, question) =>{
+					const passageId = question.passageId || "null";
+					if(!groups[passageId]){
+						groups[passageId] = [];
+					}
+					groups[passageId].push(question);
+					return groups;
+				}, {});
+				//passageId가 null인 경우 가장 마지막
+				const sortedPassageIds = Object.keys(groupList).sort((a, b) => {
+					if (a === "null"){
+						return 1;
+					}
+					if(b === "null"){
+						return -1;
+					}
+					return parseInt(a) - parseInt(b); // 숫자 기준으로 정렬
+
+				});
+
+				//정렬된 순서대로 데이터를 배열로 재구성
+				const sortedQuestions = [];
+				sortedPassageIds.forEach(passageId => {
+					sortedQuestions.push(...groupList[passageId]);
+				})
+				renderQuestions(sortedQuestions);
+			}
 
 			//문제 데이터를 화면에 렌더링
 			function renderQuestions(questions) {
-				console.log(questions);
+				//console.log(questions);
 				const container = document.querySelector(".view-que-list");
 				container.innerHTML = "";
+				let renderedPassageIds = new Set();
 				questions.forEach((q, index) => {
-					const questionHTML = `
+					let questionHTML ='';
+					<!-- 앞 passgeId값과 다를 경우 -->
+					const prevPassageId = index > 0 ? questions[index-1].passageId : null;
+					//console.log("현재" + q.passageId);
+					//console.log("이전" + prevPassageId);
+					if(q.passageId !== null && q.passageId !== prevPassageId) {
+						// 이전에 나온 passageId는 건너뛰기
+						if (q.passageId && renderedPassageIds.has(q.passageId)) {
+							return;
+						}
+						const count = questions.reduce((a,b) => (b.passageId === q.passageId ? a+1 : a),0); //b는 객체
+						//시작 인덱스
+						const startIndex = questions.findIndex(b => b.passageId === q.passageId) + 1;
+						//끝 인덱스
+						const endIndex = startIndex + count - 1;
+						//범위
+						const rangeText = startIndex === endIndex ? `${startIndex}` : `${startIndex}~${endIndex}`;
+
+						//console.log(`${count}`);
+						questionHTML += `
 						<div class="view-que-box">
+							<div class="que-top">
+								<div class="title">
+									<span class="num">${rangeText}</span>
+								</div>
+							</div>
+							<div class="view-que">
+								<div class="que-bottom">
+									<div class="passage-area">
+										${q.passageUrl ? `<img src="${q.passageUrl}" alt="지문 이미지"/>` : ""}
+									</div>
+								</div>
+							</div>
+						</div>
+					`;
+					}
+					questionHTML +=`
+					<div class="view-que-box">
 							<div class="que-top">
 								<div class="title">
 									<span class="num">${index+1}</span> <!--문제 순서 -->
@@ -467,6 +552,8 @@
 
 			// 페이지 로드 시 API 요청
 			document.addEventListener("DOMContentLoaded", getQuestionInfo);
+
+
 
 				//난이도 별 문항 수/총 문항 수 노출
 				function getLevelCnt(questionFormCode) {
