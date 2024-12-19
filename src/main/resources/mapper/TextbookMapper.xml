@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.questionbank.mapper.TextbookMapper">
+    <select id="authorListBySubject" resultType="java.lang.String">
+        SELECT author FROM textbook
+        WHERE subjectId = #{subjectId}
+        GROUP BY author
+    </select>
+    <select id="textbookListsByAuthor" resultType="net.questionbank.dto.textbook.TextbookDTO">
+        SELECT * FROM textbook
+        WHERE author = #{author}
+    </select>
+</mapper>
