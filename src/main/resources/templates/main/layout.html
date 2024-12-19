@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultrag.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문제은행</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- 추가적인 커스터마이징을 위한 스타일 -->
+    <style>
+        .header h1 {
+            font-size: 2.5rem;
+        }
+
+        /* 저자 이름 강조 스타일 */
+        .author-name {
+            font-size: 1.5rem; /* 저자 이름 글씨 크기 증가 */
+            font-weight: bold;
+            color: #007bff; /* 강조 색상 */
+        }
+
+        /* 상단 탭 스타일 */
+        .tabs a {
+            margin-right: 15px;
+        }
+        .tabs a.active {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        /* textbook-item 스타일 */
+        .textbook-item {
+            width:200px;
+            text-align: center;
+            margin-bottom: 10px; /* 항목 간격은 그대로 두고 */
+            margin-left: 5px;  /* 좌측 간격을 줄임 */
+            margin-right: 5px; /* 우측 간격을 줄임 */
+        }
+
+        .textbook-item img {
+            width: 180px;
+            height: 240px;
+            margin-bottom: 10px;
+        }
+
+        .textbook-item p {
+            font-size: 1.2rem; /* 제목 글씨 크기 증가 */
+            font-weight: bold;
+            margin-bottom: 10px; /* 제목과 버튼 간격 조정 */
+        }
+
+        .textbook-item .button {
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <!-- 제목 -->
+    <div class="header text-center mb-4">
+        <h1>문제은행 <span style="color: #666; font-size: 1.2rem;">BETA</span></h1>
+        <p>문제출제, 시험지 편집까지! 편리하게 시험지 제작 서비스를 제공합니다.</p>
+    </div>
+
+    <!-- 상단 탭 -->
+    <div class="d-flex justify-content-center mb-4">
+        <a href="#" class="btn btn-outline-primary active">중학</a>
+        <a href="#" class="btn btn-outline-primary ms-2">시험지 보관함</a>
+    </div>
+
+    <!-- 과목 탭 -->
+    <div class="d-flex justify-content-center mb-4">
+        <a href="javascript:" class="btn btn-outline-secondary active" onclick="fetchSubjectData('KO')" id="KO">국어</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('EN')" id="EN">영어</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('MA')" id="MA">수학</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('SO')" id="SO">사회</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('HS')" id="HS">역사</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('MO')" id="MO">도덕</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('SC')" id="SC">과학</a>
+    </div>
+
+    <!-- 리스트 출력 부분-->
+    <div>
+        <div id="author-area">
+
+        </div>
+    </div>
+
+
+</div>
+
+<!-- Bootstrap JS, Popper.js -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function customExamPopup(textbookId) {
+        let pop_title = "win_pop";
+        let url = 'http://localhost:8080/test/STEP_0'; // 여기는 감찬햄이 알아서 보셈. 테스트 환경이랑 배포랑도 달라질 거라 신경 써줘야 함.
+        window.open("", pop_title, 'width=1400,height=1024,status=no,toolbar=no,scrollbars=no, left=500, top=0');
+
+        let new_form = $('<form></form>');
+        new_form.attr("name", "new_form");
+        new_form.attr("charset", "UTF-8");
+        new_form.attr("method", "post");
+        new_form.attr("action", url);
+        new_form.attr("target", pop_title);
+
+        new_form.append($('<input/>', {type: 'hidden', name: 'subjectId', value: textbookId}));
+
+        new_form.appendTo('body');
+        new_form.submit();
+    }
+
+    // 기본 과목인 '국어'의 subjectId 값을 미리 설정
+    let subjectId = 'KO';
+
+    function fetchSubjectData(subjectId) {
+
+        const subjectButtons = document.querySelectorAll('.btn-outline-secondary');
+        subjectButtons.forEach(button => button.classList.remove('active'));
+
+        // 클릭한 버튼에 active 클래스 추가
+        const selectedButton = document.getElementById(subjectId);
+        selectedButton.classList.add('active');
+
+
+        const requestData = {
+            subjectId: subjectId
+        };
+
+
+        fetch('/api/mainList', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        })
+            .then(response => response.json())  // 응답을 JSON 형식으로 변환
+            .then(data => {
+                if (data && data.status === 'success') {
+                    // 응답 데이터가 성공적으로 처리되면 handleResponseData 호출
+                    handleResponseData(data.data);
+                } else {
+                    console.error('응답 실패:', data.message);
+                }
+            })
+            .catch(error => {
+                // 네트워크 에러 처리
+                console.error('에러 발생:', error);
+            });
+    }
+    // 페이지 로드 시 기본 과목 정보 요청
+    fetchSubjectData(subjectId);
+
+    // 응답 데이터 처리 함수
+    function handleResponseData(mainList) {
+        if (!Array.isArray(mainList)) {
+            console.error('응답 데이터는 배열이어야 합니다.');
+            return;
+        }
+
+        // 기존의 author-area를 비워두기
+        const authorContainer = document.getElementById('author-area');
+        authorContainer.innerHTML = '';
+
+        // mainList를 순회하며 각 author와 textbooks를 처리
+        mainList.forEach(author => {
+            const authorName = author.authorName;
+            const textbooks = author.textbooks;
+
+            // 저자 영역을 생성
+            const authorSection = document.createElement('div');
+            authorSection.classList.add('mb-4');
+
+            const authorTitle = document.createElement('h4');
+            authorTitle.textContent = `${authorName}`;
+            authorSection.appendChild(authorTitle);
+
+            const hr = document.createElement('hr');
+            authorSection.appendChild(hr);
+
+            const rowDiv = document.createElement('div');
+            rowDiv.classList.add('row', 'row-cols-1', 'row-cols-md-2', 'row-cols-lg-4', 'g-4');
+
+            // textbooks 배열을 순회하면서 교과서 항목을 생성
+            textbooks.forEach(textbook => {
+                const textbookItem = document.createElement('div');
+                textbookItem.classList.add('textbook-item');
+
+                // 교과서 이미지
+                const img = document.createElement('img');
+                img.src = '/textbookImg/'+`${textbook.author}_${textbook.title}.jpg`;  // 실제 이미지 경로로 변경
+                img.alt = '교재 이미지';
+                textbookItem.appendChild(img);
+
+                // 교과서 제목
+                const p = document.createElement('p');
+                p.textContent = textbook.title;
+                textbookItem.appendChild(p);
+
+                // 시험지 만들기 버튼
+                const button = document.createElement('a');
+                button.href = 'javascript:';
+                button.setAttribute('onclick', `customExamPopup(${textbook.textbookId})`);
+                button.title = '새창 열림';
+                button.classList.add('btn', 'btn-primary');
+
+                const icon = document.createElement('i');
+                icon.classList.add('icon', 'icon-memo-center');
+                button.appendChild(icon);
+                button.appendChild(document.createTextNode(' 시험지 만들기'));
+
+                textbookItem.appendChild(button);
+
+                // 교과서 항목을 rowDiv에 추가
+                rowDiv.appendChild(textbookItem);
+            });
+
+            // authorSection에 rowDiv를 추가
+            authorSection.appendChild(rowDiv);
+
+            // authorContainer에 authorSection을 추가
+            authorContainer.appendChild(authorSection);
+        });
+    }
+</script>
+</body>
+</html>
