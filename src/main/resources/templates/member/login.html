@@ -125,14 +125,58 @@
             도움을 드리기 위해 최선을 다하도록 하겠습니다.
         </div>
         <div class="form-container">
-            <input class="id-input" type="text" id="memberId" name="memberId" placeholder="아이디">
-            <input class="pwd-input" type="password" id="pwd" name="pwd" placeholder="비밀번호">
-            <div class="link-container">
-                <a href="#">회원가입</a>
-            </div>
-            <input class="btn-main" type="submit" value="로그인">
+            <form id="frm" action="/member/login" method="post">
+                <input class="id-input" type="text" id="memberId" name="memberId" placeholder="아이디">
+                <input class="pwd-input" type="password" id="pwd" name="pwd" placeholder="비밀번호">
+                <div class="link-container">
+                    <a href="/member/register">회원가입</a>
+                </div>
+                <input class="btn-main" type="submit" value="로그인">
+            </form>
         </div>
     </div>
 </div>
+<script th:inline="javascript">
+    const errors = [[${errors}]];
+    if(errors){
+        alert(errors);
+    }
+
+    // function memberIdValid(memberId){
+    //     const MEMBER_ID_REGEXP = /^[a-z0-9]{5,20}$/;
+    //     return MEMBER_ID_REGEXP.test(memberId);
+    // }
+    // function pwdValid(pwd){
+    //     const PWD_REGEXP = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()-+=])[a-zA-Z\d!@#$%^&*()-+=]{8,20}$/;
+    //     return PWD_REGEXP.test(pwd);
+    // }
+
+    const frm = document.querySelector("#frm");
+    frm.addEventListener("submit",(e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        if(frm.memberId.value === ''){
+            alert("아이디를 입력하세요.");
+            frm.memberId.focus();
+            return;
+        }
+        if(frm.pwd.value === ''){
+            alert("비밀번호를 입력하세요.");
+            frm.pwd.focus();
+            return;
+        }
+        // if(!memberIdValid(frm.memberId.value)){
+        //     alert("회원 ID는 영어 소문자 또는 숫자만을 포함하고, 5~20자여야합니다.");
+        //     frm.memberId.focus();
+        //     return;
+        // }
+        // if(!pwdValid(frm.pwd.value)){
+        //     alert("비밀번호는 영어, 숫자, 특수문자를 포함해야 하며, 8~20자여야 합니다.");
+        //     frm.pwd.focus();
+        //     return;
+        // }
+        frm.submit();
+    });
+</script>
 </body>
 </html>

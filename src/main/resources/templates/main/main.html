@@ -62,7 +62,16 @@
     </style>
 </head>
 <body>
-<div class="container mt-5">
+<div class="container mt-3">
+    <div class="d-flex justify-content-end">
+        <th:block th:if="${session.loginDTO == null}">
+            <p class="mx-2"><a href="/member/login" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">로그인</a></p>
+            <p><a href="/member/register" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">회원가입</a></p>
+        </th:block>
+        <p th:if="${session.loginDTO != null}">
+            <a href="/member/logout" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">로그아웃</a>
+        </p>
+    </div>
     <!-- 제목 -->
     <div class="header text-center mb-4">
         <h1>문제은행 <span style="color: #666; font-size: 1.2rem;">BETA</span></h1>

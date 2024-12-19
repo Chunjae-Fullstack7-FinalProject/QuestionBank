@@ -11,19 +11,17 @@ import net.questionbank.dto.MemberLoginDTO;
 import net.questionbank.dto.MemberRegisterDTO;
 import net.questionbank.exception.CustomRuntimeException;
 import net.questionbank.service.MemberServiceIf;
+import net.questionbank.util.ApiResponseUtil;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/member")
 @Logging
-@RedirectWithError
 @Log4j2
 public class MemberController {
     private final MemberServiceIf memberService;
@@ -48,6 +46,22 @@ public class MemberController {
             throw new CustomRuntimeException("오류가 발생했습니다. 다시시도해주세요.");
         }
         return "redirect:/main";
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.removeAttribute("loginDTO");
+        return "redirect:/main";
+    }
+
+    @GetMapping("/checkId/{member-id}")
+    public ResponseEntity<ApiResponseUtil<?>> checkId(@PathVariable(value = "member-id") String memberId){
+        try{
+            Boolean result = memberService.exists(memberId);
+            return ResponseEntity.ok(ApiResponseUtil.success("아이디 중복조회", result));
+        }catch(Exception e) {
+            return ResponseEntity.internalServerError().body(ApiResponseUtil.error(e.getMessage()));
+        }
     }
 
     @GetMapping("/register")
