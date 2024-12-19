@@ -1,4 +1,4 @@
-package net.questionbank.dto;
+package net.questionbank.dto.textbook;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TextBookDTO {
+public class TextBookApiDTO {
     private Long subjectId;
     private String subjectName;
     private String curriculumCode;

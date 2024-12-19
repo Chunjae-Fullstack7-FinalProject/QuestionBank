@@ -1,4 +1,4 @@
-package net.questionbank.dto;
+package net.questionbank.dto.question;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuestionDTO {
+public class QuestionApiDTO {
     private int itemNo;
     private Long itemId;
     private String questionFormCode;

@@ -1,13 +1,15 @@
 package net.questionbank.service.step3;
 
-import net.questionbank.dto.QuestionDTO;
-import net.questionbank.dto.TestDTO;
-import net.questionbank.dto.TextBookDTO;
+import net.questionbank.dto.question.QuestionApiDTO;
+import net.questionbank.dto.test.TempTestDTO;
+import net.questionbank.dto.test.TestDTO;
+import net.questionbank.dto.textbook.TextBookApiDTO;
 
 import java.util.List;
 
 public interface Step3Service {
-    TestDTO testInfo(int testId);
-    List<QuestionDTO> getQuestionsFromApi(int testId);
-    TextBookDTO getTextBookFromApi(int textBookId);
+    TempTestDTO testInfo(List<Long> itemIdList, Long subjectId);
+    List<QuestionApiDTO> getQuestionsFromApi(List<Long> itemIdList);
+    TextBookApiDTO getTextBookFromApi(Long subjectId);
+    void saveTestInfo(TestDTO testDTO, List<Long> questionIdList);
 }

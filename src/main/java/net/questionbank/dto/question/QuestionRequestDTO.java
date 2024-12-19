@@ -1,4 +1,4 @@
-package net.questionbank.dto;
+package net.questionbank.dto.question;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +11,6 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuestionListResponseDTO {
-    private List<QuestionDTO> itemList;
+public class QuestionRequestDTO {
+    private List<Long> itemIdList;
 }
