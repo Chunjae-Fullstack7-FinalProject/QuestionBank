@@ -34,9 +34,11 @@
 
         /* textbook-item 스타일 */
         .textbook-item {
+            width:200px;
             text-align: center;
-            margin-bottom: 20px; /* 각 항목 간 간격 좁히기 */
-            padding: 10px;
+            margin-bottom: 10px; /* 항목 간격은 그대로 두고 */
+            margin-left: 5px;  /* 좌측 간격을 줄임 */
+            margin-right: 5px; /* 우측 간격을 줄임 */
         }
 
         .textbook-item img {
@@ -56,10 +58,7 @@
             margin-top: 10px;
         }
 
-        /* row의 간격을 좁히기 위한 추가 스타일 */
-        .row {
-            gap: 15px; /* 각 항목 간 간격을 조금 좁혀줌 */
-        }
+
     </style>
 </head>
 <body>
@@ -78,13 +77,13 @@
 
     <!-- 과목 탭 -->
     <div class="d-flex justify-content-center mb-4">
-        <a href="#" class="btn btn-outline-secondary active">국어</a>
-        <a href="#" class="btn btn-outline-secondary ms-2">영어</a>
-        <a href="#" class="btn btn-outline-secondary ms-2">수학</a>
-        <a href="#" class="btn btn-outline-secondary ms-2">사회</a>
-        <a href="#" class="btn btn-outline-secondary ms-2">역사</a>
-        <a href="#" class="btn btn-outline-secondary ms-2">도덕</a>
-        <a href="#" class="btn btn-outline-secondary ms-2">과학</a>
+        <a href="javascript:" class="btn btn-outline-secondary active" onclick="fetchSubjectData('KO')" id="KO">국어</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('EN')" id="EN">영어</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('MA')" id="MA">수학</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('SO')" id="SO">사회</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('HS')" id="HS">역사</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('MO')" id="MO">도덕</a>
+        <a href="javascript:" class="btn btn-outline-secondary ms-2" onclick="fetchSubjectData('SC')" id="SC">과학</a>
     </div>
 
     <!-- 리스트 출력 부분-->
@@ -104,7 +103,7 @@
 <script>
     function customExamPopup(textbookId) {
         let pop_title = "win_pop";
-        let url = 'http://localhost:8080/admin/asdf'; // 여기는 감찬햄이 알아서 보셈. 테스트 환경이랑 배포랑도 달라질 거라 신경 써줘야 함.
+        let url = 'http://localhost:8080/test/STEP_0'; // 여기는 감찬햄이 알아서 보셈. 테스트 환경이랑 배포랑도 달라질 거라 신경 써줘야 함.
         window.open("", pop_title, 'width=1400,height=1024,status=no,toolbar=no,scrollbars=no, left=500, top=0');
 
         let new_form = $('<form></form>');
@@ -121,13 +120,22 @@
     }
 
     // 기본 과목인 '국어'의 subjectId 값을 미리 설정
-    const subjectId = 'KO';
+    let subjectId = 'KO';
 
     function fetchSubjectData(subjectId) {
+
+        const subjectButtons = document.querySelectorAll('.btn-outline-secondary');
+        subjectButtons.forEach(button => button.classList.remove('active'));
+
+        // 클릭한 버튼에 active 클래스 추가
+        const selectedButton = document.getElementById(subjectId);
+        selectedButton.classList.add('active');
+
 
         const requestData = {
             subjectId: subjectId
         };
+
 
         fetch('/api/mainList', {
             method: 'POST',
@@ -190,7 +198,7 @@
 
                 // 교과서 이미지
                 const img = document.createElement('img');
-                img.src = 'https://via.placeholder.com/180x240';  // 실제 이미지 경로로 변경
+                img.src = '/textbookImg/'+`${textbook.author}_${textbook.title}.jpg`;  // 실제 이미지 경로로 변경
                 img.alt = '교재 이미지';
                 textbookItem.appendChild(img);
 
