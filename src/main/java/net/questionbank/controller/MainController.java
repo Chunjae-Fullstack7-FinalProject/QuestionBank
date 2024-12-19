@@ -22,7 +22,7 @@ public class MainController {
 
     @GetMapping("/main")
     public String mainPage(){
-        return "main/layout";
+        return "main/main";
     }
 
     @PostMapping("/api/mainList")
