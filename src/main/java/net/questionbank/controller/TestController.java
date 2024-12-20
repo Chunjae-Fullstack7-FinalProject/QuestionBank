@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +45,12 @@ public class TestController {
 
     @GetMapping("/complete")
     @PostMapping("/complete")
-    public String step3() {
+    public String complete() {
         return "test/sub04_02";
+    }
+
+    @GetMapping("/pdf")
+    public String step3() {
+        return "test/test";
     }
 }
