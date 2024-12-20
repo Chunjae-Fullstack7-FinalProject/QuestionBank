@@ -1,4 +1,4 @@
-package net.questionbank.service;
+package net.questionbank.service.textbook;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

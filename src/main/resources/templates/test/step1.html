@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
@@ -37,107 +35,77 @@
                 <!-- 교과서 정보 + STEP따라 버튼 -->
                 <div class="view-top">
                     <div class="paper-info">
+                        <!--여기는 title, 저자, 교육과정연도...는 파싱해서 넣어야 함-->
                         <span>국어 1-1</span>
                         노미숙(2015)
                     </div>
-                    <button class="btn-default btn-research" style="display:none;"><i class="research"></i>재검색</button>
-                    <button class="btn-default pop-btn" data-pop="que-scope-pop" style="display:none;">출제범위</button>
                 </div>
                 <!-- 여기가 바뀌는 영역-->
-                <div class="view-bottom" layout:fragment="content">
+                <div class="view-bottom">
                     <div class="view-box-wrap">
                         <div class="unit-box-wrap">
                             <div class="unit-box">
                                 <div class="unit-cnt scroll-inner">
-                                    <div class="title-top">
+                                    <div class="title-top sheet-cnt">
                                         <span>단원정보</span>
-                                        <input type="checkbox" id="chk01_00" class="allCheck">
+                                        <input type="checkbox" id="chk01_00" class="allCheck" data-chk="1">
                                         <label for="chk01_00">전체선택</label>
                                     </div>
-                                    <ul>
-                                        <li>
+                                    <ul id="chapter-tree">
+                                        <li th:each="large : ${largeList}">
+                                            <!-- 대단원 -->
                                             <div class="check-group title">
                                                 <div class="title-chk">
-                                                    <input type="checkbox" id="chk01_01" class="que-allCheck depth01">
-                                                    <label for="chk01_01">
-                                                        <button type="button" class="dep-btn active">1. 새로운 시작</button>
+                                                    <input type="checkbox" th:id="${large.largeChapterId}" class="que-allCheck depth01" data-chk="1">
+                                                    <label th:for="${large.largeChapterId}">
+                                                        <button type="button" class="dep-btn active" th:text="${large.largeChapterName}">대단원 이름</button>
                                                     </label>
                                                 </div>
                                             </div>
+                                            <!-- 대단원 끝 -->
+
                                             <div class="depth02">
-                                                <div class="check-group">
-                                                    <input type="checkbox" id="chk01_02" class="que-allCheck depth01">
-                                                    <label for="chk01_02">
-                                                        <button type="button" class="dep-btn active">(1) 시의 아름다움</button>
-                                                    </label>
-                                                </div>
-                                                <div class="depth03">
+                                                <!-- 중단원 -->
+                                                <div th:each="medium : ${large.mediumList}">
                                                     <div class="check-group">
-                                                        <input type="checkbox" id="chk01_03" class="que-allCheck depth01">
-                                                        <label for="chk01_03">
-                                                            <button type="button" class="dep-btn active">[1] 소주제</button>
+                                                        <input type="checkbox" th:id="${medium.mediumChapterId}" class="que-allCheck depth01" data-chk="1">
+                                                        <label th:for="${medium.mediumChapterId}">
+                                                            <button type="button" class="dep-btn active" th:text="${medium.mediumChapterName}">중단원 이름</button>
                                                         </label>
                                                     </div>
-                                                    <div class="depth04">
-                                                        <div class="check-group">
-                                                            <input type="checkbox" id="chk01_04" class="que-allCheck depth01">
-                                                            <label for="chk01_04">
-                                                                <button type="button" class="dep-btn active">거듭제곱</button>
-                                                            </label>
-                                                        </div>
-                                                        <div class="depth05">
+
+                                                    <div class="depth03">
+                                                        <!-- 소단원 -->
+                                                        <div th:each="small : ${medium.smallList}">
                                                             <div class="check-group">
-                                                                <input type="checkbox" id="chk01_05">
-                                                                <label for="chk01_05">
-                                                                    <span>거듭제곱으로 표현</span>
+                                                                <input type="checkbox" th:id="${small.smallChapterId}" class="que-allCheck depth01" data-chk="1">
+                                                                <label th:for="${small.smallChapterId}">
+                                                                    <button type="button" class="dep-btn active" th:text="${small.smallChapterName}">소단원 이름</button>
+                                                                    <em th:text="'('+${small.itemCount}+')'" style="color:#5670dc;"></em>
                                                                 </label>
                                                             </div>
+
+                                                            <div class="depth04">
+                                                                <!-- 토픽 -->
+                                                                <div th:each="topic : ${small.topicList}">
+                                                                    <div class="check-group">
+                                                                        <input type="checkbox" th:id="${topic.topicChapterId}" class="que-allCheck depth04" data-chk="1">
+                                                                        <label th:for="${topic.topicChapterId}">
+                                                                            <button type="button" class="active" th:text="${topic.topicChapterName}">토픽 이름</button>
+                                                                            <em th:text="'('+${topic.itemCount}+')'" style="color:#5670dc;"></em>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div class="check-group">
-                                                            <input type="checkbox" id="chk01_06">
-                                                            <label for="chk01_06">
-                                                                <span>소수와 합성수</span>
-                                                            </label>
-                                                        </div>
-                                                        <div class="check-group">
-                                                            <input type="checkbox" id="chk01_07">
-                                                            <label for="chk01_07">
-                                                                <span>소인수분해</span>
-                                                            </label>
-                                                        </div>
-                                                        <div class="check-group">
-                                                            <input type="checkbox" id="chk01_08">
-                                                            <label for="chk01_08">
-                                                                <span>소인수분해를 이용하여 약수 구하기</span>
-                                                            </label>
-                                                        </div>
-                                                        <div class="check-group">
-                                                            <input type="checkbox" id="chk01_09">
-                                                            <label for="chk01_09">
-                                                                <span>최대공약수와 최소공배수</span>
-                                                            </label>
-                                                        </div>
+                                                        <!-- 소단원 끝 -->
                                                     </div>
                                                 </div>
-                                                <div class="check-group">
-                                                    <input type="checkbox" id="chk01_10">
-                                                    <label for="chk01_10">
-                                                        <span>(2) 산문의 향기</span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="check-group title">
-                                                <div class="title-chk">
-                                                    <input type="checkbox" id="chk02_01" class="que-allCheck depth01">
-                                                    <label for="chk02_01">
-                                                        <button type="button" class="dep-btn">2. 세상과 함께 자라는 꿈 </button>
-                                                    </label>
-                                                </div>
+                                                <!-- 중단원 끝 -->
                                             </div>
                                         </li>
                                     </ul>
+
                                 </div>
                             </div>
                         </div>
@@ -341,78 +309,78 @@
     <!-- 문항 충족하지 않을 시 노출 팝업 -->
 </div>
 
-    <script>
-        $(function () {
-            // depth
-            let depBtn = $('.dep-btn');
 
-            function depFunc() {
-                let _this = $(this);
+<script>
+    $(function () {
+        // depth
+        let depBtn = $('.dep-btn');
 
-                if (!_this.hasClass('active')) {
-                    _this.addClass('active');
-                    _this.parents('.check-group').next('div').stop().slideUp('fast');
+        function depFunc() {
+            let _this = $(this);
 
-                } else {
-                    _this.removeClass('active');
-                    _this.parents('.check-group').next('div').stop().slideDown('fast');
-                }
+            if (!_this.hasClass('active')) {
+                _this.addClass('active');
+                _this.parents('.check-group').next('div').stop().slideUp('fast');
 
-                _this.parents('.check-group').toggleClass('on');
+            } else {
+                _this.removeClass('active');
+                _this.parents('.check-group').next('div').stop().slideDown('fast');
             }
 
-            depBtn.on('click', depFunc);
+            _this.parents('.check-group').toggleClass('on');
+        }
+
+        depBtn.on('click', depFunc);
 
 
-            // que-checkbox
-            let queChkAll = $('.que-allCheck');
+        // que-checkbox
+        let queChkAll = $('.que-allCheck');
 
-            function queCheckFunc() {
-                let _this = $(this);
+        function queCheckFunc() {
+            let _this = $(this);
 
-                if (_this.prop('checked')) {
-                    _this.parents().next('ul').find('input[type=checkbox]').prop('checked', true);
-                } else {
-                    _this.parents().next('ul').find('input[type=checkbox]').prop('checked', false);
-                }
-
-                if (_this.prop('checked') && _this.hasClass('depth01')) {
-                    _this.parents('.check-group').next('div').find('input[type=checkbox]').prop('checked', true);
-                } else {
-                    _this.parents('.check-group').next('div').find('input[type=checkbox]').prop('checked', false);
-                }
-
-                if (_this.prop('checked')) {
-                    _this.parents('table').find('input[type=checkbox]').prop('checked', true);
-                } else {
-                    _this.parents('table').find('input[type=checkbox]').prop('checked', false);
-                }
-
+            if (_this.prop('checked')) {
+                _this.parents().next('ul').find('input[type=checkbox]').prop('checked', true);
+            } else {
+                _this.parents().next('ul').find('input[type=checkbox]').prop('checked', false);
             }
 
-            queChkAll.on('click', queCheckFunc);
-
-
-            $(".type-box .box .range").hide();
-            let stepBtn = $('.step-wrap .btn-line');
-
-            function stepFunc() {
-                let _this = $(this);
-                let stepData = _this.data('step');
-
-                _this.toggleClass('active');
-
-                if (_this.hasClass('active')) {
-                    $(".range[data-step='" + stepData + "']").show();
-                } else {
-                    $(".range[data-step='" + stepData + "']").hide();
-                }
-
+            if (_this.prop('checked') && _this.hasClass('depth01')) {
+                _this.parents('.check-group').next('div').find('input[type=checkbox]').prop('checked', true);
+            } else {
+                _this.parents('.check-group').next('div').find('input[type=checkbox]').prop('checked', false);
             }
 
-            stepBtn.on('click', stepFunc);
-        });
-    </script>
+            if (_this.prop('checked')) {
+                _this.parents('table').find('input[type=checkbox]').prop('checked', true);
+            } else {
+                _this.parents('table').find('input[type=checkbox]').prop('checked', false);
+            }
+
+        }
+
+        queChkAll.on('click', queCheckFunc);
+
+
+        $(".type-box .box .range").hide();
+        let stepBtn = $('.step-wrap .btn-line');
+
+        function stepFunc() {
+            let _this = $(this);
+            let stepData = _this.data('step');
+
+            _this.toggleClass('active');
+
+            if (_this.hasClass('active')) {
+                $(".range[data-step='" + stepData + "']").show();
+            } else {
+                $(".range[data-step='" + stepData + "']").hide();
+            }
+        }
+
+        stepBtn.on('click', stepFunc);
+    });
+</script>
 </body>
 
 
