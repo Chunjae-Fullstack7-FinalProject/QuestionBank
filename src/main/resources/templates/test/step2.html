@@ -116,15 +116,23 @@
 									</li>
 								</ul>
 								<div class="contents on">
-									<div class="table half-type no-passage">
-										<!--지문 없는 테이블 유형-->
+									<div class="table half-type">
+										<!--지문 있는 테이블 유형-->
 										<div class="fix-head">
 											<span>이동</span>
 											<span>번호</span>
-											<span>시험지명</span>
-											<!--문제 유형-->
+											<span>문제 유형</span>
+											<!--시험지명-->
 											<span>문제 형태</span>
 											<span>난이도</span>
+										</div>
+										<div class="tbody">
+											<div class="scroll-inner">
+												<div class="test ui-sortable" id="table-1">
+													<!-- s: 지문 묶음 영역-->
+
+												</div>
+											</div>
 										</div>
 									</div>
 									<div class="bottom-box">
@@ -262,214 +270,216 @@
 				</div>
 			</div>
 		</div>
-		<script th:inline="javascript">
-			//문항id 배열로 티셀파 문항 리스트 조회(img) 요청
-			const questionIds = [[${questionIds}]];
-			const API_BASE_URL = '/bridge/t-sherpa'; // 프록시 서버 경로
-			let questions = [];
-			async function getQuestionInfo() {
-				try {
-					const response = await fetch(`${API_BASE_URL}/item-img/item-list`, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json"
-						},
-						body: JSON.stringify({
-							itemIdList: questionIds
-						})
-					});
-					const data = await response.json();
-					if (data.successYn === 'Y') {
-						questions = data.itemList;
-						console.log("성공:", questions);
-						sortByPassageId(questions);
-					} else {
-						console.error("실패:", data);
-					}
-				} catch (error) {
-					console.error("fetch 오류:", error);
-				}
-			}
-			//검색 조건 버튼 이벤트
-			function searchQuestions(status){
-				console.log(status);
-				let searchList = [];
-				switch(status){
-					case "문제만 보기":
-						searchList = questions.map(q => ({
-							...q,
-							explainUrl: null,
-							answerUrl: null,
-						}))
-						break;
-					case "문제+정답 보기":
-						searchList = questions.map(q => ({
-							...q, // 전체 데이터를 복사
-							explainUrl: null
-						}));
-						break;
-					case "문제+해설+정답 보기":
-						searchList = questions
-						break;
-					case "편집단계에서만 적용되는 보기 옵션":
-						break;
-					default: //문제만 보기
-						searchList = questions.map(q => ({
-							...q,
-							explainUrl: null,
-							answerUrl: null,
-						}))
-						break;
-				}
-				renderQuestions(searchList);
-			}
 
-			//검색 이벤트 리스너
-			document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
-				button.addEventListener("click", (e) =>{
-					const status = e.target.textContent.trim();
-					if(["문제만 보기", "문제+정답 보기", "문제+해설+정답 보기", "편집단계에서만 적용되는 보기 옵션"].includes(status)){
-						searchQuestions(status);
-					}
-				})
-			})
-
-			//정렬 조건 버튼 이벤트
-			function sortQuestions(status){
-				//기존 데이터를 사용해야함
-				let sortQuestionsList = [...questions];
-				console.log(sortQuestionsList);
-				switch (status){
-					case "단원순":
-						sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
-						break;
-					case "난이도순":
-						const level = { "최하": 1, "하": 2, "중": 3, "상": 4, "최상": 5 };
-
-						//지문별로 그룹화 (단일 문항 포함)
-						const groupedByPassage = questions.reduce((groups, question) => {
-							const passageId = question.passageId || `null`;
-							if (!groups[passageId]) {
-								groups[passageId] = [];
-							}
-							groups[passageId].push(question);
-							return groups;
-						}, {});
-
-						//그룹 정보 계산 (지문별 데이터 생성)
-						const groupedArray = Object.entries(groupedByPassage).map(([passageId, questions]) => {
-							const minDifficulty = Math.min(
-									...questions.map(q => level[q.difficultyName] || Infinity)
-							);
-							const chapterName = questions[0].largeChapterName || "기타";
-							const singleQuestion = passageId.startsWith("null");
-							return { passageId, questions, minDifficulty, chapterName, singleQuestion };
-						});
-
-						//그룹 정렬 (난이도와 단원 순서)
-						groupedArray.sort((a, b) => {
-							//난이도 순으로 정렬
-							if (a.minDifficulty !== b.minDifficulty) {
-								return a.minDifficulty - b.minDifficulty;
-							}
-							//단일 문항을 앞에 두기
-							if (a.singleQuestion !== b.singleQuestion) {
-								return a.singleQuestion ? -1 : 1;
-							}
-							//단원 순서로 정렬
-							return (a.chapterName || "").localeCompare(b.chapterName || "");
-						});
-
-						//그룹 내 문항 정렬 (난이도 순)
-						groupedArray.forEach(group => {
-							group.questions.sort((a, b) => {
-								const difficultyA = level[a.difficultyName] || Infinity;
-								const difficultyB = level[b.difficultyName] || Infinity;
-								return difficultyA - difficultyB;
-							});
-						});
-
-						//정렬된 그룹의 문항 배열로 다시 만듦
-						sortQuestionsList = groupedArray.flatMap(group => group.questions);
-						break
-					case "문제 형태순":
-						break;
-					default: //단원순
-						sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
-						break;
-				}
-				renderQuestions(sortQuestionsList);
-			}
-
-			//정렬 이벤트 리스너
-			document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
-				button.addEventListener("click", (e) => {
-					const status = e.target.textContent.trim();
-					if (["단원순", "난이도순", "문제 형태순"].includes(status)) {
-						sortQuestions(status);
-					}
-				})
-			})
-
-			//지문 정렬(그룹 -> 정렬)
-			function sortByPassageId(questions){
-				//console.log(questions);
-				//그룹화
-				const groupList = questions.reduce((groups, question) =>{
-					const passageId = question.passageId || "null";
-					if(!groups[passageId]){
-						groups[passageId] = [];
-					}
-					groups[passageId].push(question);
-					return groups;
-				}, {});
-				//passageId가 null인 경우 가장 마지막
-				const sortedPassageIds = Object.keys(groupList).sort((a, b) => {
-					if (a === "null"){
-						return 1;
-					}
-					if(b === "null"){
-						return -1;
-					}
-					return parseInt(a) - parseInt(b); // 숫자 기준으로 정렬
-
+	</div>
+	<script th:inline="javascript">
+		//문항id 배열로 티셀파 문항 리스트 조회(img) 요청
+		const questionIds = [[${questionIds}]];
+		const API_BASE_URL = '/bridge/t-sherpa'; // 프록시 서버 경로
+		let questions = [];
+		async function getQuestionInfo() {
+			try {
+				const response = await fetch(`${API_BASE_URL}/item-img/item-list`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({
+						itemIdList: questionIds
+					})
 				});
-
-				//정렬된 순서대로 데이터를 배열로 재구성
-				const sortedQuestions = [];
-				sortedPassageIds.forEach(passageId => {
-					sortedQuestions.push(...groupList[passageId]);
-				})
-				renderQuestions(sortedQuestions);
+				const data = await response.json();
+				if (data.successYn === 'Y') {
+					questions = data.itemList;
+					//console.log("성공:", questions);
+					sortByPassageId(questions);
+				} else {
+					console.error("실패:", data);
+				}
+			} catch (error) {
+				console.error("fetch 오류:", error);
 			}
+		}
+		//검색 조건 버튼 이벤트
+		function searchQuestions(status){
+			console.log(status);
+			let searchList = [];
+			switch(status){
+				case "문제만 보기":
+					searchList = questions.map(q => ({
+						...q,
+						explainUrl: null,
+						answerUrl: null,
+					}))
+					break;
+				case "문제+정답 보기":
+					searchList = questions.map(q => ({
+						...q,
+						explainUrl: null
+					}));
+					break;
+				case "문제+해설+정답 보기":
+					searchList = questions
+					break;
+				case "편집단계에서만 적용되는 보기 옵션":
+					break;
+				default: //문제만 보기
+					searchList = questions.map(q => ({
+						...q,
+						explainUrl: null,
+						answerUrl: null,
+					}))
+					break;
+			}
+			renderQuestions(searchList);
+		}
 
-			//문제 데이터를 화면에 렌더링
-			function renderQuestions(questions) {
-				//console.log(questions);
-				const container = document.querySelector(".view-que-list");
-				container.innerHTML = "";
-				let renderedPassageIds = new Set();
-				questions.forEach((q, index) => {
-					let questionHTML ='';
-					<!-- 앞 passgeId값과 다를 경우 -->
-					const prevPassageId = index > 0 ? questions[index-1].passageId : null;
-					//console.log("현재" + q.passageId);
-					//console.log("이전" + prevPassageId);
-					if(q.passageId !== null && q.passageId !== prevPassageId) {
-						// 이전에 나온 passageId는 건너뛰기
-						if (q.passageId && renderedPassageIds.has(q.passageId)) {
-							return;
+		//검색 이벤트 리스너
+		document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
+			button.addEventListener("click", (e) =>{
+				const status = e.target.textContent.trim();
+				if(["문제만 보기", "문제+정답 보기", "문제+해설+정답 보기", "편집단계에서만 적용되는 보기 옵션"].includes(status)){
+					searchQuestions(status);
+				}
+			})
+		})
+
+		//정렬 조건 버튼 이벤트
+		function sortQuestions(status){
+			//기존 데이터를 사용해야함
+			let sortQuestionsList = [...questions];
+			//console.log(sortQuestionsList);
+			switch (status){
+				case "단원순":
+					sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
+					break;
+				case "난이도순":
+					const level = { "최하": 1, "하": 2, "중": 3, "상": 4, "최상": 5 };
+
+					//지문별로 그룹화 (단일 문항 포함)
+					const groupedByPassage = questions.reduce((groups, question) => {
+						const passageId = question.passageId || "null";
+						if (!groups[passageId]) {
+							groups[passageId] = [];
 						}
-						const count = questions.reduce((a,b) => (b.passageId === q.passageId ? a+1 : a),0); //b는 객체
-						//시작 인덱스
-						const startIndex = questions.findIndex(b => b.passageId === q.passageId) + 1;
-						//끝 인덱스
-						const endIndex = startIndex + count - 1;
-						//범위
-						const rangeText = startIndex === endIndex ? `${startIndex}` : `${startIndex}~${endIndex}`;
+						groups[passageId].push(question);
+						return groups;
+					}, {});
 
-						//console.log(`${count}`);
-						questionHTML += `
+					//그룹 정보 계산 (지문별 데이터 생성)
+					const groupedArray = Object.entries(groupedByPassage).map(([passageId, questions]) => {
+						const minDifficulty = Math.min(
+								...questions.map(q => level[q.difficultyName] || Infinity)
+						);
+						const chapterName = questions[0].largeChapterName || "기타";
+						const singleQuestion = passageId.startsWith("null");
+						return { passageId, questions, minDifficulty, chapterName, singleQuestion };
+					});
+
+					//그룹 정렬 (난이도와 단원 순서)
+					groupedArray.sort((a, b) => {
+						//난이도 순으로 정렬
+						if (a.minDifficulty !== b.minDifficulty) {
+							return a.minDifficulty - b.minDifficulty;
+						}
+						//단일 문항을 앞에 두기
+						if (a.singleQuestion !== b.singleQuestion) {
+							return a.singleQuestion ? -1 : 1;
+						}
+						//단원 순서로 정렬
+						return (a.chapterName || "").localeCompare(b.chapterName || "");
+					});
+
+					//그룹 내 문항 정렬 (난이도 순)
+					groupedArray.forEach(group => {
+						group.questions.sort((a, b) => {
+							const difficultyA = level[a.difficultyName] || Infinity;
+							const difficultyB = level[b.difficultyName] || Infinity;
+							return difficultyA - difficultyB;
+						});
+					});
+					//정렬된 그룹의 문항 배열로 다시 만듦
+					sortQuestionsList = groupedArray.flatMap(group => group.questions);
+					break
+				case "문제 형태순":
+					break;
+				default: //단원순
+					sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
+					break;
+			}
+			renderQuestions(sortQuestionsList);
+		}
+
+		//정렬 이벤트 리스너
+		document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
+			button.addEventListener("click", (e) => {
+				const status = e.target.textContent.trim();
+				if (["단원순", "난이도순", "문제 형태순"].includes(status)) {
+					sortQuestions(status);
+				}
+			})
+		})
+
+		//지문 정렬(그룹 -> 정렬)
+		function sortByPassageId(questions){
+			//console.log(questions);
+			// questions 이 null인 경우 추가해야함
+			//그룹화
+			const groupList = questions.reduce((groups, question) =>{
+				const passageId = question.passageId || "null";
+				if(!groups[passageId]){
+					groups[passageId] = [];
+				}
+				groups[passageId].push(question);
+				return groups;
+			}, {});
+			//passageId가 null인 경우 가장 마지막
+			const sortedPassageIds = Object.keys(groupList).sort((a, b) => {
+				if (a === "null"){
+					return 1;
+				}
+				if(b === "null"){
+					return -1;
+				}
+				return parseInt(a) - parseInt(b); // 숫자 기준으로 정렬
+			});
+
+			//정렬된 순서대로 데이터를 배열로 재구성
+			const sortedQuestions = [];
+			sortedPassageIds.forEach(passageId => {
+				sortedQuestions.push(...groupList[passageId]);
+			})
+			renderQuestions(sortedQuestions); // 좌측에 노출
+			renderSummary(sortedQuestions); // 우측에 노출
+		}
+
+		//문제 데이터를 화면에 렌더링
+		function renderQuestions(questions) {
+			//console.log(questions);
+			const container = document.querySelector(".view-que-list");
+			container.innerHTML = "";
+			let renderedPassageIds = new Set();
+			questions.forEach((q, index) => {
+				let questionHTML ='';
+				<!-- 앞 passgeId값과 다를 경우 -->
+				const prevPassageId = index > 0 ? questions[index-1].passageId : null;
+				//console.log("현재" + q.passageId);
+				//console.log("이전" + prevPassageId);
+				if(q.passageId !== null && q.passageId !== prevPassageId) {
+					// 이전에 나온 passageId는 건너뛰기
+					if (q.passageId && renderedPassageIds.has(q.passageId)) {
+						return;
+					}
+					const count = questions.reduce((a,b) => (b.passageId === q.passageId ? a+1 : a),0); //b는 객체
+					//시작 인덱스
+					const startIndex = questions.findIndex(b => b.passageId === q.passageId) + 1;
+					//끝 인덱스
+					const endIndex = startIndex + count - 1;
+					//범위
+					const rangeText = startIndex === endIndex ? `${startIndex}` : `${startIndex}~${endIndex}`;
+
+					//console.log(`${count}`);
+					questionHTML += `
 						<div class="view-que-box">
 							<div class="que-top">
 								<div class="title">
@@ -485,8 +495,8 @@
 							</div>
 						</div>
 					`;
-					}
-					questionHTML +=`
+				}
+				questionHTML +=`
 					<div class="view-que-box">
 							<div class="que-top">
 								<div class="title">
@@ -546,79 +556,192 @@
 						</div>
 					</div>
 					`;
-					container.insertAdjacentHTML("beforeend", questionHTML);
-				});
-			}
+				container.insertAdjacentHTML("beforeend", questionHTML);
+			});
+		}
 
-			// 페이지 로드 시 API 요청
-			document.addEventListener("DOMContentLoaded", getQuestionInfo);
+		// 페이지 로드 시 API 요청
+		document.addEventListener("DOMContentLoaded", getQuestionInfo);
 
+		function renderSummary(questions){
+			console.log(questions);
+			const container = document.querySelector(".test");
+			container.innerHTML = "";
+			let currentPassageId = null;
+			let flag = false;
+			let questionHTML = '';
+			questions.forEach((q, index) => {
+				const prevPassageId = index > 0 ? questions[index-1].passageId : null;
+				const nextPassageId = (index < questions.length - 1) ? questions[index + 1].passageId : null;
+				// console.log("이전" + prevPassageId);
+				// console.log("현재" + q.passageId);
+				// console.log("다음" + nextPassageId);
+				// if(q.passageId !== null && (q.passageId === prevPassageId || q.passageId === nextPassageId || index === questions.length - 1)) { //null이 아니고 지금 id와 다음 id가 같을 때
+					//console.log(currentPassageId);
+					if (flag && q.passageId !== prevPassageId) {
+						console.log(index + " 지문 끝");// 반복 돌고있는 id가 현재 아이디랑 다른 경우
+						console.log({index});
+						console.log("currentPassageId: " + currentPassageId);
+						console.log("pass: " + q.passageId);
+						// 지문 닫기 무조건 닫음 null 조건은 처음에 null이 나와서 만듦
 
-
-				//난이도 별 문항 수/총 문항 수 노출
-				function getLevelCnt(questionFormCode) {
-					if (questionFormCode) {
-
+						questionHTML += `</div></div>`;
+						flag=false;
+						// currentPassageId = q.passageId;
+						//console.log(currentPassageId);
 					}
+					if(q.passageId !== null && q.passageId !== prevPassageId && nextPassageId===q.passageId) {
+						// 새로운 지문 시작
+						console.log(index + " 새로운지문시작");
+						questionHTML += `
+								<div class="depth-01">
+									<div class="dragHandle ui-sortable-handle drag-type02">
+										<img src="../images/common/ico_move_type01.png" alt="">
+									</div>
+									<div class="col-group">
+								`;
+						flag = true;
+						// currentPassageId = q.passageId;
+					}
+
+					if(flag) {
+						console.log(index + " 1");
+						// if(questionHTML.endsWith("</div>\n</div>")) {
+						// 	questionHTML = questionHTML.substring(0,questionHTML.lastIndexOf("</div></div>"));
+						// }
+						questionHTML += `
+
+									<div class="col singleQuestion depth-02" data-item-id="${q.itemId}">
+										<a href="javascript:;">
+											<span class="dragHandle ui-sortable-handle drag-type01">
+											<img
+												src="../images/common/ico_move_type02.png" alt=""></span>
+											<span>${index + 1}</span> <!-- 다시 확인하기 -->
+											<!-- S 230808 tooltip-wrap 추가-->
+											<span class="tit">
+												<div class="txt">${q.largeChapterName}>${q.mediumChapterName}>${q.smallChapterName}>${q.topicChapterName}</div>
+												<div class="tooltip-wrap">
+													<button type="button" class="btn-tip"></button>
+														<div class="tooltip type01">
+															<div class="tool-type01">
+															시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~</div>
+														</div>
+												</div>
+											</span>
+											<!-- E 230808 tooltip-wrap 추가-->
+											<span>${q.questionFormName}</span>
+											<span>
+												<span class="que-badge">${q.difficultyName}</span>
+											</span>
+										</a>
+									</div>
+								`;
+					}
+				// }
+
+				else {
+						console.log(index + " 2");<!-- 단일 문항 -->
+					questionHTML += `
+							<div class="col singleQuestion" data-item-id="${q.itemId}">
+								<a href="javascript:;">
+									<span class="dragHandle ui-sortable-handle"><img
+										src="../images/common/ico_move_type01.png" alt=""></span>
+									<span></span>
+									<span>${index + 1}</span>
+									<!-- S 230808 tooltip-wrap 추가-->
+									<span class="tit">
+										<div class="txt">${q.largeChapterName}>${q.mediumChapterName}>${q.smallChapterName}>${q.topicChapterName}</div>
+											<div class="tooltip-wrap">
+												<button type="button" class="btn-tip"></button>
+												<div class="tooltip type01">
+													<div class="tool-type01">
+														시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~</div>
+											</div>
+										</div>
+									</span>
+									<!-- E 230808 tooltip-wrap 추가-->
+									<span>${q.questionFormName}</span>
+									<span>
+										<span class="que-badge">${q.difficultyName}</span>
+									</span>
+								</a>
+							</div>
+							`;
 				}
 
-				// // tooltip hover
-				// let tipBtns = $(".btn-tip");
+			});
+			container.insertAdjacentHTML("beforeend", questionHTML);
+		}
 
-				// $(function () {
-				// 	tipBtns.on("mouseover", function () {
-				// 		let _this = $(this);
-				// 		let _tooltip = _this.next(".tooltip"); // 툴팁 요소를 바로 뒤에 있는 요소로 찾아옴
-				// 		let _tooltipPosition = _this.offset().top; // 버튼(_this)의 전체 문서에서의 위치값을 가져옴
+		//문제지 요약
+		function renderTable(questions){
+		}
 
-				// 		console.log(_tooltipPosition);
 
-				// 		if (_tooltipPosition > 490) {
-				// 			_tooltip.css("top", "-130px"); // 툴팁 위치 변경
-				// 			_tooltip.addClass("before-active"); // 클래스 추가
-				// 		}
-				// 	});
-				// });
-				$(function () {
-					let _leg = $('.view-que').length;
-					let arr = [];
 
-					viewListFunc();
+		//난이도 별 문항 수/총 문항 수 노출
+		function getLevelCnt(questionFormCode) {
+			if (questionFormCode) {
 
-					$(".view-que-list").change(function () {
-						let _leg = $('.view-que').length;
-						let arr = [];
+			}
+		}
 
-						viewListFunc();
-					})
+		// // tooltip hover
+		// let tipBtns = $(".btn-tip");
 
-					function viewListFunc() {
-						$('.col').on('click', function () {
+		// $(function () {
+		// 	tipBtns.on("mouseover", function () {
+		// 		let _this = $(this);
+		// 		let _tooltip = _this.next(".tooltip"); // 툴팁 요소를 바로 뒤에 있는 요소로 찾아옴
+		// 		let _tooltipPosition = _this.offset().top; // 버튼(_this)의 전체 문서에서의 위치값을 가져옴
 
-							let _idx = $(this).index();
+		// 		console.log(_tooltipPosition);
 
-							for (var i = 0; i < _leg; i++) {
-								arr.push($('.view-que').eq(i).offset().top - 280);
-							}
+		// 		if (_tooltipPosition > 490) {
+		// 			_tooltip.css("top", "-130px"); // 툴팁 위치 변경
+		// 			_tooltip.addClass("before-active"); // 클래스 추가
+		// 		}
+		// 	});
+		// });
+		$(function () {
+			let _leg = $('.view-que').length;
+			let arr = [];
 
-							console.log(arr);
+			viewListFunc();
 
-							$('.view-que-list').animate({
-								scrollTop: arr[_idx]
-							}, 400);
+			$(".view-que-list").change(function () {
+				let _leg = $('.view-que').length;
+				let arr = [];
 
-							let _this = $(this);
-							if (!_this.hasClass('active')) {
-								_this.parents('.test.ui-sortable').find('.col').removeClass('active');
-								_this.addClass('active');
-								$('.view-que-box').removeClass('active');
-								$('.view-que-box').eq(_idx).addClass('active');
-							}
-							;
-						})
+				viewListFunc();
+			})
+
+			function viewListFunc() {
+				$('.col').on('click', function () {
+
+					let _idx = $(this).index();
+
+					for (var i = 0; i < _leg; i++) {
+						arr.push($('.view-que').eq(i).offset().top - 280);
 					}
+
+					console.log(arr);
+
+					$('.view-que-list').animate({
+						scrollTop: arr[_idx]
+					}, 400);
+
+					let _this = $(this);
+					if (!_this.hasClass('active')) {
+						_this.parents('.test.ui-sortable').find('.col').removeClass('active');
+						_this.addClass('active');
+						$('.view-que-box').removeClass('active');
+						$('.view-que-box').eq(_idx).addClass('active');
+					}
+					;
 				})
-		</script>
-	</div>
+			}
+		})
+	</script>
 </body>
 </html>
