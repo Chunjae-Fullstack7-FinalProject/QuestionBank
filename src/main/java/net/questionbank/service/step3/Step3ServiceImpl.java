@@ -12,6 +12,8 @@ import net.questionbank.dto.question.QuestionRequestDTO;
 import net.questionbank.dto.question.QuestionResponseDTO;
 import net.questionbank.dto.test.TempTestDTO;
 import net.questionbank.dto.test.TestDTO;
+import net.questionbank.dto.test.TestDataDTO;
+import net.questionbank.dto.test.TestDataResponseDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.dto.textbook.TextBookRequestDTO;
 import net.questionbank.dto.textbook.TextBookResponseDTO;
@@ -75,39 +77,75 @@ public class Step3ServiceImpl implements Step3Service {
         TextBookResponseDTO responseDTO = webClient
                 .post()
                 .uri("/chapter/subjectInfo-list")
-                .bodyValue(TextBookRequestDTO.builder().subjectId((long)subjectId).build())
+                .bodyValue(TextBookRequestDTO.builder().subjectId((long) subjectId).build())
                 .retrieve()
                 .bodyToMono(TextBookResponseDTO.class).block();
 
-        if(responseDTO == null || !responseDTO.getSuccessYn().equals("Y")) return null;
+        if (responseDTO == null || !responseDTO.getSuccessYn().equals("Y")) return null;
 
-        if(responseDTO.getSubjectInfoList().isEmpty()) return null;
+        if (responseDTO.getSubjectInfoList().isEmpty()) return null;
 
         return responseDTO.getSubjectInfoList().get(0);
     }
 
     @Override
     @Transactional
-    public void saveTestInfo(TestDTO testDTO, List<Long> questionIdList) {
+    public void saveTestInfo(TestDTO testDTO, List<Long> questionIdList) throws IllegalStateException, IllegalArgumentException {
+        if (questionIdList == null || questionIdList.isEmpty()) throw new IllegalArgumentException("시험지 문항을 선택해주세요.");
+
         Test test = Test.builder()
                 .title(testDTO.getTitle())
                 .createdAt(LocalDateTime.now())
-//                .member(Member.builder().memberId(testDTO.getUserId()).build())
-                .textbook(Textbook.builder().textbookId(Integer.parseInt(String.valueOf(testDTO.getSubjectId()))).build())
+                .member(Member.builder().memberId(testDTO.getUserId()).build())
+                .textbook(Textbook.builder().textbookId(testDTO.getSubjectId().intValue()).build())
                 .build();
         testRepository.save(test);
 
-        if(test.getTestId() == 0) {
+        if (test.getTestId() == 0) {
             throw new IllegalStateException("저장 실패");
         }
-        questionRepository.saveAll(questionIdList.stream().map(id -> Question.builder()
-                .itemId(id.intValue())
+
+        List<Question> questions = questionRepository.saveAll(questionIdList.stream().map(id -> Question.builder()
+                        .itemId(id.intValue())
                         .test(test)
-                        .itemNo(questionIdList.indexOf(id)+1)
+                        .itemNo(questionIdList.indexOf(id) + 1)
                         .build()
                 ).toList()
         );
+
+        if (!questions.stream().filter(question -> question.getItemId() == 0).toList().isEmpty()) {
+            throw new IllegalStateException("저장 실패");
+        }
+
+        // 전송 실패했을 때 어떻게 할지 정해야함
+        // 일단 로그만 찍음
+//        try {
+//            boolean b = sendTestInfo(TestDataDTO.builder()
+//                    .examId((long) test.getTestId())
+//                    .examName(test.getTitle())
+//                    .itemList(questionIdList)
+//                    .teacherId(test.getMember().getMemberId())
+//                    .teacherName(test.getMember().getName())
+//                    .subjectName(testDTO.getSubjectName())
+//                    .build()
+//            );
+//        } catch (IllegalStateException e) {
+//            log.error(e.getMessage());
+//        } catch (Exception e) {
+//            log.error("오류");
+//        }
+
     }
 
+    @Override
+    public boolean sendTestInfo(TestDataDTO testDataDto) throws IllegalStateException {
+        TestDataResponseDTO block = webClient.post().uri("http주소/api/exam")
+                .bodyValue(testDataDto)
+                .retrieve()
+                .bodyToMono(TestDataResponseDTO.class).block();
 
+        if (block == null) throw new IllegalStateException("시험지 정보 전송 실패");
+
+        return block.getSuccess();
+    }
 }

@@ -41,6 +41,7 @@ public class TestController {
         return "test/sub04_01";
     }
 
+    @GetMapping("/complete")
     @PostMapping("/complete")
     public String step3() {
         return "test/sub04_02";

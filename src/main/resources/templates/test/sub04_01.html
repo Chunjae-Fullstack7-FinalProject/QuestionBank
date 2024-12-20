@@ -10,22 +10,23 @@
 	<title>T셀파 문제은행</title>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="../inc/css/font.css">
-	<link rel="stylesheet" href="../inc/css/reset.css">
-	<link rel="stylesheet" href="../inc/css/common.css">
+	<link rel="stylesheet" href="/inc/css/font.css">
+	<link rel="stylesheet" href="/inc/css/reset.css">
+	<link rel="stylesheet" href="/inc/css/common.css">
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"
 		integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
 	<script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
-	<script src="../inc/js/common.js"></script>
+	<script src="/inc/js/common.js"></script>
 	<style>
 		.loading-on {
-			top: 50%;
-			left: 50%;
+			top: 0;
+			left: 0;
 			position: absolute;
-			background-color: gray;
+			background-color: rgba(150,150,150,0.5);
 			width: 100%;
-			z-index: 11;
+			height: 100%;
+			/*z-index: 11;*/
 		}
 		.loading-off {
 			display: none;
@@ -52,7 +53,7 @@
 							<th:block th:text="${'(20' + testInfo.textbookApiDTO.curriculumCode+ ')'}"></th:block>
 						</div>
 						<div class="btn-wrap">
-							<button class="btn-default"><a href="javascript:;">처음으로</a></button>
+							<button class="btn-default"><a href="javascript:goFirstStep();">처음으로</a></button>
 						</div>
 					</div>
 					<div class="view-bottom type02 scroll-inner">
@@ -61,7 +62,7 @@
 								<span>시험지명</span>
 								<div class="search-wrap">
 									<div class="search-box">
-										<input type="text" placeholder="시험지명을 입력해주세요. (최대 20자)" class="search">
+										<input type="text" placeholder="시험지명을 입력해주세요. (최대 20자)" maxlength="20" class="search" id="test-title">
 									</div>
 								</div>
 							</div>
@@ -129,9 +130,9 @@
 			</div>
 
 
-			<div class="pop-content loading-on">
+			<div class="pop-content loading-off" id="loading-container">
 				<div class="loading-cnt">
-					<img src="../images/common/loading_icon.gif" alt="로딩중">
+					<img src="/images/common/loading_icon.gif" alt="로딩중">
 					<div class="txt-box">
 						<span class="tit">LOADING<br>잠시만 기다려주세요.</span>
 						<span class="txt">이 화면이 지속되면 페이지를 <em>새로고침</em> 해 주세요.</span>
@@ -142,10 +143,58 @@
 		<div class="dim"></div>
 	</div>
 <script>
-	const itemIdList = [[${itemIdList}]];
 	document.querySelectorAll(".done").forEach(value => value.addEventListener("click", e => {
-	}))
+		if(!confirm("시험지를 저장하시겠습니까?")) {
+			return;
+		}
+
+		const title_length = $("#test-title").val().length;
+
+		if(title_length === 0) {
+			alert("시험지명을 입력해주세요");
+			return;
+		}
+
+		if(title_length > 20) {
+			alert("시험지명은 20자 이하로 입력해주세요.");
+			return;
+		}
+
+		$("#loading-container").removeClass("loading-off").addClass("loading-on");
+
+		save();
+	}));
+
+	async function save() {
+		const url = "/api/customExam/save";
+		//로딩중 표시하기
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				'title': $("#test-title").val(),
+				'subjectId': [[${testInfo.textbookApiDTO.subjectId}]],
+				'subjectName': `[[${testInfo.textbookApiDTO.areaName}]]`,
+				'itemIdList': [[${itemIdList}]]
+			})
+		});
+
+
+		if(response.ok && (await response.text()) === 'save') {
+			//로딩 끝내고 페이지 이동
+			// $("#loading-container").removeClass("loading-on").addClass("loading-off");
+			location.replace("/customExam/complete");
+		}
+		else {
+			//로딩 끝내고 alert
+			$("#loading-container").removeClass("loading-on").addClass("loading-off");
+			alert((await response.text()));
+		}
+	}
 </script>
+<script src="/assets/step3/step3.js"></script>
 </body>
 
 
