@@ -56,30 +56,30 @@ $(function () {
 
   tabBtn.on("click", tabUI);
 
-  // table drag
-  $("#table-1").sortable({
-    handle: ".dragHandle",
-  });
-  $("#table-1").disableSelection();
-
-  $(function () {
-    $(".depth-01")
-      .sortable({
-        items: ".col",
-        handle: ".drag-type01",
-        cancel: ".drag-type02",
-      })
-      .disableSelection();
-
-    $(".drag-type01")
-      .sortable({
-        items: ".col",
-        handle: ".drag-type02",
-        connectWith: ".drag-type01",
-        cancel: "",
-      })
-      .disableSelection();
-  });
+  // // table drag
+  // $("#table-1").sortable({
+  //   handle: ".dragHandle",
+  // });
+  // $("#table-1").disableSelection();
+  //
+  // $(function () {
+  //   $(".depth-01")
+  //       .sortable({
+  //         items: ".col",
+  //         handle: ".drag-type01",
+  //         cancel: ".drag-type02",
+  //       })
+  //       .disableSelection();
+  //
+  //   $(".drag-type01")
+  //       .sortable({
+  //         items: ".col",
+  //         handle: ".drag-type02",
+  //         connectWith: ".drag-type01",
+  //         cancel: "",
+  //       })
+  //       .disableSelection();
+  // });
 
   // paging
   let pageBtn = $(".page");

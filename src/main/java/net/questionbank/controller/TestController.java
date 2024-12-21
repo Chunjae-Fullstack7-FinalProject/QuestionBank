@@ -22,8 +22,8 @@ public class TestController {
     @GetMapping("/step2")
     public String getItemIds(Model model){
         String[] questionIds ={"494519", "494552"
+                ,"487868"
                 , "494553"
-                , "493138"
                 , "493140"
                 , "493137"
                 , "493139"
@@ -35,10 +35,9 @@ public class TestController {
                 , "493123"
                 , "487816"
                 , "494528"
+                , "493138"
                 ,"487866"
                 ,"487867"
-                ,"487886"
-                ,"487868"
                 ,"493179"};
         model.addAttribute("questionIds", questionIds);
         return "test/step2";
