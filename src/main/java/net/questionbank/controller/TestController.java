@@ -1,5 +1,6 @@
 package net.questionbank.controller;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import net.questionbank.annotation.Logging;
@@ -17,6 +18,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -33,12 +35,13 @@ public class TestController {
     private final TestServiceIf testService;
     @PostMapping("/step0")
     @RedirectWithError(redirectUri = "/error/error")
-    public String step0(@RequestParam String subjectId, Model model) {
+    public String step0(@RequestParam String subjectId, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
         log.info(subjectId);
         TextbookDetailDTO textbookDetailDTO = textbookService.getTextbookDetails(subjectId);
         if(textbookDetailDTO == null) {
             throw new CustomRuntimeException("textbook not found");
         }
+        session.setAttribute("textbookDetailDTO", textbookDetailDTO);
         model.addAttribute("textbookDetailDTO", textbookDetailDTO);
         List<LargeChapterDTO> largeChapterList = testService.getPresetExamList(subjectId);
         if(largeChapterList == null) {

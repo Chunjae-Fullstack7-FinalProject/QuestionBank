@@ -17,6 +17,7 @@
     <script src="../inc/js/common.js"></script>
 </head>
 <body>
+    <script th:src="@{/assets/apiBaseUrl.js}"></script>
     <div id="wrap" class="full-pop-que">
     <div class="full-pop-wrap">
         <div class="pop-header">
@@ -78,33 +79,39 @@
                                         <!--컬럼명-->
                                         <!-- 중단원 mediumChapterName > 소단원smallChapterName > 토픽단원topicChapterName  -->
                                         <div class="tbody">
-                                            <div class="col" th:each="presetExam, satus : ${largeChapter.presetExams}">
-                                            <span>
-                                                <input type="checkbox"
-                                                       th:id="${'chk'+presetExam.examId}"
-                                                       th:value="${presetExam.examId}"
-                                                       th:data-itemCnt="${presetExam.itemCnt}"
-                                                       name="presetExam"
-                                                       class="chk_paperId"
-                                                >
-                                                <label th:for="${'chk'+presetExam.examId}" class="item-label"></label>
-                                            </span>
+                                            <div class="col" th:each="presetExam, satus : ${largeChapter.presetExams}" th:id="${presetExam.examId}">
+                                                <span>
+                                                    <input type="checkbox"
+                                                           th:id="${'chk'+presetExam.examId}"
+                                                           th:value="${presetExam.examId}"
+                                                           th:data-itemCnt="${presetExam.itemCnt}"
+                                                           name="presetExam"
+                                                           class="chk_paperId"
+                                                    >
+                                                    <label th:for="${'chk'+presetExam.examId}" class="item-label"></label>
+                                                </span>
                                                 <!--1. 소인수분해(중단원) > (1) 소인수분해(소단원) > 1회-->
                                                 <span class="tit" th:text="${presetExam.examName}">시험지제목</span>
                                                 <span th:text="${presetExam.itemCnt}"></span>
                                                 <span>
-                                                <button type="button" class="pop-btn btn-icon2" data-pop="prev-pop">
-                                                    <i class="preview"></i>
-                                                </button>
-                                            </span>
+                                                    <button type="button"
+                                                            class="pop-btn btn-icon2"
+                                                            data-pop="prev-pop"
+                                                            th:data-previewId="${presetExam.examId}"
+                                                            th:data-examName="${presetExam.examName}"
+                                                            th:onclick="'getPreviewContent(this)'"
+                                                    >
+                                                        <i class="preview"></i>
+                                                    </button>
+                                                </span>
                                                 <span>
-                                                <div class="btn-wrap">
-                                                    <button type="button" class="btn-default">전체</button>
-                                                    <button type="button" class="btn-default">문제</button>
-                                                    <button type="button" class="btn-default">정답 + 해설</button>
-                                                    <button type="button" class="btn-default">문항정보표</button>
-                                                </div>
-                                            </span>
+                                                    <div class="btn-wrap">
+                                                        <button type="button" class="btn-default">전체</button>
+                                                        <button type="button" class="btn-default">문제</button>
+                                                        <button type="button" class="btn-default">정답 + 해설</button>
+                                                        <button type="button" class="btn-default">문항정보표</button>
+                                                    </div>
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -122,180 +129,15 @@
     <div class="dim"></div>
     <!-- 미리보기 모달 -->
     <div id="q-preview" class="pop-wrap prev-type " data-pop="prev-pop">
-        <div class="pop-inner">
+        <div class="pop-inner" id="preview-content">
             <div class="pop-header">
-                <span>미리보기</span>
+                <div class="tit-top">
+                    <span id="preview_tit">[시험지명]</span><em id="preview_cnt">[문항수]</em>
+                    <input type="hidden" id="preview_paperId" value="">
+                </div>
                 <button type="button" class="pop-close"></button>
             </div>
             <div class="pop-content">
-                <div class="btn-wrap">
-                    <button type="button" class="btn-icon"><i class="download"></i>다운로드</button>
-                </div>
-                <div class="view-box">
-                    <div class="scroll-inner">
-                        <!-- <img src="../images/common/sample_prev.jpg" alt="">
-                        <img src="../images/common/sample_prev.jpg" alt=""> -->
-                        <!--230824 림 추가-->
-                        <div class="view-data">
-                            <div class="example-area">
-                                <div class="example-box">
-                                    <div class="item-question">
-                                        <span class="numbering">1.</span>
-                                        <img src="../images/common/sampling-question.png" alt="">
-                                    </div>
-
-                                    <div class="choice-contanier">
-                                        <ul class="answer-input">
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                    <div class="answer-container">
-                                        <span class="answer-tit">(정답)</span>
-                                        <div class="answer-img" style="height:25px; background:lightgray"><img src="../images/common/answer-img.png" alt=""></div>
-                                    </div>
-
-                                    <div class="explain-answer">
-                                        <span class="explain-tit">(해설)</span>
-                                        <div class="explain-img"><img src="../images/common/sampling-question2.png" alt=""></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="example-area">
-                                <div class="example-box">
-                                    <div class="item-question">
-                                        <span class="numbering numbering-numbers">10~20. </span>
-                                        <img src="../images/common/sampling-question.png" alt="">
-                                    </div>
-
-                                    <div class="choice-contanier">
-                                        <ul class="answer-input">
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                    <div class="answer-container">
-                                        <span class="answer-tit">(정답)</span>
-                                        <div class="answer-img" style="height:25px; background:lightgray"><img src="../images/common/answer-img.png" alt=""></div>
-                                    </div>
-
-                                    <div class="explain-answer">
-                                        <span class="explain-tit">(해설)</span>
-                                        <div class="explain-img"><img src="../images/common/sampling-question2.png" alt=""></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="example-area">
-                                <div class="example-box">
-                                    <div class="item-question">
-                                        <span class="numbering">1.</span>
-                                        <img src="../images/common/sampling-question.png" alt="">
-                                    </div>
-
-                                    <div class="choice-contanier">
-                                        <ul class="answer-input">
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                    <div class="answer-container">
-                                        <span class="answer-tit">(정답)</span>
-                                        <div class="answer-img" style="height:25px; background:lightgray"><img src="../images/common/answer-img.png" alt=""></div>
-                                    </div>
-
-                                    <div class="explain-answer">
-                                        <span class="explain-tit">(해설)</span>
-                                        <div class="explain-img"><img src="../images/common/sampling-question2.png" alt=""></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="example-area">
-                                <div class="example-box">
-                                    <div class="item-question">
-                                        <span class="numbering">1.</span>
-                                        <img src="../images/common/sampling-question.png" alt="">
-                                    </div>
-
-                                    <div class="choice-contanier">
-                                        <ul class="answer-input">
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                            <li>
-                                                <img src="../images/common/sampling-question-1.png" alt="">
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                    <div class="answer-container">
-                                        <span class="answer-tit">(정답)</span>
-                                        <div class="answer-img" style="height:25px; background:lightgray"><img src="../images/common/answer-img.png" alt=""></div>
-                                    </div>
-
-                                    <div class="explain-answer">
-                                        <span class="explain-tit">(해설)</span>
-                                        <div class="explain-img"><img src="../images/common/sampling-question2.png" alt=""></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
             </div>
             <!--<div class="pop-footer">
                 <div class="page-num">
@@ -311,15 +153,15 @@
     const checkedExam = document.getElementById("chk_item_cnt");
     const checkboxes = document.querySelectorAll(".chk_paperId");
     let sumOfItemCount = 0;
-    for(let checkbox of checkboxes){
-        checkbox.addEventListener("input",(e)=>{
+    for (let checkbox of checkboxes) {
+        checkbox.addEventListener("input", (e) => {
             e.stopPropagation();
             e.preventDefault();
             const itemCount = parseInt(checkbox.getAttribute("data-itemCnt"));
-            console.log("checkbox : "+checkbox.checked);
-            if(checkbox.checked){
+            console.log("checkbox : " + checkbox.checked);
+            if (checkbox.checked) {
                 const tempSum = sumOfItemCount + itemCount;
-                if(tempSum > 90){
+                if (tempSum > 90) {
                     alert("최대 90문항까지 선택 가능합니다.");
                     checkbox.checked = false;
                     return;
@@ -328,7 +170,7 @@
                 checkedExam.textContent = "";
                 checkedExam.textContent = sumOfItemCount;
                 checkbox.checked = true;
-            }else{
+            } else {
                 sumOfItemCount = sumOfItemCount - itemCount;
                 checkedExam.textContent = "";
                 checkedExam.textContent = sumOfItemCount;
@@ -336,8 +178,213 @@
             }
         })
     }
-    function updateSumOfItemCount(){
+
+    async function getPreviewContent(previewButton){
+        console.log("getPreviewContent start");
+        const examId = previewButton.getAttribute("data-previewId");
+        console.log(examId);
+        try{
+            const response = await fetch(`${API_BASE_URL}/item-img/exam/item-list`, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json'
+        },
+            body: JSON.stringify({
+            examId: examId
+        })
+        });
+            const data = await response.json();
+            if (data.successYn === 'Y') {
+                console.log(data.itemList);
+                return data.itemList;
+            } else {
+                console.error('Failed to fetch questions:', data);
+            }
+        }catch(error){
+            console.log(error);
+        }
+    }
+
+    let passageId = 0;
+    let passageCount = 0;
+    let passageMap = {};
+
+    function getPreviewHtml(itemList, examName){
+        console.log("getPreviewHtml start");
+        console.log(itemList);
+        let itemHtmlLeft = '';
+        let itemHtmlRight = '';
+        const totalItemCount = itemList.length;
+        console.log("totalItemCount : " + totalItemCount);
+        for(let item of itemList){
+            console.log("itemNo : " + item.itemNo);
+            let itemQuestion = '';
+            if(item.passageId != null) {
+                console.log("passage exists");
+                if(item.passageId !== passageId) {
+                    console.log("new passage");
+                    passageCount++;
+                    passageId = item.passageId;
+                    passageMap[passageCount] = [];
+                    passageMap[passageCount].push(item.itemNo);
+                    console.log("passageMap[passageCount] : " + passageMap[passageCount]);
+                    itemQuestion = `
+                    <div class="passage-area item-question">
+                        <span class="numbering numbering-numbers passage-no" data-passageNo="${passageCount}"></span>
+                        <img src="${item.passageUrl}" alt="${item.passageId}" width="453px">
+                    </div>
+                    <div class="item-question">
+                        <span class="numbering question-num" data-passageNo="${passageCount}">${item.itemNo}.</span>
+                        <img class="item-img" src="${item.questionUrl}" alt="${item.itemNo}">
+                    </div>
+                    `;
+                }else{
+                    passageMap[passageCount].push(item.itemNo);
+                    itemQuestion = `
+                    <div class="item-question">
+                        <span class="numbering question-num" data-passageNo="${passageCount}">${item.itemNo}.</span>
+                        <img class="item-img" src="${item.questionUrl}" alt="${item.itemNo}">
+                    </div>
+                    `;
+                    console.log("passageMap[passageCount] : " + passageMap[passageCount]);
+                }
+            }else{
+                itemQuestion = `
+                    <div class="item-question">
+                        <span class="numbering question-num">${item.itemNo}.</span>
+                        <img class="item-img" src="${item.questionUrl}" alt="${item.itemNo}">
+                    </div>
+                    `;
+            }
+            if(item.itemNo <= Math.ceil(totalItemCount/2)){
+                itemHtmlLeft += `
+                <div class="example-area">
+                    <div class="example-box">
+                        ${itemQuestion}
+                        <div class="answer-container">
+                            <span class="answer-tit">(정답)</span>
+                            <div class="answer-img" style="height:25px; background:lightgray"><img src="${item.answerUrl}" alt=""></div>
+                        </div>
+                        <div class="explain-answer">
+                            <span class="explain-tit">(해설)</span>
+                            <div class="explain-img"><img src="${item.explainUrl}" alt=""></div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }else{
+                itemHtmlRight +=`
+                <div class="example-area">
+                    <div class="example-box">
+                        ${itemQuestion}
+                        <div class="answer-container">
+                            <span class="answer-tit">(정답)</span>
+                            <div class="answer-img" style="height:25px; background:lightgray"><img src="${item.answerUrl}" alt=""></div>
+                        </div>
+                        <div class="explain-answer">
+                            <span class="explain-tit">(해설)</span>
+                            <div class="explain-img"><img src="${item.explainUrl}" alt=""></div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+        }
+        return `
+            <div class="pop-header">
+                <div class="tit-top">
+                    <span id="preview_tit">[시험지명]&ensp;${examName}</span><em id="preview_cnt">&ensp;[문항수]&ensp;${totalItemCount}</em>
+                    <input type="hidden" id="preview_paperId" value="">
+                </div>
+                <button type="button" class="pop-close" onclick="popClose()"></button>
+            </div>
+            <div class="pop-content">
+                <div class="tab-wrap">
+                    <div id="preview-data">
+                        <div class="btn-wrap">
+                            <button type="button" class="btn-icon"><i class="download"></i>다운로드</button>
+                        </div>
+                        <div class="view-box">
+                            <div class="scroll-inner">
+                                <!-- <img src="../images/common/sample_prev.jpg" alt="">
+                                <img src="../images/common/sample_prev.jpg" alt=""> -->
+                                <!--230824 림 추가-->
+                                <div class="layout-wrap">
+                                    <div class="view-data">
+                                        ${itemHtmlLeft}
+                                    </div>
+                                    <div class="view-data">
+                                        ${itemHtmlRight}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    function popClose() {
+        // this를 현재 호출된 요소로 참조
+        let _this = this;
+
+        // .pop-wrap 클래스를 가진 요소를 숨김
+        const popWrap = document.querySelector(".pop-wrap");
+        if (popWrap) {
+            popWrap.style.display = "none";
+        }
+
+        // <html> 요소의 overflow 속성을 auto로 설정
+        const htmlElement = document.documentElement; // <html> 요소를 가져옴
+        htmlElement.style.overflow = "auto";
+
+        // _dim 요소를 점점 사라지게 처리
+        const dim = document.querySelector(".dim"); // _dim은 가정된 클래스 이름
+        if (dim) {
+            dim.style.transition = "opacity 0.5s"; // 서서히 사라지는 효과 추가
+            dim.style.opacity = "0";
+            // opacity가 0이 되면 display: none 처리
+            setTimeout(() => {
+                dim.style.display = "none";
+            }, 500); // 애니메이션 지속 시간과 맞춤
+        }
+    }
+    function renderPassage(){
+        const passageNoElements = document.querySelectorAll(".passage-no");
+        passageNoElements.forEach((ele) => {
+            let passageNo = ele.getAttribute("data-passageNo");
+            if(passageMap[passageNo]&&passageMap[passageNo].length>1){
+                let itemArray = passageMap[passageNo];
+                ele.textContent = `[ ${itemArray[0]} ~ ${itemArray[itemArray.length-1]} ]`;
+            }
+        });
+        passageId = 0;
+        passageCount = 0;
+        passageMap = {};
+    }
+    function renderPreview(previewHtml){
+        const previewContentElement = document.getElementById("preview-content");
+        previewContentElement.innerHTML = '';
+        previewContentElement.innerHTML = previewHtml;
 
     }
+
+    document.querySelectorAll(".pop-btn").forEach(
+        (btn) => {
+            btn.addEventListener("click", async (e)=>{
+                e.preventDefault();
+                e.stopPropagation();
+                const examName = btn.getAttribute("data-examName");
+                try {
+                    const itemList = await getPreviewContent(btn);
+                    const previewHtml = getPreviewHtml(itemList, examName);
+                    renderPreview(previewHtml);
+                    renderPassage();
+                }catch(error){
+                    console.error(error);
+                }
+            })
+        }
+    );
 </script>
 </html>
