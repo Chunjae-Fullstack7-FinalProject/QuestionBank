@@ -147,7 +147,7 @@
 									</div>
 								</div>
 							</div>
-							<div class="contents on">
+							<div class="contents">
 								<div class="no-data view-que-list">
 									<p>
 										문제 목록에서 <i class="ic-no-data"></i> 유사문제 버튼을 선택해주세요.
@@ -156,7 +156,6 @@
 								<div class="data view-que-list">
 
 								</div>
-
 							</div>
 							<div class="contents">
 								탭 컨텐츠 (3)
@@ -310,7 +309,7 @@
 
 	// 문항 id로 유사 문항 조회
 	async function getSimilarQuestionInfo(itemId){
-		// console.log(itemId);
+		//console.log(itemId);
 		try{
 			const response = await fetch(`${API_BASE_URL}/item-img/similar-list`, {
 				method: "POST",
@@ -602,7 +601,6 @@
 
 	function renderSummary(questions){
 		console.log(questions);
-
 		const container = document.querySelector(".test");
 		container.innerHTML = "";
 		let flag = false;
@@ -700,18 +698,28 @@
 	}
 
 	//유사 문항 탭
-	function renderSimilar(){
+	function renderSimilar(questions){
+		console.log(questions)
 		const container = document.querySelector(".data");
+		if (!questions || questions.length === 0) {
+			console.error("유사 항목 없음");
+			container.style.display = "block";
+			container.innerHTML = "<p>유사 항목이 없습니다.</p>";
+			return;
+		}
+		// UI 표시
+		document.querySelector(".no-data").style.display = "none";
+		container.style.display = "block";
+
 		container.innerHTML = "";
-		let questionHTML = '';
-		questions.forEach((q, index) => {
-			questionHTML += `
-				<div className="cnt-top">
-					<span className="title">번 유사 문제</span>
-					<div className="right-area">
-						<div className="select-wrap">
-							<button type="button" className="select-btn">난이도 전체</button>
-							<ul className="select-list">
+		let questionHTML = "";
+		questionHTML += `
+				<div class ="cnt-top">
+					<span class="title">?번 유사 문제</span>
+					<div class="right-area">
+						<div class="select-wrap">
+							<button type="button" class="select-btn">난이도 전체</button>
+							<ul class="select-list">
 								<li><a href="javascript:;">상</a></li>
 								<li><a href="javascript:;">중</a></li>
 								<li><a href="javascript:;">하</a></li>
@@ -719,7 +727,10 @@
 						</div>
 					</div>
 				</div>
+				<div class="view-que-list scroll-inner">
 			`
+
+		questions.forEach((q, index) => {
 			questionHTML += `
 				<div class="sort-group">
 					<div class="view-que-box">
@@ -730,7 +741,7 @@
 									<span class="que-badge yellow">${q.difficultyName}</span>
 									<span class="que-badge gray">${q.questionFormName}</span>
 								</div>
-							</div>x
+							</div>
 							<div class="btn-wrap">
 								<div class="btn-wrap">
 									<div class="tooltip-wrap">
@@ -758,6 +769,8 @@
 				</div>
 			`
 		});
+		questionHTML += `</div>`
+		container.insertAdjacentHTML("beforeend", questionHTML);
 	}
 
 
