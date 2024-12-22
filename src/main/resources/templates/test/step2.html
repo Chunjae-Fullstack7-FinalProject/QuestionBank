@@ -763,52 +763,10 @@
 			}
 		}
 
-		// function updateQuestionOrder() {
-		// 	// 각 지문(`.depth-01`) 내부의 문항 순서 업데이트
-		// 	$(".depth-01 .col-group").each(function () {
-		// 		const passageIndex = $(this).closest(".depth-01").index(); // 지문의 순서 가져오기 (DOM 내에서 순서로 식별)
-		// 		const questionOrder = $(this)
-		// 				.children(".col") // 지문 내부 항목 선택
-		// 				.map(function () {
-		// 					return $(this).data("item-id"); // 문항 ID만 추출
-		// 				})
-		// 				.get();
-		//
-		// 		console.log(`지문 ${passageIndex} 내부 순서:`, questionOrder);
-		//
-		// 		const reordered = [];
-		// 		questionOrder.forEach(({ id, type }) => {
-		// 			if (type === "question") {
-		// 				// 단일 문항 및 지문 내부 문항만 추가
-		// 				const question = questions.find(q => q.itemId === id);
-		// 				if (question) reordered.push(question);
-		// 			}
-		// 		});
-		// 		console.log(reordered);
-		//
-		// 		if (reordered.length === questions.length) {
-		// 			questions = reordered;
-		// 			console.log("변경된 배열:", questions);
-		//
-		// 			// UI 업데이트
-		// 			renderSummary(questions);
-		// 			renderQuestions(questions);
-		// 		} else {
-		// 			console.error("변경 안됨");
-		// 		}
-		// 		console.log(`Updated questions for passage ${passageIndex}:`, questions);
-		// 	});
-		// }
-
-
-
-
-
 		initializeSortable();
 
 		// 렌더링 후 다시 초기화
 		$(document).on("renderSummaryComplete", function () {
-			console.log("Reinitializing sortable after renderSummary...");
 			initializeSortable();
 		});
 	});
