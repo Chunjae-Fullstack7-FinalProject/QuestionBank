@@ -130,7 +130,6 @@
 										<div class="scroll-inner">
 											<div class="test ui-sortable" id="table-1">
 												<!-- s: 지문 묶음 영역-->
-
 											</div>
 										</div>
 									</div>
@@ -148,8 +147,16 @@
 									</div>
 								</div>
 							</div>
-							<div class="contents">
-								탭 컨텐츠 (2)
+							<div class="contents on">
+								<div class="no-data view-que-list">
+									<p>
+										문제 목록에서 <i class="ic-no-data"></i> 유사문제 버튼을 선택해주세요.
+									</p>
+								</div>
+								<div class="data view-que-list">
+
+								</div>
+
 							</div>
 							<div class="contents">
 								탭 컨텐츠 (3)
@@ -300,6 +307,32 @@
 			console.error("fetch 오류:", error);
 		}
 	}
+
+	// 문항 id로 유사 문항 조회
+	async function getSimilarQuestionInfo(itemId){
+		// console.log(itemId);
+		try{
+			const response = await fetch(`${API_BASE_URL}/item-img/similar-list`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					itemIdList: [itemId]
+				})
+			});
+			const data = await response.json();
+			if (data.successYn === 'Y') {
+				questions = data.itemList;
+				//console.log(questions);
+				renderSimilar(questions);
+			} else {
+				console.error("실패:", data);
+			}
+		}catch(error){
+			console.error("유사 문항 fetch 오류:", error);
+		}
+	}
 	//검색 조건 버튼 이벤트
 	function searchQuestions(status){
 		console.log(status);
@@ -404,10 +437,12 @@
 			case "문제 형태순":
 				break;
 			default: //단원순
+					console.log("기본값 단원순");
 				sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
 				break;
 		}
 		renderQuestions(sortQuestionsList);
+		renderSummary(sortQuestionsList);
 	}
 
 	//정렬 이벤트 리스너
@@ -547,7 +582,9 @@
 											<!-- e: 정답 데이터 영역 -->
 										</div>
 									</div>
-									<button type="button" class="btn-similar-que btn-default"><i class="similar"></i> 유사 문제</button>
+									<button type="button" class="btn-similar-que btn-default" onclick="getSimilarQuestionInfo(${q.itemId})">
+										<i class="similar"></i> 유사 문제
+									</button>
 								</div>
 							</div>
 						</div>
@@ -565,6 +602,7 @@
 
 	function renderSummary(questions){
 		console.log(questions);
+
 		const container = document.querySelector(".test");
 		container.innerHTML = "";
 		let flag = false;
@@ -589,16 +627,18 @@
 
 			if(flag) {
 				questionHTML += `
-
 									<div class="col depth-02" data-item-id="${q.itemId}">
 										<a href="javascript:;">
 											<span class="dragHandle ui-sortable-handle drag-type01">
 											<img
 												src="../images/common/ico_move_type02.png" alt=""></span>
-											<span>${index + 1}</span> <!-- 다시 확인하기 -->
+											<span>${index + 1}</span>
 											<!-- S 230808 tooltip-wrap 추가-->
 											<span class="tit">
 												<div class="txt">${q.largeChapterName}>${q.mediumChapterName}>${q.smallChapterName}>${q.topicChapterName}</div>
+												`
+												if([[${type}]] === "edit") {
+													questionHTML += `
 												<div class="tooltip-wrap">
 													<button type="button" class="btn-tip"></button>
 														<div class="tooltip type01">
@@ -606,6 +646,9 @@
 															시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~</div>
 														</div>
 												</div>
+												`
+												}
+											questionHTML += `
 											</span>
 											<!-- E 230808 tooltip-wrap 추가-->
 											<span>${q.questionFormName}</span>
@@ -627,13 +670,19 @@
 									<!-- S 230808 tooltip-wrap 추가-->
 									<span class="tit">
 										<div class="txt">${q.largeChapterName}>${q.mediumChapterName}>${q.smallChapterName}>${q.topicChapterName}</div>
-											<div class="tooltip-wrap">
-												<button type="button" class="btn-tip"></button>
-												<div class="tooltip type01">
-													<div class="tool-type01">
-														시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~</div>
-											</div>
-										</div>
+											`
+											if([[${type}]] === "edit") {
+												questionHTML += `
+													<div class="tooltip-wrap">
+														<button type="button" class="btn-tip"></button>
+														<div class="tooltip type01">
+															<div class="tool-type01">
+																시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~</div>
+														</div>
+													</div>
+												`
+											}
+											questionHTML += `
 									</span>
 									<!-- E 230808 tooltip-wrap 추가-->
 									<span>${q.questionFormName}</span>
@@ -648,6 +697,67 @@
 		});
 		container.insertAdjacentHTML("beforeend", questionHTML);
 		$(document).trigger("renderSummaryComplete");
+	}
+
+	//유사 문항 탭
+	function renderSimilar(){
+		const container = document.querySelector(".data");
+		container.innerHTML = "";
+		let questionHTML = '';
+		questions.forEach((q, index) => {
+			questionHTML += `
+				<div className="cnt-top">
+					<span className="title">번 유사 문제</span>
+					<div className="right-area">
+						<div className="select-wrap">
+							<button type="button" className="select-btn">난이도 전체</button>
+							<ul className="select-list">
+								<li><a href="javascript:;">상</a></li>
+								<li><a href="javascript:;">중</a></li>
+								<li><a href="javascript:;">하</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			`
+			questionHTML += `
+				<div class="sort-group">
+					<div class="view-que-box">
+						<div class="que-top">
+							<div class="title">
+								<span class="num">${index+1}</span>
+								<div class="que-badge-group">
+									<span class="que-badge yellow">${q.difficultyName}</span>
+									<span class="que-badge gray">${q.questionFormName}</span>
+								</div>
+							</div>x
+							<div class="btn-wrap">
+								<div class="btn-wrap">
+									<div class="tooltip-wrap">
+										<button type="button" class="btn-error pop-btn" data-pop="error-report-pop"></button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="view-que">
+							<div class="que-content">
+								<p class="txt">
+									${q.questionUrl ? `<img src="${q.questionUrl}" alt="질문 이미지"/>` : ""}
+								</p>
+							</div>
+							<div class="que-bottom">
+								<div class="btn-wrap">
+									<button type="button" class="btn-default"><i class="add-type02"></i>추가</button>
+								</div>
+							</div>
+						</div>
+						<div class="que-info-last">
+							<p class="chapter">${q.largeChapterName}>${q.mediumChapterName}>${q.smallChapterName}>${q.topicChapterName}</p>
+						</div>
+					</div>
+				</div>
+			`
+		});
 	}
 
 
@@ -770,38 +880,6 @@
 			initializeSortable();
 		});
 	});
-
-
-
-
-
-	$("#table-1").sortable({
-	  handle: ".dragHandle",
-	});
-	$("#table-1").disableSelection();
-
-	$(function () {
-	  $(".depth-01")
-	      .sortable({
-	        items: ".col",
-	        handle: ".drag-type01",
-	        cancel: ".drag-type02",
-	      })
-	      .disableSelection();
-
-	  $(".drag-type01")
-	      .sortable({
-	        items: ".col",
-	        handle: ".drag-type02",
-	        connectWith: ".drag-type01",
-	        cancel: "",
-	      })
-	      .disableSelection();
-	});
-
-
-
-
 
 
 	$(function () {

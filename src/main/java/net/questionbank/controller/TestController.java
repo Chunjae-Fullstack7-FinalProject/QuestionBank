@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequiredArgsConstructor
@@ -20,7 +21,7 @@ public class TestController {
     step2/sub03_01_01로 리턴
      */
     @GetMapping("/step2")
-    public String getItemIds(Model model){
+    public String getItemIds(Model model, @RequestParam(required = false, defaultValue = "noEdit") String type){
         String[] questionIds ={"494519", "494552"
                 ,"487868"
                 , "494553"
@@ -40,6 +41,7 @@ public class TestController {
                 ,"487867"
                 ,"493179"};
         model.addAttribute("questionIds", questionIds);
+        model.addAttribute("type", type);
         return "test/step2";
     }
 }
