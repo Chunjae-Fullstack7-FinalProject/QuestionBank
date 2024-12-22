@@ -590,7 +590,7 @@
 			if(flag) {
 				questionHTML += `
 
-									<div class="col depth-02" data-item-id="${q.passageId}">
+									<div class="col depth-02" data-item-id="${q.itemId}">
 										<a href="javascript:;">
 											<span class="dragHandle ui-sortable-handle drag-type01">
 											<img
@@ -714,62 +714,55 @@
 		}
 
 
-
 		/*전체 순서 갱신 함수
 		* 테이블 내 전체 항목을 가져와 순서 정렬 후 ui 반영
 		* */
-		// 전체 순서 갱신 함수
 		function updateOverallOrder() {
 			const overallOrder = $("#table-1")
 					.children(".depth-01, .singleQuestion") // 지문 및 단일 문항 선택
 					.map(function () {
-						const id = $(this).data("item-id");
 						const type = $(this).hasClass("depth-01") ? "passage" : "question";
 
-						// 지문 내부 항목도 포함
+						// 지문일 경우 내부 문항만 반환
 						if (type === "passage") {
-							const subQuestions = $(this)
+							return $(this)
 									.find(".col") // 지문 내부 항목 선택
 									.map(function () {
-										return { id: $(this).data("item-id"), type: "question" };
+										return { id: $(this).data("item-id"), type: "question" }; // 지문 내부 문항만 반환
 									})
 									.get();
-							return [{ id, type }, ...subQuestions];
 						}
 
-						return { id, type };
+						// 단일 문항일 경우 그대로 반환
+						return { id: $(this).data("item-id"), type };
 					})
 					.get()
-					.flat(); // 중첩된 배열을 평평하게 만듦
+					.flat(); // 중첩된 배열 평탄화
 
-			console.log("전체 순서:", overallOrder);
+			console.log("전체 순서 (지문 제외):", overallOrder);
 
 			// `questions` 배열을 재구성
 			const reordered = [];
 			overallOrder.forEach(({ id, type }) => {
-				if (type === "passage") {
-					// 지문일 경우 해당 지문 및 관련 문항 추가
-					const passageQuestions = questions.filter(q => q.passageId === id);
-					reordered.push(...passageQuestions);
-				} else {
-					// 단일 문항일 경우 해당 항목 추가
-					const singleQuestion = questions.find(q => q.itemId === id && !q.passageId);
-					if (singleQuestion) reordered.push(singleQuestion);
+				if (type === "question") {
+					// 단일 문항 및 지문 내부 문항만 추가
+					const question = questions.find(q => q.itemId === id);
+					if (question) reordered.push(question);
 				}
 			});
 
 			if (reordered.length === questions.length) {
 				questions = reordered;
-				console.log("Updated questions array after overall order:", questions);
+				console.log("변경된 배열:", questions);
 
 				// UI 업데이트
 				renderSummary(questions);
+				renderQuestions(questions);
 			} else {
-				console.error("Reordering failed: Mismatch in question count.");
+				console.error("변경 안됨");
 			}
 		}
-
-
+		
 
 		function updateQuestionOrder() {
 			$(".depth-01 .col-group").each(function () {
