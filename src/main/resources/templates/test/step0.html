@@ -306,6 +306,7 @@
                     `;
             }
             let answerContainer = `
+            ${typeToInt == 3 ?'<div class="item-question"><span className="numbering question-num">'+item.itemNo+'.</span></div>' : ''}
             <div class="answer-container">
                 <span class="answer-tit">(정답)</span>
                 <div class="answer-img" style="height:25px; background:lightgray"><img src="${item.answerUrl}" alt=""></div>
