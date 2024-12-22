@@ -14,4 +14,5 @@ public interface Step3Service {
     TextBookApiDTO getTextBookFromApi(Long subjectId);
     void saveTestInfo(TestDTO testDTO, List<Long> questionIdList);
     boolean sendTestInfo(TestDataDTO testDataDto);
+//    List<String> testPdfImageList(List<Long> itemIdList);
 }

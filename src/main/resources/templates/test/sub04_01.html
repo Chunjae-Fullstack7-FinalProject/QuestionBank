@@ -13,6 +13,7 @@
 	<link rel="stylesheet" href="/inc/css/font.css">
 	<link rel="stylesheet" href="/inc/css/reset.css">
 	<link rel="stylesheet" href="/inc/css/common.css">
+	<link rel="stylesheet" href="/inc/css/pdf.css"/>
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"
 		integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
 	<script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
@@ -26,10 +27,17 @@
 			background-color: rgba(150,150,150,0.5);
 			width: 100%;
 			height: 100%;
-			/*z-index: 11;*/
 		}
 		.loading-off {
 			display: none;
+		}
+		#pdfArea {
+			position: absolute;
+			left: 9999px;
+			top: 9999px;
+			z-index: 99;
+			margin: 0;
+			padding: 0;
 		}
 	</style>
 </head>
@@ -142,59 +150,229 @@
 		</div>
 		<div class="dim"></div>
 	</div>
-<script>
-	document.querySelectorAll(".done").forEach(value => value.addEventListener("click", e => {
-		if(!confirm("시험지를 저장하시겠습니까?")) {
-			return;
-		}
 
-		const title_length = $("#test-title").val().length;
+    <div id="pdfArea">
+        <div id="pdf-content">
+            <div class="page">
+                <table class="pdf-title-table">
+                    <tr>
+                        <td rowspan="2" class="pdf-td-title">title</td>
+                        <td class="pdf-td-grade"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>
+                    </tr>
+                    <tr>
+                        <td class="pdf-td-name">이름:</td>
+                    </tr>
+                </table>
+                <div class="pdf-container" style="height: 235mm">
+                    <div class="pdf-item-container pdf-item-container-left" style="height: 235mm" id="left-1"></div>
+                    <div class="pdf-item-container pdf-item-container-right" style="height: 235mm" id="right-1"></div>
+                </div>
+                <div class="page-no">1</div>
+            </div>
+        </div>
+        <th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList.size()-2, 2)}">
+            <th:block th:if="${testInfo.imageList.get(item).endsWith('.')}">
+                <div class="pdf-item pdf-question">
+                    <div class="pdf-number" th:text="${testInfo.imageList.get(item)}"></div>
+                    <img class="pdf-img" th:src="${testInfo.imageList.get(item+1)}"/>
+                </div>
+            </th:block>
+            <th:block th:unless="${testInfo.imageList.get(item).endsWith('.')}">
+                <div class="pdf-item">
+                    <div class="pdf-div" th:text="${testInfo.imageList.get(item)}"></div>
+                    <img class="pdf-img" th:src="${testInfo.imageList.get(item+1)}"/>
+                </div>
+            </th:block>
+        </th:block>
+    </div>
+    <script src="/assets/step3/step3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    <script>
+        // 개별 svg -> png
+        async function convertSvgToPng(svgUrl) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.src = svgUrl;
 
-		if(title_length === 0) {
-			alert("시험지명을 입력해주세요");
-			return;
-		}
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                };
 
-		if(title_length > 20) {
-			alert("시험지명은 20자 이하로 입력해주세요.");
-			return;
-		}
+                img.onerror = (error) => {
+                    console.error('SVG를 PNG로 변환하는 중 오류 발생:', error);
+                    reject(error);
+                };
+            });
+        }
 
-		$("#loading-container").removeClass("loading-off").addClass("loading-on");
+        //사용할 이미지 png로 변환
+        async function replaceSvgWithPng() {
+            const svgImages = document.querySelectorAll('.pdf-img');
 
-		save();
-	}));
+            for (const svgImg of svgImages) {
+                const svgUrl = "/api/customExam/proxy?url=" + svgImg.src; // cors 문제 피하기 위해 서버로 우회
+                try {
+                    const pngDataUrl = await convertSvgToPng(svgUrl);
+                    svgImg.src = pngDataUrl; // png로 교체
+                } catch (error) {
+                    console.error(`SVG 변환 실패: ${svgUrl}`, error);
+                }
+            }
+            pagenation();
+        }
 
-	async function save() {
-		const url = "/api/customExam/save";
-		//로딩중 표시하기
-		const response = await fetch(url, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				'title': $("#test-title").val(),
-				'subjectId': [[${testInfo.textbookApiDTO.subjectId}]],
-				'subjectName': `[[${testInfo.textbookApiDTO.areaName}]]`,
-				'itemIdList': [[${itemIdList}]]
-			})
-		});
+        //시험지 레이아웃 맞추기
+        function pagenation() {
+            const items = document.querySelectorAll(".pdf-item");
+            const content = document.getElementById("pdf-content");
+
+            const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
+
+            let currentHeight = 15;
+            let gridArea = document.getElementById("left-1");
+            let page = 1;
+            let maxHeight = 230 * toPx;
+            let currentArea = 0;
+
+            items.forEach(value => {
+                const height = value.offsetHeight;
+
+                if (currentHeight + height > maxHeight) {
+                    if (currentArea === 1) {
+                        maxHeight = 250 * toPx;
+                        page = page + 1;
+                        currentArea = 0;
+                        currentHeight = 19;
+                        content.innerHTML += `
+                            <div class="page">
+                                <div class="pdf-container">
+                                    <div class="pdf-item-container pdf-item-container-left" id="left-${page}"></div>
+                                    <div class="pdf-item-container pdf-item-container-right" id="right-${page}"></div>
+                                </div>
+                                <div class="page-no">${page}</div>
+                            </div>
+            `
+                        gridArea = document.getElementById("left-" + page);
+                    } else {
+                        currentArea = 1;
+                        currentHeight = 0;
+                        gridArea = document.getElementById("right-" + page);
+                    }
+                }
+                currentHeight = currentHeight + height + 19;
+                gridArea.appendChild(value);
+            });
+            savePdf();
+        }
 
 
-		if(response.ok && (await response.text()) === 'save') {
-			//로딩 끝내고 페이지 이동
-			// $("#loading-container").removeClass("loading-on").addClass("loading-off");
-			location.replace("/customExam/complete");
-		}
-		else {
-			//로딩 끝내고 alert
-			$("#loading-container").removeClass("loading-on").addClass("loading-off");
-			alert((await response.text()));
-		}
-	}
-</script>
-<script src="/assets/step3/step3.js"></script>
+        function savePdf() {
+            // PDF 변환 및 다운로드 기능
+
+            const element = document.getElementById('pdf-content'); // 변환할 요소
+            const options = {
+                margin: 15, // 여백 설정
+                filename: `[[${pdfFileId}]].pdf`, // 파일 이름
+                image: {type: 'jpeg', quality: 0.98}, // 이미지 설정
+                html2canvas: {scale: 2, useCORS: true}, // 해상도 설정
+                jsPDF: {unit: 'mm', format: 'a4', orientation: 'portrait'}, // PDF 설정
+                pagebreak: {mode: ['css']}
+            };
+
+            html2pdf().set(options).from(element).outputPdf('blob')
+                .then((pdfBlob) => {
+                    sendPdf(pdfBlob);
+                });
+        }
+
+        //서버에 변환된 pdf 파일 전송
+        async function sendPdf(pdf) {
+            const formData = new FormData();
+            formData.append('file', pdf, `[[${pdfFileId}]].pdf`);
+
+            try {
+                const response = await fetch('/api/customExam/pdf', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('서버 전송 실패');
+                } else {
+					save();
+				}
+
+
+            } catch (error) {
+                console.error('PDF 전송 중 오류 발생:', error);
+                alert('PDF 전송 중 오류 발생');
+            }
+        }
+
+        function changeTitle(title) {
+            document.querySelector(".pdf-td-title").innerHTML = title;
+        }
+
+        document.querySelectorAll(".done").forEach(value => value.addEventListener("click", e => {
+            if (!confirm("시험지를 저장하시겠습니까?")) {
+                return;
+            }
+
+            const title = $("#test-title").val();
+
+            const title_length = title.length;
+
+            if (title_length === 0) {
+                alert("시험지명을 입력해주세요");
+                return;
+            }
+
+            if (title_length > 20) {
+                alert("시험지명은 20자 이하로 입력해주세요.");
+                return;
+            }
+
+            $("#loading-container").removeClass("loading-off").addClass("loading-on");
+
+            changeTitle(title);
+            replaceSvgWithPng();
+        }));
+
+        async function save() {
+            const url = "/api/customExam/save";
+            //로딩중 표시하기
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    'title': $("#test-title").val(),
+                    'subjectId': [[${testInfo.textbookApiDTO.subjectId}]],
+                    'subjectName': `[[${testInfo.textbookApiDTO.areaName}]]`,
+                    'itemIdList': [[${itemIdList}]],
+                    'pdfFileId' : `[[${pdfFileId}]]`
+                })
+            });
+
+
+            if (response.ok && (await response.text()) === 'save') {
+                //로딩 끝내고 페이지 이동
+                // $("#loading-container").removeClass("loading-on").addClass("loading-off");
+                location.replace("/customExam/complete");
+            } else {
+                //로딩 끝내고 alert
+                $("#loading-container").removeClass("loading-on").addClass("loading-off");
+                alert((await response.text()));
+            }
+        }
+    </script>
+
 </body>
 
 

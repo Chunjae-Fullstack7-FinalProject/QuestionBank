@@ -1,0 +1,103 @@
+.page-no {
+    text-align: center;
+    height: 1mm;
+    border-top: 1mm solid gray;
+    width: 180mm;
+    padding-top: 2mm;
+    margin-top: 5mm;
+}
+
+@font-face {
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+#pdf-content {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 10pt;
+    margin: 0;
+    padding: 0;
+}
+
+/*@page {*/
+/*    size: A4;*/
+/*    margin: 10mm;*/
+/*}*/
+
+.pdf-title-table {
+    height: 15mm;
+    width: 180mm;
+    border: 1mm solid darkgray;
+    border-radius: 5mm;
+    /*border-collapse: collapse;*/
+    border-spacing: 0;
+    text-align: center;
+    margin-bottom: 5mm;
+}
+
+.pdf-td-title {
+    border-right: 1mm solid darkgray;
+    font-size: 12pt;
+    width: 140mm;
+}
+
+.pdf-td-grade {
+    border-bottom: 1mm solid darkgray;
+    padding-right: 2mm;
+    text-align: right;
+}
+
+.pdf-td-name {
+    text-align: left;
+}
+
+.pdf-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 250mm;
+    width: 180mm;
+}
+
+.pdf-item-container {
+    margin: 0;
+    padding: 0;
+    height: 250mm;
+}
+
+.pdf-item-container-left {
+    border-right: 1px solid darkgray;
+}
+
+.pdf-item-container-right {
+    border-left: 1px solid darkgray;
+}
+
+.pdf-item {
+    break-inside: avoid;
+    margin: 5mm auto;
+    width: 75mm;
+}
+
+.pdf-question {
+    display: grid;
+    grid-template-columns: 1fr auto;
+}
+
+.pdf-number {
+    margin-right: 3mm;
+}
+
+.pdf-div {
+    margin-bottom: 1mm;
+}
+
+.page {
+    page-break-after: always;
+    page-break-inside: avoid;
+    height: 265mm;
+    width: 180mm;
+    margin-bottom: 1mm;
+}
+
+.pdf-img {
+    max-width: 75mm;
+}

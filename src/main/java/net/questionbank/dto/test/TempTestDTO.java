@@ -19,6 +19,7 @@ public class TempTestDTO {
     private TextBookApiDTO textbookApiDTO;
     private List<QuestionApiDTO> questions;
     private Map<String, Integer> code;
+    private List<String> imageList;
 
     public Map<String, Integer> getCode() {
         if(code != null) { return code; }
