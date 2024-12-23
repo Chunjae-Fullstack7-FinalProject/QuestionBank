@@ -177,61 +177,66 @@
 		<div class="pop-inner">
 			<div class="pop-header">
 				<span>문항 오류 신고</span>
-				<button type="button" class="pop-close"></button>
+				<button type="button" class="pop-close" onclick="popClose()"></button>
 			</div>
 			<div class="pop-content">
-				<table>
-					<colgroup>
-						<col width="30%">
-						<col width="*">
-					</colgroup>
-					<tbody>
-					<tr>
-						<th>오류유형</th>
-						<td>
-							<div class="select-wrap">
-								<button type="button" class="select-btn">문제오류</button>
-								<ul class="select-list">
-									<li>
-										<a href="javascript:;">문제오류</a>
-									</li>
-									<li>
-										<a href="javascript:;">정답오류</a>
-									</li>
-									<li>
-										<a href="javascript:;">풀이오류</a>
-									</li>
-									<li>
-										<a href="javascript:;">이미지오류</a>
-									</li>
-									<li>
-										<a href="javascript:;">유형오류</a>
-									</li>
-									<li>
-										<a href="javascript:;">기타</a>
-									</li>
-								</ul>
-							</div>
-						</td>
-					</tr>
-					<tr>
-						<th>첨부파일</th>
-						<td class="file">
-							<input type="text" placeholder="최대 100MB까지 등록가능">
-							<button type="button" class="btn-icon">파일 첨부</button>
-						</td>
-					</tr>
-					<tr>
-						<th>오류 내용</th>
-						<td>
-							<textarea name="" id="" cols="30" rows="4" placeholder="오류내용을 간단히 적어주세요. (최대 50자)"></textarea>
-						</td>
-					</tr>
-					</tbody>
-				</table>
+				<form id="reportForm">
+					<table>
+						<colgroup>
+							<col width="30%">
+							<col width="*">
+						</colgroup>
+						<tbody>
+						<tr>
+							<th>오류유형</th>
+							<td>
+								<div class="select-wrap">
+									<input name="type" type="hidden" id="errorType" value="question">
+									<input name="itemId" type="hidden" id="reportItemId">
+									<button type="button" class="select-btn">문제오류</button>
+									<ul class="select-list">
+										<li>
+											<a href="javascript:;" data-type="question">문제오류</a>
+										</li>
+										<li>
+											<a href="javascript:;" data-type="answer">정답오류</a>
+										</li>
+										<li>
+											<a href="javascript:;" data-type="explain">풀이오류</a>
+										</li>
+										<li>
+											<a href="javascript:;" data-type="image">이미지오류</a>
+										</li>
+										<li>
+											<a href="javascript:;" data-type="type">유형오류</a>
+										</li>
+										<li>
+											<a href="javascript:;" data-type="etc">기타</a>
+										</li>
+									</ul>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>첨부파일</th>
+							<td class="file">
+								<input type="text" id="fileText" readonly placeholder="최대 100MB까지 등록가능">
+								<input type="file" name="file" id="file" style="display : none" accept=".png,.jpg,.jpeg,.hwp">
+								<button type="button" class="btn-icon" id="btnFile">파일 첨부</button>
+							</td>
+						</tr>
+						<tr>
+							<th>오류 내용</th>
+							<td>
+								<textarea name="description" id="errorContent" cols="30" rows="4" placeholder="오류내용을 간단히 적어주세요. (최대 50자)"></textarea>
+							</td>
+						</tr>
+						</tbody>
+					</table>
+				</form>
 			</div>
 			<div class="pop-footer">
-				<button type="button">신고하기</button>
+				<button type="button" id="btnSubmitError">신고하기</button>
 			</div>
 		</div>
 	</div>
@@ -541,7 +546,7 @@
 									</div>
 								</div>
 								<div class="btn-wrap">
-									<button type="button" class="btn-error pop-btn" data-pop="error-report-pop"></button>
+									<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${q.itemId}" onclick="popFunc(this)"></button>
 									<button type="button" class="btn-delete"></button>
 								</div>
 							</div>
@@ -745,7 +750,7 @@
 							<div class="btn-wrap">
 								<div class="btn-wrap">
 									<div class="tooltip-wrap">
-										<button type="button" class="btn-error pop-btn" data-pop="error-report-pop"></button>
+										<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${q.itemId}" onclick="popFunc(this)"></button>
 									</div>
 								</div>
 							</div>
@@ -934,6 +939,114 @@
 			})
 		}
 	})
+</script>
+
+<script>
+	<!-- 강감찬 추가js(오류신고부분) -->
+	// popup : common.js 에서 가져와서 일부 수정
+	let _dim = $(".dim");
+	let _html = $("html , body");
+	let popBtn = $(".pop-btn");
+	let closePop = $(".pop-close");
+
+	function popFunc(errorPop) {
+		let popData = errorPop.getAttribute("data-pop");
+		console.log("popData : "+popData);
+		_html.css("overflow", "hidden");
+		_dim.fadeIn();
+
+		$(".pop-wrap[data-pop='" + popData + "']").show();
+		document.querySelector("#reportItemId").value = errorPop.getAttribute("data-item-id");
+		console.log($(".pop-wrap[data-pop='" + popData + "']"));
+	}
+
+	function popClose() {
+		let _this = $(this);
+		$(".pop-wrap").hide();
+		_html.css("overflow", "auto");
+		_dim.fadeOut();
+	}
+
+	popBtn.on("click", popFunc);
+	closePop.on("click", popClose);
+
+	const reportForm = document.querySelector("#reportForm");
+	const selectList = reportForm.querySelector(".select-list");
+	const selectOption = reportForm.querySelectorAll(".select-list li a");
+	const errorType = reportForm.querySelector("#errorType");
+	const errorSelectBtn = reportForm.querySelector(".select-btn");
+	selectOption.forEach((option)=>{
+		option.addEventListener("click", (e)=>{
+			selectError(option);
+		})
+	});
+	function selectError(selectedError){
+		selectOption.forEach(a=>a.classList.remove("active"));
+		selectedError.classList.add("active");
+		errorSelectBtn.classList.remove("active");
+		errorSelectBtn.textContent = '';
+		errorSelectBtn.textContent = selectedError.textContent;
+		selectList.style.display = "none";
+		errorType.value = "";
+		errorType.value = selectedError.getAttribute("data-type");
+	}
+	const file = reportForm.querySelector("#file");
+	const btnFile = reportForm.querySelector("#btnFile");
+	const fileText = reportForm.querySelector("#fileText");
+	btnFile.addEventListener("click",(e)=>{
+		e.preventDefault();
+		e.stopPropagation();
+		file.click();
+	})
+	file.addEventListener("change",(e)=>{
+		const selectedFile = file.files[0];
+		console.log("selectedFile : " + selectedFile.name);
+		if(selectedFile.size > 100*1024*1024){
+			alert("100MB 이하의 파일만 등록 가능합니다.");
+			return;
+		}
+		if(selectedFile){
+			fileText.value = selectedFile.name;
+		}
+	});
+	document.querySelector("#btnSubmitError").addEventListener("click",async (e)=>{
+		e.stopPropagation();
+		e.preventDefault();
+		if(reportForm.errorContent.value.length > 50){
+			alert("오류내용은 50자 이하로 작성해주세요.");
+			return;
+		}
+		const allowed_type = ["question", "answer", "explain", "image", "etc"];
+		if(!allowed_type.includes(reportForm.errorType.value)){
+			alert("잘못된 오류 유형입니다.");
+			return;
+		}
+		reportForm.enctype="multipart/form-data";
+		reportForm.method="post";
+		await submitReport();
+	});
+	async function submitReport(){
+		const formData = new FormData(reportForm);
+		try{
+			const response = await fetch("/reports",{
+				method : "POST",
+				body : formData,
+			});
+			if(!response.ok){
+				const error = await response.json();
+				console.error(error);
+				alert("오류 신고 실패 : " + error.message);
+				return;
+			}
+			const result = await response.json();
+			console.log(result.message);
+			alert("오류 신고 완료");
+			popClose();
+		}catch(error){
+			console.error(error);
+			alert("오류 신고 실패");
+		}
+	}
 </script>
 </body>
 </html>
