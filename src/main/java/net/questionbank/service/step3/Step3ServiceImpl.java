@@ -33,10 +33,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Log4j2
@@ -104,6 +101,7 @@ public class Step3ServiceImpl implements Step3Service {
                 .createdAt(LocalDateTime.now())
                 .member(Member.builder().memberId(testDTO.getUserId()).build())
                 .textbook(Textbook.builder().textbookId(testDTO.getSubjectId().intValue()).build())
+                .filePath(testDTO.getPdfFileId())
                 .build();
         testRepository.save(test);
 
@@ -156,12 +154,13 @@ public class Step3ServiceImpl implements Step3Service {
     }
 
     //    @Override
-    public List<String> testPdfImageList(List<QuestionApiDTO> questionsFromApi) {
-//        List<QuestionApiDTO> questionsFromApi = getQuestionsFromApi(itemIdList);
+    public Map<String, List<String>> testPdfImageList(List<QuestionApiDTO> questionsFromApi) {
 
         if (questionsFromApi == null || questionsFromApi.isEmpty()) return null;
 
-        List<String> resultList = new ArrayList<>();
+        Map<String, List<String>> map = new HashMap<>();
+
+        List<String> all = new ArrayList<>();
 
         int startNo = 0;
         int passageIndex = 0;
@@ -174,60 +173,105 @@ public class Step3ServiceImpl implements Step3Service {
                 question = questionApiDTO;
 
                 if (!cpid.equals(question.getPassageId())) {
-                    if (startNo < question.getItemNo() - 1) {
-                        resultList.set(passageIndex, "[" + startNo + "-" + (question.getItemNo() - 1) + "]");
+                    if (startNo > 0 && startNo < question.getItemNo() - 1) {
+                        all.set(passageIndex, "[" + startNo + "-" + (question.getItemNo() - 1) + "]");
                     }
-                    passageIndex = resultList.size();
-                    resultList.add("");
-                    resultList.add(convertSvgToPng(question.getPassageUrl(), question.getItemId(), 1));
+                    passageIndex = all.size();
+                    all.add("");
+                    all.add(question.getPassageUrl());
                     startNo = question.getItemNo();
                 }
 
                 cpid = question.getPassageId() != null ? question.getPassageId() : 0L;
 
-                resultList.add(question.getItemNo() + ".");
-                resultList.add(convertSvgToPng(question.getQuestionUrl(), question.getItemId(), 2));
-                resultList.add("[답]");
-                resultList.add(convertSvgToPng(question.getAnswerUrl(), question.getItemId(), 3));
-                resultList.add("[해설]");
-                resultList.add(convertSvgToPng(question.getExplainUrl(), question.getItemId(), 4));
+                all.add(question.getItemNo() + ".");
+                all.add(question.getQuestionUrl());
+                all.add("(답)");
+                all.add(question.getAnswerUrl());
+                all.add("(해설)");
+                all.add(question.getExplainUrl());
+
             }
 
-            if (!cpid.equals(question.getPassageId())) {
-                if (startNo < question.getItemNo() - 1) {
-                    resultList.set(passageIndex, "[" + startNo + "-" + (question.getItemNo() - 1) + "]");
+            //            if()
+
+//            if (!cpid.equals(question.getPassageId())) {
+//                if (startNo < question.getItemNo() - 1) {
+//                    resultList.set(passageIndex, "[" + startNo + "-" + (question.getItemNo() - 1) + "]");
+//                }
+//            }
+
+            List<String> questions = all.stream().filter(str -> {
+                if(str.startsWith("(")) {
+                    return false;
                 }
-            }
+                if(str.contains("answer")) {
+                    return false;
+                }
+                if(str.contains("explain")) {
+                    return false;
+                }
+                return true;
+            }).toList();
+
+            List<String> answers = all.stream().filter(str -> {
+                if(str.startsWith("(")) {
+                    return true;
+                }
+                if(str.contains("answer")) {
+                    return true;
+                }
+                if(str.contains("explain")) {
+                    return true;
+                }
+                if(str.endsWith(".")) {
+                    return true;
+                }
+                if(str.contains("question")) {
+                    return true;
+                }
+                return false;
+            }).map(str -> {
+                if(str.contains("question")) return "";
+                return str;
+            }).toList();
+
+
+            map.put("all", all);
+            map.put("questions", questions);
+            map.put("answers", answers);
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        return resultList;
+        return map;
     }
 
 
+    //svg -> png 파일 저장까지
     public String convertSvgToPng(String url, Long itemId, int type) throws IOException, TranscoderException {
 
         String pngPath = itemId + "_" + type + ".png";
 
-        return url;
+//        return url;
 
-//        if (new File(fileDir + pngPath).exists()) {
-//            return fileUri + pngPath;
-//        }
-//
-//        InputStream svgInputStream = new URL(url).openStream();
-//        OutputStream pngOutputStream = new FileOutputStream(fileDir + pngPath);
-//
-//        PNGTranscoder transcoder = new PNGTranscoder();
-//        TranscoderInput input = new TranscoderInput(svgInputStream);
-//        TranscoderOutput output = new TranscoderOutput(pngOutputStream);
-//        transcoder.transcode(input, output);
-//
-//        svgInputStream.close();
-//        pngOutputStream.close();
-//
-////        return "file:///E:/QuestionBank/src/main/resources/static/convertPng/" + pngPath;
-//        return fileUri + pngPath;
+        if (new File(fileDir + pngPath).exists()) {
+            return fileUri + pngPath;
+        }
+
+        InputStream svgInputStream = new URL(url).openStream();
+        OutputStream pngOutputStream = new FileOutputStream(fileDir + pngPath);
+
+        PNGTranscoder transcoder = new PNGTranscoder();
+        TranscoderInput input = new TranscoderInput(svgInputStream);
+        TranscoderOutput output = new TranscoderOutput(pngOutputStream);
+        transcoder.transcode(input, output);
+
+        svgInputStream.close();
+        pngOutputStream.close();
+
+//        return "file:///E:/QuestionBank/src/main/resources/static/convertPng/" + pngPath;
+        return fileUri + pngPath;
     }
 }

@@ -99,8 +99,8 @@ public class TestController {
         ids.add(493137L);
         ids.add(493139L);
         ids.add(493141L);
-        ids.add(487792L);
-        ids.add(494581L);
+//        ids.add(487792L);
+//        ids.add(494581L);
 
         Long testSubjectId = 1154L;
 

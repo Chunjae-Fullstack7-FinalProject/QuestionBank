@@ -77,13 +77,17 @@
     width: 75mm;
 }
 
-.pdf-question {
+.pdf-item-question {
     display: grid;
     grid-template-columns: 1fr auto;
 }
 
 .pdf-number {
     margin-right: 3mm;
+}
+
+.pdf-answer {
+    color: green;
 }
 
 .pdf-div {
