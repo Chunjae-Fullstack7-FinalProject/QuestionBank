@@ -112,8 +112,8 @@
 <script>
     function customExamPopup(textbookId) {
         let pop_title = "win_pop";
-        let url = 'http://localhost:8080/test/STEP_0'; // 여기는 감찬햄이 알아서 보셈. 테스트 환경이랑 배포랑도 달라질 거라 신경 써줘야 함.
-        window.open("", pop_title, 'width=1400,height=1024,status=no,toolbar=no,scrollbars=no, left=500, top=0');
+        let url = 'http://localhost:8080/customExam/step0'; // 여기는 감찬햄이 알아서 보셈. 테스트 환경이랑 배포랑도 달라질 거라 신경 써줘야 함.
+        window.open("", pop_title, 'width=1400,height=1024,status=no,toolbar=no, left=500, top=0');
 
         let new_form = $('<form></form>');
         new_form.attr("name", "new_form");
