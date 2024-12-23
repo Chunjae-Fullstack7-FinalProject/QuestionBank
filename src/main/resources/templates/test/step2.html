@@ -308,7 +308,7 @@
 	}
 
 	// 문항 id로 유사 문항 조회
-	async function getSimilarQuestionInfo(itemId){
+	async function getSimilarQuestionInfo(itemId, index){
 		//console.log(itemId);
 		try{
 			const response = await fetch(`${API_BASE_URL}/item-img/similar-list`, {
@@ -324,7 +324,7 @@
 			if (data.successYn === 'Y') {
 				questions = data.itemList;
 				//console.log(questions);
-				renderSimilar(questions);
+				renderSimilar(questions, index, itemId);
 			} else {
 				console.error("실패:", data);
 			}
@@ -489,7 +489,7 @@
 
 	//문제 데이터를 화면에 렌더링
 	function renderQuestions(questions) {
-		//console.log(questions);
+		console.log(questions);
 		const container = document.querySelector(".view-que-list");
 		container.innerHTML = "";
 		let renderedPassageIds = new Set();
@@ -581,7 +581,7 @@
 											<!-- e: 정답 데이터 영역 -->
 										</div>
 									</div>
-									<button type="button" class="btn-similar-que btn-default" onclick="getSimilarQuestionInfo(${q.itemId})">
+									<button type="button" class="btn-similar-que btn-default" onclick="getSimilarQuestionInfo(${q.itemId}, ${index+1})">
 										<i class="similar"></i> 유사 문제
 									</button>
 								</div>
@@ -614,7 +614,7 @@
 			}
 			if(q.passageId !== null && q.passageId !== prevPassageId && nextPassageId===q.passageId) {
 				questionHTML += `
-								<div class="depth-01">
+								<div class="depth-01" data-item-id="${q.passageId}">
 									<div class="dragHandle ui-sortable-handle drag-type02">
 										<img src="../images/common/ico_move_type01.png" alt="">
 									</div>
@@ -698,8 +698,10 @@
 	}
 
 	//유사 문항 탭
-	function renderSimilar(questions){
-		console.log(questions)
+	function renderSimilar(questions, index, itemId){
+		// console.log("index: " + index);
+		// console.log("itemId: " + itemId);
+		// console.log(questions);
 		const container = document.querySelector(".data");
 		if (!questions || questions.length === 0) {
 			console.error("유사 항목 없음");
@@ -715,7 +717,7 @@
 		let questionHTML = "";
 		questionHTML += `
 				<div class ="cnt-top">
-					<span class="title">?번 유사 문제</span>
+					<span class="title">`+index+`번 유사 문제</span>
 					<div class="right-area">
 						<div class="select-wrap">
 							<button type="button" class="select-btn">난이도 전체</button>
@@ -758,7 +760,9 @@
 							</div>
 							<div class="que-bottom">
 								<div class="btn-wrap">
-									<button type="button" class="btn-default"><i class="add-type02"></i>추가</button>
+									<button type="button" class="btn-default" onclick="addQuestion(${encodeURIComponent(JSON.stringify(q))},${itemId})">
+										<i class="add-type02"></i>추가
+									</button>
 								</div>
 							</div>
 						</div>
@@ -771,6 +775,68 @@
 		});
 		questionHTML += `</div>`
 		container.insertAdjacentHTML("beforeend", questionHTML);
+
+	}
+
+	function addQuestion(newItemData, targetItemId){
+		console.log("newItemData: " + newItemData);
+		console.log("targetItemId: " + targetItemId);
+
+		const table = document.getElementById("table-1");
+
+		// 새 문항의 HTML 템플릿
+		const newQuestionHTML = `
+			<div class="col depth-02" data-item-id="${newItemData.itemId}">
+			   <a href="javascript:;">
+				<span class="dragHandle ui-sortable-handle drag-type01">
+					<img src="../images/common/ico_move_type02.png" alt="">
+				</span>
+				<span>${newItemId.index}</span>
+				<span class="tit">
+					<div class="txt">${newItemData.largeChapterName}>${newItemData.mediumChapterName}>${newItemData.smallChapterName}>${newItemData.topicChapterName}</div>
+					${newItemData.type === "edit" ? `
+					<div class="tooltip-wrap">
+						<button type="button" class="btn-tip"></button>
+						<div class="tooltip type01">
+							<div class="tool-type01">
+								시험지명블라블라~~
+							</div>
+						</div>
+					</div>` : ""}
+				</span>
+				<span>${newItemData.questionFormName}</span>
+				<span>
+					<span class="que-badge">${newItemData.difficultyName}</span>
+				</span>
+			</a>
+			</div>
+    `;
+
+		// 기존 문항 찾기
+		const targetItem = document.querySelector(`[data-item-id="${targetItemId}"]`);
+		if(!targetItem){
+			console.log("기존 문항 없음");
+			return;
+		}
+
+		//지문에 속한 항목인지 확인
+		const parentElement = targetItem.closest(".depth-01");
+		//지문이 있는 경우
+		if (parentElement) {
+			console.log("지문 있음");
+			const colGroup = parentElement.querySelector(".col-group");
+			colGroup.insertAdjacentHTML("beforeend", newQuestionHTML);
+			console.log(colGroup);
+		}else {
+				//단일 문항일 경우
+				console.log("단일 문항");
+				targetItem.insertAdjacentHTML("beforeend", newQuestionHTML);
+		}
+		let type = "similar";
+		updateOverallOrder();
+		//console.log(updatedQuestions)
+		//renderQuestions(updatedQuestions);
+
 	}
 
 
