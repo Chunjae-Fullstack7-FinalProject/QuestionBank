@@ -9,9 +9,11 @@ import java.util.List;
 
 @Builder
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class TextBookResponseDTO {
+@NoArgsConstructor
+public class TextbookApiResponse {
     private String successYn;
     private List<TextBookApiDTO> subjectInfoList;
+    private String errCode;
+    private String errorMessage;
 }
