@@ -3,9 +3,9 @@ package net.questionbank.service.textbook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.questionbank.dto.main.MainDTO;
+import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.dto.textbook.TextbookApiResponse;
 import net.questionbank.dto.textbook.TextbookDTO;
-import net.questionbank.dto.textbook.TextbookDetailDTO;
 import net.questionbank.exception.CustomRuntimeException;
 import net.questionbank.mapper.TextbookMapper;
 import org.springframework.http.HttpStatusCode;
@@ -38,7 +38,7 @@ public class TextbookServiceImpl implements TextbookServiceIf{
     }
 
     @Override
-    public TextbookDetailDTO getTextbookDetails(String subjectId) {
+    public TextBookApiDTO getTextbookDetails(String subjectId) {
         try {
             Mono<TextbookApiResponse> textbookApiResponseMono = webClient.post()
                     .uri("/chapter/subjectInfo-list")
@@ -50,7 +50,7 @@ public class TextbookServiceImpl implements TextbookServiceIf{
             if(textbookApiResponse == null) {
                 throw new CustomRuntimeException("교과서정보 조회 중 에러 발생");
             }
-            List<TextbookDetailDTO> textbookDetailDTOList = textbookApiResponse.getSubjectInfoList();
+            List<TextBookApiDTO> textbookDetailDTOList = textbookApiResponse.getSubjectInfoList();
             if(textbookDetailDTOList == null) {
                 return null;
             }

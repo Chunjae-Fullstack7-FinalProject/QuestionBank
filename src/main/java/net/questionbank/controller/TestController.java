@@ -7,27 +7,18 @@ import net.questionbank.annotation.Logging;
 
 import net.questionbank.annotation.RedirectWithError;
 import net.questionbank.dto.presetExam.LargeChapterDTO;
-import net.questionbank.dto.presetExam.PresetExamApiResponse;
-import net.questionbank.dto.textbook.TextbookApiResponse;
-import net.questionbank.dto.textbook.TextbookDetailDTO;
+import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.exception.CustomRuntimeException;
 import net.questionbank.service.step3.Step3Service;
 import net.questionbank.service.test.TestServiceIf;
 import net.questionbank.service.textbook.TextbookServiceIf;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import reactor.core.publisher.Mono;
-
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @Controller
 @RequiredArgsConstructor
@@ -43,31 +34,31 @@ public class TestController {
     @RedirectWithError(redirectUri = "/error/error")
     public String step0(@RequestParam String subjectId, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
         log.info(subjectId);
-        TextbookDetailDTO textbookDetailDTO = textbookService.getTextbookDetails(subjectId);
-        if(textbookDetailDTO == null) {
+        TextBookApiDTO textbookDetailDTO = textbookService.getTextbookDetails(subjectId);
+        if (textbookDetailDTO == null) {
             throw new CustomRuntimeException("textbook not found");
         }
         session.setAttribute("textbookDetailDTO", textbookDetailDTO);
         model.addAttribute("textbookDetailDTO", textbookDetailDTO);
         List<LargeChapterDTO> largeChapterList = testService.getPresetExamList(subjectId);
-        if(largeChapterList == null) {
+        if (largeChapterList == null) {
             throw new CustomRuntimeException("presetExam not found");
         }
         model.addAttribute("largeChapterList", largeChapterList);
         log.info("largeChapterList : {}", largeChapterList);
         return "test/step0";
     }
-  
-  
+
+
     /*
     문항 편집(문제 목록, 문제지요약)
     step1에서 받은 과목 id 값
     step2/sub03_01_01로 리턴
      */
     @GetMapping("/step2")
-    public String getItemIds(Model model, @RequestParam(required = false, defaultValue = "noEdit") String type){
-        String[] questionIds ={"494519", "494552"
-                ,"487868"
+    public String getItemIds(Model model, @RequestParam(required = false, defaultValue = "noEdit") String type) {
+        String[] questionIds = {"494519", "494552"
+                , "487868"
                 , "494553"
                 , "493140"
                 , "493137"
@@ -81,13 +72,14 @@ public class TestController {
                 , "487816"
                 , "494528"
                 , "493138"
-                ,"487866"
-                ,"487867"
-                ,"493179"};
+                , "487866"
+                , "487867"
+                , "493179"};
         model.addAttribute("questionIds", questionIds);
         model.addAttribute("type", type);
+        return "test/step2";
     }
-  
+
     @GetMapping("/step3")
     @PostMapping("/step3")
     public String step3(Model model, @RequestParam(required = false) List<Long> itemIdList, @RequestParam(required = false) Long subjectId) {
@@ -106,9 +98,9 @@ public class TestController {
 
         Long testSubjectId = 1154L;
 
-        model.addAttribute("testInfo", step3Service.testInfo(itemIdList==null?ids:itemIdList, subjectId==null?testSubjectId:subjectId));
-        model.addAttribute("subjectId", subjectId==null?testSubjectId:subjectId);
-        model.addAttribute("itemIdList", itemIdList==null?ids:itemIdList);
+        model.addAttribute("testInfo", step3Service.testInfo(itemIdList == null ? ids : itemIdList, subjectId == null ? testSubjectId : subjectId));
+        model.addAttribute("subjectId", subjectId == null ? testSubjectId : subjectId);
+        model.addAttribute("itemIdList", itemIdList == null ? ids : itemIdList);
         return "test/sub04_01";
     }
 

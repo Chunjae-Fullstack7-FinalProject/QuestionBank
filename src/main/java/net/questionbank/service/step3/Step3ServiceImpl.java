@@ -16,7 +16,7 @@ import net.questionbank.dto.test.TestDataDTO;
 import net.questionbank.dto.test.TestDataResponseDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.dto.textbook.TextBookRequestDTO;
-import net.questionbank.dto.textbook.TextBookResponseDTO;
+import net.questionbank.dto.textbook.TextbookApiResponse;
 import net.questionbank.mapper.QuestionMapper;
 import net.questionbank.mapper.TestMapper;
 import net.questionbank.repository.QuestionRepository;
@@ -74,12 +74,12 @@ public class Step3ServiceImpl implements Step3Service {
 //        JSONObject jsonObject = new JSONObject();
 //        jsonObject.put("subjectId", textBookId);
 
-        TextBookResponseDTO responseDTO = webClient
+        TextbookApiResponse responseDTO = webClient
                 .post()
                 .uri("/chapter/subjectInfo-list")
                 .bodyValue(TextBookRequestDTO.builder().subjectId((long) subjectId).build())
                 .retrieve()
-                .bodyToMono(TextBookResponseDTO.class).block();
+                .bodyToMono(TextbookApiResponse.class).block();
 
         if (responseDTO == null || !responseDTO.getSuccessYn().equals("Y")) return null;
 
