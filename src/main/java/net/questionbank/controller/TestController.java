@@ -56,7 +56,8 @@ public class TestController {
     step2/sub03_01_01로 리턴
      */
     @GetMapping("/step2")
-    public String getItemIds(Model model, @RequestParam(required = false, defaultValue = "noEdit") String type) {
+    public String getItemIds(Model model, @RequestParam(required = false, name = "examId") String[] examIds,@RequestParam(required = false, defaultValue = "") String type) {
+
         String[] questionIds = {"494519", "494552"
                 , "487868"
                 , "494553"
@@ -75,8 +76,11 @@ public class TestController {
                 , "487866"
                 , "487867"
                 , "493179"};
+        if(examIds!=null){
+            questionIds = testService.getPresetExamQuestions(examIds);
+            model.addAttribute("type", "edit");
+        }
         model.addAttribute("questionIds", questionIds);
-        model.addAttribute("type", type);
         return "test/step2";
     }
 

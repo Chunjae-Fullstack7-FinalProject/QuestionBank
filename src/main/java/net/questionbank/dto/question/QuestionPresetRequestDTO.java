@@ -11,7 +11,6 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuestionResponseDTO<T extends QuestionApiDTO> {
-    private String successYn;
-    private List<T> itemList;
+public class QuestionPresetRequestDTO {
+    private List<Long> examIdList;
 }
