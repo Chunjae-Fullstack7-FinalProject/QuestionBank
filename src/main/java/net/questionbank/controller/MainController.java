@@ -5,7 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import net.questionbank.dto.main.MainDTO;
 import net.questionbank.dto.main.ResponseDTO;
 import net.questionbank.dto.main.SubjectRequestDTO;
-import net.questionbank.service.TextbookServiceImpl;
+import net.questionbank.service.textbook.TextbookServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
