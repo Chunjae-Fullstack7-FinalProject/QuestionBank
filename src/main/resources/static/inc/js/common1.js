@@ -216,48 +216,44 @@ $(function () {
   let selectList = $('.right-cnt .chk-acc input[type="checkbox"]');
 
   function checkFunc() {
-    let _this = $(this);
+    let _this = $(this); // 현재 체크박스
+    let isChecked = _this.prop("checked"); // 체크 여부 확인
+    let role = _this.data("role"); // 체크박스의 역할 (large, medium, small, topic)
 
-    if (_this.parents("div").hasClass("sheet-cnt")) {
-      let chkNum = _this.data("chk");
+    // 하위 요소 체크/해제
+    if (role === "large" || role === "medium" || role === "small") {
+      // 현재 요소의 하위 체크박스 상태 동기화
+      _this
+          .closest(".depth-container")
+          .find("input[type='checkbox']")
+          .prop("checked", isChecked);
+    }
 
-      if (_this.prop("checked")) {
-        _this
-          .parents(".chk-acc")
-          .find("input[data-chk='" + chkNum + "']")
-          .prop("checked", true);
-      } else {
-        _this
-          .parents(".chk-acc")
-          .find("input[data-chk='" + chkNum + "']")
-          .prop("checked", false);
-      }
-    } else {
-      if (_this.prop("checked")) {
-        _this
-          .parents("table")
-          .find("input[type=checkbox]")
-          .not(".toggle-btn input[type=checkbox]")
-          .prop("checked", true);
-        _this
-          .parents(".chk-acc")
-          .find("input[type=checkbox]")
-          .not(".toggle-btn input[type=checkbox]")
-          .prop("checked", true);
-      } else {
-        _this
-          .parents("table")
-          .find("input[type=checkbox]")
-          .not(".toggle-btn input[type=checkbox]")
-          .prop("checked", false);
-        _this
-          .parents(".chk-acc")
-          .find("input[type=checkbox]")
-          .not(".toggle-btn input[type=checkbox]")
-          .prop("checked", false);
+    // 상위 요소 체크/해제
+    if (role === "topic" || role === "small" || role === "medium") {
+      let parentContainer = _this.closest(".depth-container").parent();
+
+      while (parentContainer.length > 0) {
+        // 현재 depth-container 내부의 모든 형제 체크박스가 체크되어 있는지 확인
+        let allSiblingsChecked = parentContainer
+            .find(".depth-container input[type='checkbox']")
+            .length === parentContainer.find(".depth-container input[type='checkbox']:checked").length;
+
+        // 부모 체크박스 상태 업데이트
+        parentContainer
+            .find("input[data-role]")
+            .first()
+            .prop("checked", allSiblingsChecked);
+
+        // 상위 컨테이너로 이동
+        parentContainer = parentContainer.closest(".depth-container").parent();
       }
     }
   }
+
+// 이벤트 리스너 등록
+  $(document).on("change", ".que-allCheck", checkFunc);
+
 
   function checkMove() {
     let _this = $(this);
@@ -373,7 +369,6 @@ $(function () {
 
   // 형제 연결
   $(".cnt-list span").on("click", function () {
-    console.log("형제 연결 부분.")
     let _this = $(this);
     let _txt = $(this).text();
 

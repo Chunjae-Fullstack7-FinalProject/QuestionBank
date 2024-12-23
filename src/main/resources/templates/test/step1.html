@@ -46,17 +46,18 @@
                         <div class="unit-box-wrap">
                             <div class="unit-box">
                                 <div class="unit-cnt scroll-inner">
-                                    <div class="title-top sheet-cnt">
+                                    <div class="title-top">
                                         <span>단원정보</span>
-                                        <input type="checkbox" id="chk01_00" class="allCheck" data-chk="1">
-                                        <label for="chk01_00">전체선택</label>
+                                        <!-- 전체 선택 체크박스 -->
+                                        <input type="checkbox" id="checkAll" class="allCheck">
+                                        <label for="checkAll">전체선택</label>
                                     </div>
-                                    <ul id="chapter-tree">
-                                        <li th:each="large : ${largeList}">
+                                    <ul id="chapter-tree" >
+                                        <li th:each="large : ${largeList}" class="depth01">
                                             <!-- 대단원 -->
                                             <div class="check-group title">
                                                 <div class="title-chk">
-                                                    <input type="checkbox" th:id="${large.largeChapterId}" class="que-allCheck depth01" data-chk="1">
+                                                    <input type="checkbox" th:id="${large.largeChapterId}" class="que-allCheck depth01" data-depth="1">
                                                     <label th:for="${large.largeChapterId}">
                                                         <button type="button" class="dep-btn active" th:text="${large.largeChapterName}">대단원 이름</button>
                                                     </label>
@@ -68,7 +69,7 @@
                                                 <!-- 중단원 -->
                                                 <div th:each="medium : ${large.mediumList}">
                                                     <div class="check-group">
-                                                        <input type="checkbox" th:id="${medium.mediumChapterId}" class="que-allCheck depth01" data-chk="1">
+                                                        <input type="checkbox" th:id="${medium.mediumChapterId}" class="que-allCheck depth02" data-depth="2">
                                                         <label th:for="${medium.mediumChapterId}">
                                                             <button type="button" class="dep-btn active" th:text="${medium.mediumChapterName}">중단원 이름</button>
                                                         </label>
@@ -78,7 +79,7 @@
                                                         <!-- 소단원 -->
                                                         <div th:each="small : ${medium.smallList}">
                                                             <div class="check-group">
-                                                                <input type="checkbox" th:id="${small.smallChapterId}" class="que-allCheck depth01" data-chk="1">
+                                                                <input type="checkbox" th:id="${small.smallChapterId}" class="que-allCheck depth03" data-depth="3">
                                                                 <label th:for="${small.smallChapterId}">
                                                                     <button type="button" class="dep-btn active" th:text="${small.smallChapterName}">소단원 이름</button>
                                                                     <em th:text="'('+${small.itemCount}+')'" style="color:#5670dc;"></em>
@@ -89,7 +90,7 @@
                                                                 <!-- 토픽 -->
                                                                 <div th:each="topic : ${small.topicList}">
                                                                     <div class="check-group">
-                                                                        <input type="checkbox" th:id="${topic.topicChapterId}" class="que-allCheck depth04" data-chk="1">
+                                                                        <input type="checkbox" th:id="${topic.topicChapterId}" class="que-allCheck depth04" data-depth="4">
                                                                         <label th:for="${topic.topicChapterId}">
                                                                             <button type="button" class="active" th:text="${topic.topicChapterName}">토픽 이름</button>
                                                                             <em th:text="'('+${topic.itemCount}+')'" style="color:#5670dc;"></em>
@@ -105,8 +106,8 @@
                                             </div>
                                         </li>
                                     </ul>
-
                                 </div>
+
                             </div>
                         </div>
                         <div class="type-box-wrap">
@@ -318,10 +319,9 @@
         function depFunc() {
             let _this = $(this);
 
-            if (!_this.hasClass('active')) {
+            if (!_this.hasClass('active')) { //여기가 active가 없을 때. 즉, 이미 펼쳐져 있는 상황.
                 _this.addClass('active');
                 _this.parents('.check-group').next('div').stop().slideUp('fast');
-
             } else {
                 _this.removeClass('active');
                 _this.parents('.check-group').next('div').stop().slideDown('fast');
@@ -329,15 +329,39 @@
 
             _this.parents('.check-group').toggleClass('on');
         }
-
         depBtn.on('click', depFunc);
 
+        // "전체 선택" 체크박스 이벤트 핸들러
+        $('#checkAll').on('change', function () {
+            const isChecked = $(this).prop('checked'); // 전체 선택 여부
+            const largeCheckboxes = $('#chapter-tree').find('.depth01'); // 모든 대단원 체크박스
 
-        // que-checkbox
+            // 대단원 체크박스를 클릭한 것처럼 처리
+            largeCheckboxes.each(function () {
+                $(this).prop('checked', !isChecked).trigger('click'); // 상태 변경 후 클릭 이벤트 트리거
+            });
+        });
+
+        $('#chapter-tree').on('change', '.depth01', function () {
+            const largeCheckboxes = $('#chapter-tree').find('input[type=checkbox].depth01'); // 모든 대단원 체크박스
+            console.log(largeCheckboxes.length);
+            console.log(largeCheckboxes.filter(':checked').length);
+            const isAllChecked = largeCheckboxes.length === largeCheckboxes.filter(':checked').length; // 모두 체크 여부 확인
+            console.log(isAllChecked);
+            $('#checkAll').prop('checked', isAllChecked); // 전체 선택 상태 업데이트
+        });
+
+
+
+
+
         let queChkAll = $('.que-allCheck');
 
         function queCheckFunc() {
             let _this = $(this);
+            let parentGroup = _this.parents('.check-group');
+            let childCheckboxes = parentGroup.next('div').find('input[type=checkbox]');
+            const depth = parseInt(_this.data('depth')); // 현재 체크박스 깊이
 
             if (_this.prop('checked')) {
                 _this.parents().next('ul').find('input[type=checkbox]').prop('checked', true);
@@ -345,21 +369,147 @@
                 _this.parents().next('ul').find('input[type=checkbox]').prop('checked', false);
             }
 
-            if (_this.prop('checked') && _this.hasClass('depth01')) {
-                _this.parents('.check-group').next('div').find('input[type=checkbox]').prop('checked', true);
-            } else {
-                _this.parents('.check-group').next('div').find('input[type=checkbox]').prop('checked', false);
+
+            if (_this.hasClass('depth01')) {
+                if (_this.prop('checked')) {
+
+                    _this.parents('.check-group').next('.depth02').find('input[type=checkbox]').prop('checked', true);
+                    _this.parents('.check-group').next('.depth02').find('.depth03').find('input[type=checkbox]').prop('checked', true);
+                    _this.parents('.check-group').next('.depth02').find('.depth03').find('.depth04').find('input[type=checkbox]').prop('checked', true);
+
+                    _this.next('label').find('button').removeClass('active');
+                    _this.parents('.check-group').next('.depth02').find('button').removeClass('active');
+
+                    _this.parents('.check-group').next('.depth02').stop().slideDown('fast');
+                    _this.parents('.check-group').next('.depth02').find('.depth03').stop().slideDown('fast');
+                    _this.parents('.check-group').next('.depth02').find('.depth03').find('.depth04').stop().slideDown('fast');
+
+                    _this.closest('.check-group').addClass('on');
+                    _this.parents('.check-group').next('.depth02').find('.check-group').addClass('on');
+                    _this.parents('.check-group').next('.depth02').find('.depth03').find('.check-group').addClass('on');
+
+                } else {
+                    _this.parents('.check-group').next('.depth02').find('input[type=checkbox]').prop('checked', false);
+                    _this.parents('.check-group').next('.depth02').find('.depth03').find('input[type=checkbox]').prop('checked', false);
+                    _this.parents('.check-group').next('.depth02').find('.depth03').find('.depth04').find('input[type=checkbox]').prop('checked', false);
+
+                    _this.next('label').find('button').addClass('active');
+                    _this.parents('.check-group').next('.depth02').find('button').addClass('active');
+
+                    _this.parents('.check-group').next('.depth02').stop().slideUp('fast');
+                    _this.parents('.check-group').next('.depth02').find('.depth03').stop().slideUp('fast');
+                    _this.parents('.check-group').next('.depth02').find('.depth03').find('.depth04').stop().slideUp('fast');
+
+                    _this.closest('.check-group').removeClass('on');
+                    _this.parents('.check-group').next('.depth02').find('.check-group').removeClass('on');
+                    _this.parents('.check-group').next('.depth02').find('.depth03').find('.check-group').removeClass('on');
+                }
             }
 
-            if (_this.prop('checked')) {
-                _this.parents('table').find('input[type=checkbox]').prop('checked', true);
-            } else {
-                _this.parents('table').find('input[type=checkbox]').prop('checked', false);
+
+            else if (_this.hasClass('depth02')) {
+                if (_this.prop('checked')) {
+
+                    _this.parents('.check-group').next('.depth03').find('input[type=checkbox]').prop('checked', true);
+                    _this.parents('.check-group').next('.depth03').find('.depth04').find('input[type=checkbox]').prop('checked', true);
+
+                    _this.next('label').find('button').removeClass('active');
+                    _this.parents('.check-group').next('.depth03').find('button').removeClass('active');
+
+                    _this.parents('.check-group').next('.depth03').stop().slideDown('fast');
+                    _this.parents('.check-group').next('.depth03').find('.depth04').stop().slideDown('fast');
+
+                    _this.closest('.check-group').addClass('on');
+                } else {
+
+                    _this.parents('.check-group').next('.depth03').find('input[type=checkbox]').prop('checked', false);
+                    _this.parents('.check-group').next('.depth03').find('.depth04').find('input[type=checkbox]').prop('checked', false);
+
+                    _this.next('label').find('button').addClass('active');
+                    _this.parents('.check-group').next('.depth03').find('button').addClass('active');
+
+                    _this.parents('.check-group').next('.depth03').stop().slideUp('fast');
+                    _this.parents('.check-group').next('.depth03').find('.depth04').stop().slideUp('fast');
+
+                    _this.closest('.check-group').removeClass('on');
+                }
             }
 
+// 소단원 체크박스 클릭 시
+            else if (_this.hasClass('depth03')) {
+                if (_this.prop('checked')) {
+                    _this.parents('.check-group').next('.depth04').find('input[type=checkbox]').prop('checked', true);
+                    _this.next('label').find('button').removeClass('active');
+                    _this.parents('.check-group').next('.depth04').stop().slideDown('fast');
+                    _this.closest('.check-group').addClass('on');
+                } else {
+
+                    _this.parents('.check-group').next('.depth04').find('input[type=checkbox]').prop('checked', false);
+                    _this.next('label').find('button').addClass('active');
+                    _this.parents('.check-group').next('.depth04').stop().slideUp('fast');
+                    _this.closest('.check-group').removeClass('on');
+                }
+            }
+        }
+        queChkAll.on('click', queCheckFunc);
+
+
+
+
+        queChkAll.on('change', function () {
+            let _this = $(this); // 현재 선택된 체크박스
+            let parentCheckBox; // 상위 체크박스
+            let childCheckboxes; // 하위 체크박스들
+
+            // depth04, depth03, depth02의 상위 체크박스를 찾아 상태를 업데이트
+            if (_this.hasClass('depth04')) {
+                // depth04인 경우
+                parentCheckBox = _this.parents('.depth04').prev('.check-group').find('input[type=checkbox].depth03');
+                childCheckboxes = _this.closest('div.depth04').find('input[type=checkbox].depth04'); // depth04 체크박스
+                console.log("depth04선택");
+            } else if (_this.hasClass('depth03')) {
+                // depth03인 경우
+                parentCheckBox = _this.parents('.depth03').prev('.check-group').find('input[type=checkbox].depth02');
+                childCheckboxes = _this.closest('div.depth03').find('input[type=checkbox].depth03'); // depth03 체크박스
+                console.log("depth03선택");
+            } else if (_this.hasClass('depth02')) {
+                // depth02인 경우
+                parentCheckBox = _this.parents('.depth02').prev('.check-group.title').find('input[type=checkbox].depth01');
+                childCheckboxes = _this.closest('div.depth02').find('input[type=checkbox].depth02'); // depth02 체크박스
+                console.log("depth02선택");
+            }
+
+            // 상위 체크박스 상태 업데이트 함수 호출
+            updateAllParentCheckboxes(_this);
+        });
+
+// 모든 상위 체크박스를 업데이트하는 함수
+        function updateAllParentCheckboxes(element) {
+            let currentDepth = parseInt(element.data('depth')); // 현재 체크박스의 depth
+
+            while (currentDepth > 1) {
+                let parentDepth = currentDepth - 1; // 상위 depth 계산
+                const parentGroup = element.parents(`.depth0${currentDepth}`).prev(`.depth0${parentDepth}`);
+                const parentCheckbox = element.parents(`.depth0${currentDepth}`).prev('.check-group').find(`input[type=checkbox].depth0${parentDepth}`);
+                const siblingCheckboxes = element.closest(`div.depth0${currentDepth}`).find(`input[type=checkbox].depth0${currentDepth}`);
+                if (!parentCheckbox.length) break; // 부모 체크박스가 없으면 종료
+
+                // 하위 체크박스 상태 확인
+                const allChecked = siblingCheckboxes.length === siblingCheckboxes.filter(':checked').length;
+
+                // 상위 체크박스 상태 동기화
+                parentCheckbox.prop('checked', allChecked);
+
+                // 다음 상위로 이동
+                element = parentCheckbox;
+                currentDepth = parentDepth;
+            }
         }
 
-        queChkAll.on('click', queCheckFunc);
+
+
+
+
 
 
         $(".type-box .box .range").hide();

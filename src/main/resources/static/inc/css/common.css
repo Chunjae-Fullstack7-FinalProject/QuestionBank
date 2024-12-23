@@ -1123,7 +1123,7 @@ input[type=checkbox]:checked + label::before {
   font-size: 13px;
   font-weight: 400;
 }
-.view-box-wrap .unit-box-wrap .unit-box .unit-cnt input[type=checkbox]:checked + label .dep-btn {
+.view-box-wrap .unit-box-wrap .unit-box .unit-cnt input[type=checkbox]:checked + label button {
   color: #5670dc;
 }
 .view-box-wrap .unit-box-wrap .unit-box .unit-cnt input[type=checkbox]:checked + label::before {
