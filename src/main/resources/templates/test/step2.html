@@ -322,9 +322,9 @@
 			});
 			const data = await response.json();
 			if (data.successYn === 'Y') {
-				questions = data.itemList;
+				similarQuestions = data.itemList;
 				//console.log(questions);
-				renderSimilar(questions, index, itemId);
+				renderSimilar(similarQuestions, index, itemId);
 			} else {
 				console.error("실패:", data);
 			}
@@ -609,7 +609,7 @@
 			const prevPassageId = index > 0 ? questions[index-1].passageId : null;
 			const nextPassageId = (index < questions.length - 1) ? questions[index + 1].passageId : null;
 			if (flag && q.passageId !== prevPassageId) {
-				questionHTML += `</div></div>`;
+				questionHTML += `</div></div>`;	
 				flag=false;
 			}
 			if(q.passageId !== null && q.passageId !== prevPassageId && nextPassageId===q.passageId) {
@@ -832,7 +832,6 @@
 				console.log("기존 문항 없음");
 				return;
 			}
-
 			//지문에 속한 항목인지 확인
 			const parentElement = targetItem.closest(".depth-01");
 			//지문이 있는 경우
@@ -840,6 +839,9 @@
 				console.log("지문 있음");
 				const colGroup = parentElement.querySelector(".col-group");
 				colGroup.insertAdjacentHTML("beforeend", newQuestionHTML);
+				// console.log("aaaaaaaaaaaaaaaaa");
+				// console.log(questions);
+
 				//console.log(colGroup);
 			} else {
 				//단일 문항일 경우
@@ -847,7 +849,7 @@
 				targetItem.insertAdjacentHTML("beforeend", newQuestionHTML);
 			}
 			//console.log(typeof updateAllOrder);
-			updateAllOrder();
+			updateAllOrder(newItem);
 
 		} else {
 			console.log("데이터 없음");
@@ -980,8 +982,10 @@
 		});
 	});
 
-	function updateAllOrder() {
+	function updateAllOrder(newItem) {
 		console.log("==updateAllOrder==");
+		console.log(newItem);
+		//console.log(questions);
 		const overallOrder = $("#table-1")
 				.children(".depth-01, .singleQuestion") // 지문 및 단일 문항 선택
 				.map(function () {
@@ -996,7 +1000,6 @@
 								})
 								.get();
 					}
-
 					// 단일 문항일 경우 그대로 반환
 					return { id: $(this).data("item-id"), type };
 				})
@@ -1011,11 +1014,21 @@
 			if (type === "question") {
 				// 단일 문항 및 지문 내부 문항만 추가
 				const question = questions.find(q => q.itemId === id);
+				if(!question){
+					console.log("새로운 문항");
+					// 새로 추가된 문항의 기본 데이터를 생성
+					const newElement = document.querySelector(`[data-item-id="${id}"]`);
+					// console.log(newElement);
+					// //console.log(newElement);
+					reordered.push(newItem);
+
+				}
+					//reordered.push(newElement);
+
 				if (question) reordered.push(question);
 			}
 		});
 		console.log("reordered: " + reordered.length);
-		console.log("questions: " + questions.length);
 
 		questions = reordered;
 		console.log("변경된 배열:", questions);
