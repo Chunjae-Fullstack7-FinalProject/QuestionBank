@@ -840,13 +840,13 @@
 				console.log("지문 있음");
 				const colGroup = parentElement.querySelector(".col-group");
 				colGroup.insertAdjacentHTML("beforeend", newQuestionHTML);
-				console.log(colGroup);
+				//console.log(colGroup);
 			} else {
 				//단일 문항일 경우
 				console.log("단일 문항");
 				targetItem.insertAdjacentHTML("beforeend", newQuestionHTML);
 			}
-			console.log(typeof updateOverallOrder);
+			//console.log(typeof updateAllOrder);
 			updateAllOrder();
 
 		} else {
@@ -925,7 +925,7 @@
 		* 테이블 내 전체 항목을 가져와 순서 정렬 후 ui 반영
 		* */
 		function updateOverallOrder() {
-			console.log("들어옴 ?");
+			console.log("==updateOverallOrder==");
 			const overallOrder = $("#table-1")
 					.children(".depth-01, .singleQuestion") // 지문 및 단일 문항 선택
 					.map(function () {
@@ -958,7 +958,8 @@
 					if (question) reordered.push(question);
 				}
 			});
-
+			console.log("reordered: " + reordered.length);
+			console.log("questions: " + questions.length);
 			if (reordered.length === questions.length) {
 				questions = reordered;
 				console.log("변경된 배열:", questions);
@@ -980,7 +981,7 @@
 	});
 
 	function updateAllOrder() {
-		console.log("들어옴 ?");
+		console.log("==updateAllOrder==");
 		const overallOrder = $("#table-1")
 				.children(".depth-01, .singleQuestion") // 지문 및 단일 문항 선택
 				.map(function () {
@@ -1004,7 +1005,7 @@
 
 		console.log("전체 순서 (지문 제외):", overallOrder);
 
-		//questions 배열을 재구성
+		// `questions` 배열을 재구성
 		const reordered = [];
 		overallOrder.forEach(({ id, type }) => {
 			if (type === "question") {
@@ -1013,9 +1014,16 @@
 				if (question) reordered.push(question);
 			}
 		});
+		console.log("reordered: " + reordered.length);
+		console.log("questions: " + questions.length);
+
 		questions = reordered;
-		enderSummary(questions);
+		console.log("변경된 배열:", questions);
+
+		// UI 업데이트
+		renderSummary(questions);
 		renderQuestions(questions);
+
 	}
 
 	$(function () {
