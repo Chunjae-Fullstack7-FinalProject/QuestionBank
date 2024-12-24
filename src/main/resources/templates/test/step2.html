@@ -309,7 +309,7 @@
 
 	// 문항 id로 유사 문항 조회
 	async function getSimilarQuestionInfo(itemId, index){
-		//console.log(itemId);
+		console.log("itemId: " + itemId);
 		try{
 			const response = await fetch(`${API_BASE_URL}/item-img/similar-list`, {
 				method: "POST",
@@ -489,6 +489,7 @@
 
 	//문제 데이터를 화면에 렌더링
 	function renderQuestions(questions) {
+		console.log("renderQuestions");
 		console.log(questions);
 		const container = document.querySelector(".view-que-list");
 		container.innerHTML = "";
@@ -600,7 +601,7 @@
 	document.addEventListener("DOMContentLoaded", getQuestionInfo);
 
 	function renderSummary(questions){
-		console.log(questions);
+		//console.log(questions);
 		const container = document.querySelector(".test");
 		container.innerHTML = "";
 		let flag = false;
@@ -609,7 +610,7 @@
 			const prevPassageId = index > 0 ? questions[index-1].passageId : null;
 			const nextPassageId = (index < questions.length - 1) ? questions[index + 1].passageId : null;
 			if (flag && q.passageId !== prevPassageId) {
-				questionHTML += `</div></div>`;	
+				questionHTML += `</div></div>`;
 				flag=false;
 			}
 			if(q.passageId !== null && q.passageId !== prevPassageId && nextPassageId===q.passageId) {
@@ -792,72 +793,87 @@
 
 	function addQuestion(newItemData, targetItemId) {
 		const newItem = JSON.parse(decodeURIComponent(newItemData)); // 디코딩 후 JSON 파싱
+		let newQuestionHTML = "";
 		console.log(newItem);
-		//const newItemData = questionCache[newItemId];
-		if (newItem) {
-			console.log("데이터 있음");
-			const table = document.getElementById("table-1");
 
-			// 새 문항의 HTML 템플릿
-			const newQuestionHTML = `
-			<div class="col depth-02" data-item-id="${newItem.itemId}">
-			   <a href="javascript:;">
-				<span class="dragHandle ui-sortable-handle drag-type01">
-					<img src="../images/common/ico_move_type02.png" alt="">
-				</span>
-				<span>${newItem.index}</span>
-				<span class="tit">
-					<div class="txt">${newItem.largeChapterName}>${newItem.mediumChapterName}>${newItem.smallChapterName}>${newItem.topicChapterName}</div>
-					${newItem.type === "edit" ? `
-					<div class="tooltip-wrap">
-						<button type="button" class="btn-tip"></button>
-						<div class="tooltip type01">
-							<div class="tool-type01">
-								시험지명블라블라~~
-							</div>
-						</div>
-					</div>` : ""}
-				</span>
-				<span>${newItem.questionFormName}</span>
-				<span>
-					<span class="que-badge">${newItem.difficultyName}</span>
-				</span>
-			</a>
-			</div>
-    		`;
+		if (newItem) {
+			console.log("추가할 데이터 정보 있음");
 
 			// 기존 문항 찾기
 			const targetItem = document.querySelector(`[data-item-id="${targetItemId}"]`);
+			console.log("Target item:", targetItem);
+
 			if (!targetItem) {
 				console.log("기존 문항 없음");
 				return;
 			}
-			//지문에 속한 항목인지 확인
+
+			// 지문에 속한 항목인지 확인
 			const parentElement = targetItem.closest(".depth-01");
-			//지문이 있는 경우
+
+			// 중복 확인: 동일한 itemId를 가진 요소 검사
+			const existingElement = document.querySelector(`.col[data-item-id="${newItem.itemId}"]`);
+			if (existingElement && !parentElement) {
+				console.log("이미 추가된 문항");
+				//알럿 추가해야함
+				alert("이미 추가된 문항입니다.");
+				return;
+			}
 			if (parentElement) {
+				// 새 문항의 HTML 템플릿(지문이 있을 때)
+				newQuestionHTML = `
+                <div class="col depth-02" data-item-id="${newItem.itemId}">
+                    <a href="javascript:;">
+                        <span class="dragHandle ui-sortable-handle drag-type01">
+                            <img src="../images/common/ico_move_type02.png" alt="">
+                        </span>
+                        <span>${newItem.index}</span>
+                        <span class="tit">
+                            <div class="txt">${newItem.largeChapterName}>${newItem.mediumChapterName}>${newItem.smallChapterName}>${newItem.topicChapterName}</div>
+                        </span>
+                        <span>${newItem.questionFormName}</span>
+                        <span>
+                            <span class="que-badge">${newItem.difficultyName}</span>
+                        </span>
+                    </a>
+                </div>
+            `;
 				console.log("지문 있음");
 				const colGroup = parentElement.querySelector(".col-group");
 				colGroup.insertAdjacentHTML("beforeend", newQuestionHTML);
-				// console.log("aaaaaaaaaaaaaaaaa");
-				// console.log(questions);
-
-				//console.log(colGroup);
+				console.log("Updated colGroup:", colGroup);
 			} else {
-				//단일 문항일 경우
 				console.log("단일 문항");
-				targetItem.insertAdjacentHTML("beforeend", newQuestionHTML);
+				// 새 문항의 HTML 생성
+				newQuestionHTML = `
+                <div class="col singleQuestion" data-item-id="${newItem.itemId}">
+                    <a href="javascript:;">
+                        <span class="dragHandle ui-sortable-handle">
+                            <img src="../images/common/ico_move_type01.png" alt="">
+                        </span>
+                        <span>${newItem.index}</span>
+                        <span class="tit">
+                            <div class="txt">${newItem.largeChapterName}>${newItem.mediumChapterName}>${newItem.smallChapterName}>${newItem.topicChapterName}</div>
+                        </span>
+                        <span>${newItem.questionFormName}</span>
+                        <span>
+                            <span class="que-badge">${newItem.difficultyName}</span>
+                        </span>
+                    </a>
+                </div>
+            `;
+
+				// 문항 추가
+				targetItem.insertAdjacentHTML("afterend", newQuestionHTML);
 			}
-			//console.log(typeof updateAllOrder);
+
+			// DOM 상태 반영
 			updateAllOrder(newItem);
-
 		} else {
-			console.log("데이터 없음");
+			console.log("추가할 데이터 정보 없음");
 		}
-		// console.log("newItemData: " + newItemData);
-		// console.log("targetItemId: " + targetItemId);
-
 	}
+
 
 
 	// // tooltip hover
@@ -986,25 +1002,21 @@
 		console.log("==updateAllOrder==");
 		console.log(newItem);
 		//console.log(questions);
-		const overallOrder = $("#table-1")
-				.children(".depth-01, .singleQuestion") // 지문 및 단일 문항 선택
-				.map(function () {
-					const type = $(this).hasClass("depth-01") ? "passage" : "question";
+		const overallOrder = Array.from($("#table-1").children(".depth-01, .singleQuestion"))
+				.flatMap((element) => {
+					const $element = $(element);
+					const type = $element.hasClass("depth-01") ? "passage" : "question";
 
-					// 지문일 경우 내부 문항만 반환
+					// 지문일 경우 내부 문항 포함
 					if (type === "passage") {
-						return $(this)
-								.find(".col") // 지문 내부 항목 선택
-								.map(function () {
-									return { id: $(this).data("item-id"), type: "question" }; // 지문 내부 문항만 반환
-								})
-								.get();
+						return $element.find(".col").map(function () {
+							return { id: $(this).data("item-id"), type: "question" };
+						}).get();
 					}
-					// 단일 문항일 경우 그대로 반환
-					return { id: $(this).data("item-id"), type };
-				})
-				.get()
-				.flat(); // 중첩된 배열 평탄화
+
+					// 단일 문항일 경우
+					return { id: $element.data("item-id"), type };
+				});
 
 		console.log("전체 순서 (지문 제외):", overallOrder);
 
