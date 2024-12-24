@@ -56,7 +56,7 @@ public class TestController {
     step2/sub03_01_01로 리턴
      */
     @GetMapping("/step2")
-    public String getItemIds(Model model, @RequestParam(required = false, defaultValue = "noEdit") String type) {
+    public String getItemIds(Model model, @RequestParam(required = false, defaultValue = "") String type) {
         String[] questionIds = {"494519", "494552"
                 , "487868"
                 , "494553"
