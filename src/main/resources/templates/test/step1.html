@@ -16,6 +16,14 @@
     <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
     <script src="/inc/js/common.js"></script>
+    <style>
+        .cursorDefault button {
+            cursor: default;
+        }
+        label::before {
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
@@ -82,7 +90,7 @@
                                                                 <input type="checkbox" th:id="${small.smallChapterId}" class="que-allCheck depth03" data-depth="3">
                                                                 <label th:for="${small.smallChapterId}">
                                                                     <button type="button" class="dep-btn active" th:text="${small.smallChapterName}">소단원 이름</button>
-                                                                    <em th:text="'('+${small.itemCount}+')'" style="color:#5670dc;"></em>
+                                                                    <em th:id="${small.smallChapterId}" style="color:#5670dc;">(0)</em>
                                                                 </label>
                                                             </div>
 
@@ -93,7 +101,7 @@
                                                                         <input type="checkbox" th:id="${topic.topicChapterId}" class="que-allCheck depth04" data-depth="4">
                                                                         <label th:for="${topic.topicChapterId}">
                                                                             <button type="button" class="active" th:text="${topic.topicChapterName}">토픽 이름</button>
-                                                                            <em th:text="'('+${topic.itemCount}+')'" style="color:#5670dc;"></em>
+                                                                            <em th:id="${topic.topicChapterId}" style="color:#5670dc;">(0)</em>
                                                                         </label>
                                                                     </div>
                                                                 </div>
@@ -110,8 +118,8 @@
 
                             </div>
                         </div>
-                        <div class="type-box-wrap">
-                            <div class="type-box scroll-inner">
+                        <div class="type-box-wrap cursorDefault">
+                            <div class="type-box scroll-inner ">
                                 <div class="title-top">
                                     <span>출제옵션</span>
                                 </div>
@@ -120,16 +128,16 @@
                                         <span class="tit-text">문제 수<em>최대 30문제</em></span>
                                     </div>
                                     <div class="count-area">
-                                        <div class="btn-wrap">
-                                            <button type="button" class="btn-line">10</button>
-                                            <button type="button" class="btn-line">15</button>
-                                            <button type="button" class="btn-line">20</button>
-                                            <button type="button" class="btn-line">25</button>
-                                            <button type="button" class="btn-line active">30</button>
+                                        <div class="btn-wrap" id="btn-num-group">
+                                            <button type="button" class="btn-line" id="q_10" disabled>10</button>
+                                            <button type="button" class="btn-line" id="q_15" disabled>15</button>
+                                            <button type="button" class="btn-line" id="q_20" disabled>20</button>
+                                            <button type="button" class="btn-line" id="q_25" disabled>25</button>
+                                            <button type="button" class="btn-line" id="q_30" disabled>30</button>
                                         </div>
                                         <div class="input-area">
-                                            <span class="num">총 <input type="text" value="30"> 문제</span>
-                                            <div class="txt">*5의 배수로 입력해주세요. </div>
+                                            <span class="num">총 <input type="text" id="txt-exam-num" value="" disabled> 문제</span>
+                                            <div class="txt" id="questionCntMessage"></div>
                                         </div>
 
                                     </div>
@@ -141,8 +149,8 @@
                                         </div>
                                     </div>
                                     <div class="btn-wrap multi">
-                                        <button type="button" class="btn-line">교사용(교사용 DVD, 지도서, 신규 개발 등)</button>
-                                        <button type="button" class="btn-line">학생용(자습서, 평가문제집 등)</button>
+                                        <button type="button" class="btn-line" id="origin_teacher" disabled>교사용(교사용 DVD, 지도서, 신규 개발 등)</button>
+                                        <button type="button" class="btn-line" id="origin_student" disabled style="cursor:default; background-color: #eaeaea">학생용(자습서, 평가문제집 등)</button>
                                     </div>
                                 </div>
                                 <div class="box">
@@ -151,15 +159,10 @@
                                         <div class="right-area">
                                         </div>
                                     </div>
-                                    <div class="btn-wrap multi">
-                                        <button type="button" class="btn-line">자료 해석</button>
-                                        <button type="button" class="btn-line">이해</button>
-                                        <button type="button" class="btn-line">적용</button>
+                                    <div class="btn-wrap multi" id="evaluationList">
+                                        <!-- 동적 -->
                                     </div>
-                                    <div class="btn-wrap multi">
-                                        <button type="button" class="btn-line">지식</button>
-                                        <button type="button" class="btn-line">결론도출</button>
-                                    </div>
+
                                 </div>
                                 <div class="box">
                                     <div class="title-wrap">
@@ -167,42 +170,42 @@
                                         <div class="right-area">
                                         </div>
                                     </div>
-                                    <div class="btn-wrap multi">
-                                        <button type="button" class="btn-line">객관식</button>
-                                        <button type="button" class="btn-line">주관식</button>
+                                    <div class="btn-wrap multi" id="type-btn-group">
+                                        <button type="button" class="btn-line" disabled>객관식</button>
+                                        <button type="button" class="btn-line" disabled>주관식</button>
                                     </div>
                                 </div>
                                 <div class="box">
                                     <div class="title-wrap">
                                         <span class="tit-text">난이도 구성</span>
                                     </div>
-                                    <div class="step-wrap">
-                                        <button type="button" class="btn-line type02 color01" data-step="stap1">최하</button>
-                                        <button type="button" class="btn-line type02 color02" data-step="stap2">하</button>
-                                        <button type="button" class="btn-line type02 color03" data-step="stap3">중</button>
-                                        <button type="button" class="btn-line type02 color04" data-step="stap4">상</button>
-                                        <button type="button" class="btn-line type02 color05" data-step="stap5">최상</button>
+                                    <div class="step-wrap" id="level-btn-group">
+                                        <button type="button" class="btn-line type02 color01" data-step="1" disabled>최하</button>
+                                        <button type="button" class="btn-line type02 color02" data-step="2" disabled>하</button>
+                                        <button type="button" class="btn-line type02 color03" data-step="3" disabled>중</button>
+                                        <button type="button" class="btn-line type02 color04" data-step="4" disabled>상</button>
+                                        <button type="button" class="btn-line type02 color05" data-step="5" disabled>최상</button>
                                     </div>
                                 </div>
                                 <div class="box">
                                     <div class="title-wrap">
 											<span class="tit-text">난이도별 문제 수
-												<button type="button" class="btn-icon2 pop-btn" data-pop="que-range-pop"><i
+												<button type="button" class="btn-icon2 pop-btn" data-pop="que-range-pop" ><i
                                                         class="setting"></i></button>
 											</span>
                                     </div>
-                                    <div class="range-wrap">
-                                        <span class="range color01" data-step="stap1">최하(n)</span>
-                                        <span class="range color02" data-step="stap2">하(n)</span>
-                                        <span class="range color03" data-step="stap3">중(n)</span>
-                                        <span class="range color04" data-step="stap4">상(n)</span>
-                                        <span class="range color05" data-step="stap5">최상(n)</span>
+                                    <div class="range-wrap" id="level-distribution-btn-group">
+                                        <span class="range color01" data-step="1" data-level="최하">최하(n)</span>
+                                        <span class="range color02" data-step="2" data-level="하">하(n)</span>
+                                        <span class="range color03" data-step="3" data-level="중">중(n)</span>
+                                        <span class="range color04" data-step="4" data-level="상">상(n)</span>
+                                        <span class="range color05" data-step="5" data-level="최상">최상(n)</span>
                                     </div>
                                 </div>
 
                             </div>
                             <div class="bottom-box">
-                                <p class="total-num">총 <span>30</span>문제</p>
+                                <p class="total-num" id="total-num" style="display: none;">총 <span id="total-num-val">30</span>문제</p>
                             </div>
                         </div>
                     </div>
@@ -344,16 +347,9 @@
 
         $('#chapter-tree').on('change', '.depth01', function () {
             const largeCheckboxes = $('#chapter-tree').find('input[type=checkbox].depth01'); // 모든 대단원 체크박스
-            console.log(largeCheckboxes.length);
-            console.log(largeCheckboxes.filter(':checked').length);
             const isAllChecked = largeCheckboxes.length === largeCheckboxes.filter(':checked').length; // 모두 체크 여부 확인
-            console.log(isAllChecked);
             $('#checkAll').prop('checked', isAllChecked); // 전체 선택 상태 업데이트
         });
-
-
-
-
 
         let queChkAll = $('.que-allCheck');
 
@@ -453,9 +449,6 @@
         }
         queChkAll.on('click', queCheckFunc);
 
-
-
-
         queChkAll.on('change', function () {
             let _this = $(this); // 현재 선택된 체크박스
             let parentCheckBox; // 상위 체크박스
@@ -466,24 +459,20 @@
                 // depth04인 경우
                 parentCheckBox = _this.parents('.depth04').prev('.check-group').find('input[type=checkbox].depth03');
                 childCheckboxes = _this.closest('div.depth04').find('input[type=checkbox].depth04'); // depth04 체크박스
-                console.log("depth04선택");
             } else if (_this.hasClass('depth03')) {
                 // depth03인 경우
                 parentCheckBox = _this.parents('.depth03').prev('.check-group').find('input[type=checkbox].depth02');
                 childCheckboxes = _this.closest('div.depth03').find('input[type=checkbox].depth03'); // depth03 체크박스
-                console.log("depth03선택");
             } else if (_this.hasClass('depth02')) {
                 // depth02인 경우
                 parentCheckBox = _this.parents('.depth02').prev('.check-group.title').find('input[type=checkbox].depth01');
                 childCheckboxes = _this.closest('div.depth02').find('input[type=checkbox].depth02'); // depth02 체크박스
-                console.log("depth02선택");
             }
 
             // 상위 체크박스 상태 업데이트 함수 호출
             updateAllParentCheckboxes(_this);
         });
 
-// 모든 상위 체크박스를 업데이트하는 함수
         function updateAllParentCheckboxes(element) {
             let currentDepth = parseInt(element.data('depth')); // 현재 체크박스의 depth
 
@@ -508,14 +497,11 @@
 
 
 
-
-
-
-
         $(".type-box .box .range").hide();
+
         let stepBtn = $('.step-wrap .btn-line');
 
-        function stepFunc() {
+        function stepFunc() {   // 난이도 누르면 디스플레이 되는 거
             let _this = $(this);
             let stepData = _this.data('step');
 
@@ -526,12 +512,358 @@
             } else {
                 $(".range[data-step='" + stepData + "']").hide();
             }
+            inputCheck();
         }
 
         stepBtn.on('click', stepFunc);
     });
 </script>
+<script th:inline="javascript">
+    const subjectId = [[${subjectId}]];
+    document.addEventListener('DOMContentLoaded', drawItemCounts);
+    async function drawItemCounts() {
+        let requestData ={
+            "subjectId": subjectId.toString()  //"/bridge/t-sherpa/customExam/count"
+        };
+        try {
+            const response = await fetch('/bridge/t-sherpa/item-img/chapters/item-count', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json(); // JSON 응답 처리
+            let smallItemCount = data.listSmallItemCount;
+            let topicItemCount = data.listTopicItemCount;
+
+            smallItemCount.forEach(function(item) {
+                const inputElement = $(`input[type="checkbox"][data-depth='3'][id=${item.smallChapterId}]`);
+                // input 엘리먼트의 부모인 div.check-group에서 em 태그 찾기
+                inputElement.closest('div.check-group').find('em').text(`(${item.itemCount})`);
+            });
+
+            topicItemCount.forEach(function(item) {
+                const inputElement = $(`input[type="checkbox"][data-depth="4"][id="${item.topicChapterId}"]`);
+                // input 엘리먼트의 부모인 div.check-group에서 em 태그 찾기
+                inputElement.closest('div.check-group').find('em').text(`(${item.itemCount})`);
+            });
+
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+
+        const requestData = {
+            "subjectId": subjectId.toString()
+        }
+        let evaluationList = document.getElementById('evaluationList');
+        try {
+            const response = await fetch('/bridge/t-sherpa/chapter/evaluation-list', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json(); // JSON 응답 처리
+            const evaluationListData = data.evaluationList;
+
+
+
+            evaluationListData.forEach(data => {
+                const domainId = data.domainId;
+                const domainName = data.domainName;
+
+
+                evaluationList.innerHTML += `
+                     <button type="button" class="btn-line" data-domainId="${domainId}" disabled>${domainName}</button>
+                `;
+            })
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+
+        // const evalList = document.getElementById('evaluationList');
+        // evalList.addEventListener('click', function(event) {
+        //     if(event.target.classList.contains('btn-line')) {
+        //         btnClickFunc.call(event.target);
+        //     }
+        // });
+        // button active
+
+        let _btnMul = $(".btn-wrap.multi .btn-line");
+
+        _btnMul.click(function () {
+            $(this).toggleClass("active");
+            btnClickFunc.return(false);
+        });
+
+        let _btn = $(".btn-wrap .btn-line");
+
+        function btnClickFunc() {
+            let _this = $(this);
+            if (!_this.hasClass("active")) {
+                _this.parents(".btn-wrap").find(".btn-line").removeClass("active");
+                _this.addClass("active");
+            }
+        }
+
+        _btn.on("click", btnClickFunc);
+
+    });
+
+
+</script>
+<script>
+
+
+
+
+
+
+    //체크박스 선택 시 우측 영역 활성화 ㄹ
+    let checkBox = $('div.unit-cnt').find('input[type=checkbox]');
+    checkBox.on('change', function() {
+        const checkedCount = checkBox.filter(':checked').length;
+        if(checkedCount > 0) {
+            activeProblemCnt();
+        } else {
+            deactivateProblemCnt();
+        }
+    })
+    //비활성화 함수
+    function deactivateProblemCnt() {
+        // 커서 비활성화 처리
+        $(".type-box-wrap").addClass("cursorDefault");
+        $(".btn-wrap .btn-line").addClass('active');
+
+        // 문제수 비활성화
+        $("#btn-num-group button").attr("disabled", true);
+        $("#txt-exam-num").attr("disabled", true);
+        $("#q_30").removeClass("active");
+        $("#q_25").removeClass("active");
+        $("#q_20").removeClass("active");
+        $("#q_15").removeClass("active");
+        $("#q_10").removeClass("active");
+        $("#txt-exam-num").val("");
+        $("#txt-exam-num").text("");
+        $("#txt-exam-num").css("border-color", "");
+        $("#questionCntMessage").text("");
+        $("#total-num").hide();
+        $("#total-num-val").text("");
+
+        // 출처 비활성화
+        $("#origin_teacher").attr("disabled", true);
+        $("#origin_teacher").removeClass("active");
+        $('#origin_student').removeClass('active');
+
+        // 평가영역 비활성화
+        $("#evaluationList button").attr("disabled", true);
+        $("#evaluationList button").removeClass("active");
+
+        // 문제형태 비활성화
+        $("#type-btn-group button").attr("disabled", true);
+        $("#type-btn-group button").removeClass("active");
+
+        // 난이도 구성 비활성화
+        $("#btn-pop-que-range").attr("disabled", true);
+        $("#level-btn-group :button").attr("disabled", true);
+        $("#level-btn-group .btn-line").addClass('active');
+        $("#level-btn-group button").removeClass("active");
+
+        // TODO 230914 임시 최상, 최하 난이도 비활성화 복구
+        $("#level-btn-group button").eq(0).attr("disabled", true);
+        $("#level-btn-group button").eq(0).css("cursor", "default");
+        $("#level-btn-group button").eq(4).attr("disabled", true);
+        $("#level-btn-group button").eq(4).css("cursor", "default");
+
+        // 난이도별 문제수 비활성화
+        $("#level-distribution-btn-group span").eq(1).hide();
+        $("#level-distribution-btn-group span").eq(2).hide();
+        $("#level-distribution-btn-group span").eq(3).hide();
+
+        active = false;
+    }
+    //활성화 함수
+    function activeProblemCnt() {
+        // 커서 활성화 처리
+        $(".type-box-wrap").removeClass("cursorDefault");
+        $(".btn-wrap .btn-line").removeClass('active');
+
+        //문제수 활성(디폴트 : 30)
+        $("#btn-num-group button").attr("disabled", false);
+        $("#txt-exam-num").attr("disabled", false);
+        $("#q_30").addClass("active");
+        $("#txt-exam-num").val(30);
+        $("#txt-exam-num").text("30");
+        // $("#txt-exam-num").data("columns", 30); 이건모임?
+        $("#total-num").show();
+        $("#total-num-val").text("30");
+
+        //출처 활성(디폴트 : 교사용)
+        $("#origin_teacher").attr("disabled", false);
+        $("#origin_teacher").addClass("active");
+
+        //평가영역 활성(디폴트 : all)
+        $("#evaluationList button").attr("disabled", false);
+        $("#evaluationList button").addClass("active");
+
+        //문제형태 활성(디폴트 : all)
+        $("#type-btn-group button").attr("disabled", false);
+        $("#type-btn-group button").addClass("active");
+
+        // 난이도 구성(디폴트 : 하,중,상)
+        $("#btn-pop-que-range").attr("disabled", false);
+        $("#level-btn-group :button").attr("disabled", false);
+        $("#level-btn-group .btn-line").removeClass('active');
+
+        $("#level-btn-group button").eq(1).addClass("active");
+        $("#level-btn-group button").eq(2).addClass("active");
+        $("#level-btn-group button").eq(3).addClass("active");
+
+
+
+        //TODO 230914 임시 최상, 최하 난이도 비활성 처리 230914x
+        $("#level-btn-group button").eq(0).attr("disabled", true);
+        $("#level-btn-group button").eq(0).css("cursor", "default");
+        $("#level-btn-group button").eq(4).attr("disabled", true);
+        $("#level-btn-group button").eq(4).css("cursor", "default");
+        //TODO 230914 임시 최상, 최하 난이도 비활성 처리 230914
+
+        //난이도별 문제수
+
+        $("#level-distribution-btn-group span").eq(1).show();
+        $("#level-distribution-btn-group span").eq(2).show();
+        $("#level-distribution-btn-group span").eq(3).show();
+
+
+        active=true;
+        inputCheck();
+    }
+
+    //문제 수 버튼 눌렀을 때, 문제 수 input에 반영되는 함수
+    $("#btn-num-group button").on("click", function () {
+        $("#txt-exam-num").val($(this).text());
+        $("#txt-exam-num").css("border-color", "");
+        $("#total-num").show();
+        $("#total-num-val").text($(this).text());
+        inputCheck()
+    });
+
+
+    // input 컨트롤
+    const _input = $('#txt-exam-num');
+    _input.on('keyup', questionCountCheck);
+    function questionCountCheck() {
+        $("#btn-num-group button").removeClass("active");
+        $("#questionCntMessage").text("");
+        $("#txt-exam-num").css("border-color", "");
+        $("#total-num").hide();
+
+        let maxNum = 30;
+        let inputNum = parseInt($("#txt-exam-num").val());
+
+        // 음수이거나 소수점
+        if (inputNum <=0 || !Number.isInteger(Number($("#txt-exam-num").val()))) {
+            $("#txt-exam-num").css("border-color", "#ff3b00");
+            $("#txt-exam-num").val("");
+            return false;
+        }
+
+        if (inputNum > maxNum) {
+            alert("문항은 최대 " + maxNum + "문제 까지만 출제 가능합니다.");
+            $("#txt-exam-num").css("border-color", "#ff3b00");
+            $("#txt-exam-num").val("");
+            return false;
+        }
+
+        // dafault 문항수로 체크되면, 버튼 활성화
+        switch (inputNum) {
+            case 10:
+                $("#q_10").addClass("active");
+                break;
+            case 15:
+                $("#q_15").addClass("active");
+                break;
+            case 20:
+                $("#q_20").addClass("active");
+                break;
+            case 25:
+                $("#q_25").addClass("active");
+                break;
+            case 30:
+                $("#q_30").addClass("active");
+                break;
+        }
+
+        if (inputNum % 5 === 0) {
+            $("#questionCntMessage").text("");
+            inputCheck();
+            $("#total-num").show();
+            $("#total-num-val").text(inputNum);
+        } else {
+            $("#txt-exam-num").css("border-color", "#ff3b00");
+            $("#questionCntMessage").text("* 5의 배수로 입력해주세요.");
+            inputCheck();
+        }
+    }
+
+    // 문제 수 input 에 따라서 난이도별 문제 수 계산하기
+    function inputCheck() {
+        const _input = $('#txt-exam-num');
+        const levelBtnGroup = $('#level-btn-group');
+        const selectedCnt = levelBtnGroup.find('button.btn-line').filter('.active').length;
+        const selectedLevel = levelBtnGroup.find('button.btn-line').filter('.active');
+
+        if(_input.val() % selectedCnt === 0){
+            selectedLevel.each(function() {
+                const step = $(this).data('step');
+                const button = $('#level-distribution-btn-group').find(`span[data-step=${step}]`);
+                const stepLevel = button.data('level');
+                button.text(`${stepLevel}${Math.floor(_input.val()/selectedCnt)}`);
+            });
+        } else if (_input.val() % selectedCnt > 0) {
+            const remainder = _input.val() % selectedCnt;
+            let additionalIndex = 0; // 여기에 추가
+
+            selectedLevel.each(function () {
+                const step = $(this).data('step');
+                const button = $('#level-distribution-btn-group').find(`span[data-step=${step}]`);
+                const stepLevel = button.data('level');
+
+
+                const baseValue = Math.floor(_input.val() / selectedCnt);
+
+                //더해줄거
+                const additionalValue = additionalIndex < remainder ? 1 : 0;
+                if (additionalValue > 0) {
+                    additionalIndex++;
+                }
+
+                button.text(`${stepLevel}${baseValue + additionalValue}`);
+            });
+        }
+
+    }
+
+
+
+
+</script>
 </body>
-
-
 </html>

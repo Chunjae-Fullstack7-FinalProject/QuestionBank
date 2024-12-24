@@ -25,10 +25,11 @@ public class TestController {
 
     @GetMapping("/step1")
     public String step1(Model model, SubjectRequestDTO subjectRequestDTO) {
-        subjectRequestDTO.setSubjectId("1154");
+        subjectRequestDTO.setSubjectId("1167");
         List<LargeDTO> largeList = testService.step1(subjectRequestDTO);
         model.addAttribute("largeList", largeList);
-        model.addAttribute("subjectId", "1154");
+        model.addAttribute("subjectId", "1167");
         return "test/step1";
     }
+
 }

@@ -5,7 +5,7 @@ import net.questionbank.annotation.Logging;
 import net.questionbank.dto.main.MainDTO;
 import net.questionbank.dto.main.ResponseDTO;
 import net.questionbank.dto.main.SubjectRequestDTO;
-import net.questionbank.service.textbook.TextbookServiceImpl;
+import net.questionbank.service.textbook.TextbookServiceIf;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -18,7 +18,7 @@ import java.util.List;
 @Logging
 @RequestMapping("/")
 public class MainController {
-    private final TextbookServiceImpl textbookService;
+    private final TextbookServiceIf textbookService;
 
     @GetMapping("/main")
     public String mainPage(){
