@@ -24,7 +24,7 @@
 			top: 0;
 			left: 0;
 			position: absolute;
-			background-color: rgba(150,150,150,0.5);
+			background-color: rgba(0, 0, 0, 0.1);
 			width: 100%;
 			height: 100%;
 		}
@@ -43,7 +43,7 @@
 </head>
 
 <body>
-	<div id="wrap" class="full-pop-que">
+	<div id="wrap" class="full-pop-que d" >
 		<div class="full-pop-wrap">
 			<div class="pop-header">
 				<ul class="title">
@@ -148,7 +148,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="dim"></div>
+<!--		<div class="dim"></div>-->
 	</div>
 
     <div id="pdfArea">
@@ -206,118 +206,15 @@
     </div>
 
     <script src="/assets/step3/step3.js"></script>
+	<script src="/assets/pdf.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
     <script>
-        // 개별 svg -> png
-        async function convertSvgToPng(svgUrl) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.src = svgUrl;
-
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    resolve(canvas.toDataURL('image/png'));
-                };
-
-                img.onerror = (error) => {
-                    console.error('SVG를 PNG로 변환하는 중 오류 발생:', error);
-                    reject(error);
-                };
-            });
-        }
-
-
-
-        //사용할 이미지 png로 변환
-        async function replaceSvgWithPng() {
-            const svgImages = document.querySelectorAll('.pdf-img');
-
-            for (const svgImg of svgImages) {
-                const svgUrl = "/api/customExam/proxy?url=" + svgImg.src; // cors 문제 피하기 위해 서버 우회
-                try {
-                    const pngDataUrl = await convertSvgToPng(svgUrl);
-                    svgImg.src = pngDataUrl; // png로 교체
-                } catch (error) {
-                    console.error(`SVG 변환 실패: ${svgUrl}`, error);
-                }
-            }
-
-        }
-
-        //시험지 레이아웃 맞추기
-        function pagenation(itemclass) {
-            const items = document.querySelectorAll(".pdf-item-"+itemclass);
-            const content = document.getElementById("pdf-content");
-
-			content.innerHTML = `
-			<div class="page">
-                <table class="pdf-title-table">
-                    <tr>
-                        <td rowspan="2" class="pdf-td-title"></td>
-                        <td class="pdf-td-grade"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>
-                    </tr>
-                    <tr>
-                        <td class="pdf-td-name">이름:</td>
-                    </tr>
-                </table>
-                <div class="pdf-container" style="height: 235mm">
-                    <div class="pdf-item-container pdf-item-container-left" style="height: 235mm" id="left-1"></div>
-                    <div class="pdf-item-container pdf-item-container-right" style="height: 235mm" id="right-1"></div>
-                </div>
-                <div class="page-no">1</div>
-            </div>
-			`;
-
-			changeTitle($("#test-title").val());
-
-            const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
-
-            let currentHeight = 15;
-            let gridArea = document.getElementById("left-1");
-            let page = 1;
-            let maxHeight = 235 * toPx;
-            let currentArea = 0;
-
-            items.forEach(value => {
-                const height = value.offsetHeight;
-
-                if (currentHeight + height > maxHeight) {
-                    if (currentArea === 1) {
-                        maxHeight = 255 * toPx;
-                        page = page + 1;
-                        currentArea = 0;
-                        currentHeight = 19;
-                        content.innerHTML += `
-                            <div class="page">
-                                <div class="pdf-container">
-                                    <div class="pdf-item-container pdf-item-container-left" id="left-${page}"></div>
-                                    <div class="pdf-item-container pdf-item-container-right" id="right-${page}"></div>
-                                </div>
-                                <div class="page-no">${page}</div>
-                            </div>
-            `
-                        gridArea = document.getElementById("left-" + page);
-                    } else {
-                        currentArea = 1;
-                        currentHeight = 0;
-                        gridArea = document.getElementById("right-" + page);
-                    }
-                }
-                currentHeight = currentHeight + height + 19;
-                gridArea.appendChild(value);
-            });
-
-        }
-
 
 		const itemclass = ['all', 'question','answer'];
-		async function savePdf() {
 
-			await replaceSvgWithPng();
+		async function savePdf(title) {
+
+			await replaceSvgWithPng('.pdf-img');
 
 			const element = document.getElementById('pdf-content'); // 변환할 요소
 			const options = {
@@ -329,7 +226,7 @@
 			};
 
 			for (const item of itemclass) {
-				pagenation(item);
+				pagenation(item, title);
 				const filename = `${item}-[[${pdfFileId}]].pdf`; // 파일 이름 설정
 				options.filename = filename;
 
@@ -417,7 +314,7 @@
             if (response.ok && (await response.text()) === 'save') {
                 //로딩 끝내고 페이지 이동
                 // $("#loading-container").removeClass("loading-on").addClass("loading-off");
-				savePdf();
+				savePdf($("#test-title").val());
 
             } else {
                 //로딩 끝내고 alert

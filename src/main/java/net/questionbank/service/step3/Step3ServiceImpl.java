@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -153,7 +152,7 @@ public class Step3ServiceImpl implements Step3Service {
         return block.getSuccess();
     }
 
-    //    @Override
+    @Override
     public Map<String, List<String>> testPdfImageList(List<QuestionApiDTO> questionsFromApi) {
 
         if (questionsFromApi == null || questionsFromApi.isEmpty()) return null;
