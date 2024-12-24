@@ -157,7 +157,7 @@
         </div>
         <th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['all'].size()-2, 2)}">
             <th:block th:if="${testInfo.imageList['all'].get(item).endsWith('.')}">
-                <div class="pdf-item pdf-item-all">
+                <div class="pdf-item pdf-item-all pdf-question-grid">
                     <div class="pdf-number" th:text="${testInfo.imageList['all'].get(item)}"></div>
                     <img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>
                 </div>
@@ -178,7 +178,7 @@
 
 		<th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['questions'].size()-2, 2)}">
 			<th:block th:if="${testInfo.imageList['questions'].get(item).endsWith('.')}">
-				<div class="pdf-item pdf-item-question">
+				<div class="pdf-item pdf-item-question pdf-question-grid">
 					<div class="pdf-number" th:text="${testInfo.imageList['questions'].get(item)}"></div>
 					<img class="pdf-img" th:src="${testInfo.imageList['questions'].get(item+1)}"/>
 				</div>
@@ -257,7 +257,7 @@
 			<div class="page">
                 <table class="pdf-title-table">
                     <tr>
-                        <td rowspan="2" class="pdf-td-title">title</td>
+                        <td rowspan="2" class="pdf-td-title"></td>
                         <td class="pdf-td-grade"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>
                     </tr>
                     <tr>
@@ -265,8 +265,8 @@
                     </tr>
                 </table>
                 <div class="pdf-container" style="height: 235mm">
-                    <div class="pdf-item-container pdf-item-container-left" style="height: 230mm" id="left-1"></div>
-                    <div class="pdf-item-container pdf-item-container-right" style="height: 230mm" id="right-1"></div>
+                    <div class="pdf-item-container pdf-item-container-left" style="height: 235mm" id="left-1"></div>
+                    <div class="pdf-item-container pdf-item-container-right" style="height: 235mm" id="right-1"></div>
                 </div>
                 <div class="page-no">1</div>
             </div>
@@ -279,7 +279,7 @@
             let currentHeight = 15;
             let gridArea = document.getElementById("left-1");
             let page = 1;
-            let maxHeight = 230 * toPx;
+            let maxHeight = 235 * toPx;
             let currentArea = 0;
 
             items.forEach(value => {
@@ -287,7 +287,7 @@
 
                 if (currentHeight + height > maxHeight) {
                     if (currentArea === 1) {
-                        maxHeight = 250 * toPx;
+                        maxHeight = 255 * toPx;
                         page = page + 1;
                         currentArea = 0;
                         currentHeight = 19;
@@ -316,6 +316,9 @@
 
 		const itemclass = ['all', 'question','answer'];
 		async function savePdf() {
+
+			await replaceSvgWithPng();
+
 			const element = document.getElementById('pdf-content'); // 변환할 요소
 			const options = {
 				margin: 15, // 여백 설정
@@ -326,6 +329,7 @@
 			};
 
 			for (const item of itemclass) {
+				pagenation(item);
 				const filename = `${item}-[[${pdfFileId}]].pdf`; // 파일 이름 설정
 				options.filename = filename;
 
@@ -340,6 +344,8 @@
 			}
 
 			console.log('All PDFs have been generated and sent.');
+
+			location.replace("/customExam/complete");
 		}
 
         //서버에 변환된 pdf 파일 전송
@@ -387,7 +393,7 @@
             }
 
             $("#loading-container").removeClass("loading-off").addClass("loading-on");
-
+			save();
         }));
 
         async function save() {
@@ -411,7 +417,8 @@
             if (response.ok && (await response.text()) === 'save') {
                 //로딩 끝내고 페이지 이동
                 // $("#loading-container").removeClass("loading-on").addClass("loading-off");
-                location.replace("/customExam/complete");
+				savePdf();
+
             } else {
                 //로딩 끝내고 alert
                 $("#loading-container").removeClass("loading-on").addClass("loading-off");

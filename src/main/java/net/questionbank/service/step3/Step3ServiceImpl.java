@@ -193,13 +193,12 @@ public class Step3ServiceImpl implements Step3Service {
 
             }
 
-            //            if()
-
-//            if (!cpid.equals(question.getPassageId())) {
-//                if (startNo < question.getItemNo() - 1) {
-//                    resultList.set(passageIndex, "[" + startNo + "-" + (question.getItemNo() - 1) + "]");
-//                }
-//            }
+            cpid = 0L;
+            if (!cpid.equals(question.getPassageId())) {
+                if (startNo > 0 && startNo < question.getItemNo()) {
+                    all.set(passageIndex, "[" + startNo + "-" + (question.getItemNo()) + "]");
+                }
+            }
 
             List<String> questions = all.stream().filter(str -> {
                 if(str.startsWith("(")) {

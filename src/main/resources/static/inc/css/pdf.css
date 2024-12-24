@@ -1,10 +1,11 @@
 .page-no {
+    box-sizing: border-box;
     text-align: center;
-    height: 1mm;
+    height: 10mm;
     border-top: 1mm solid gray;
     width: 180mm;
-    padding-top: 2mm;
-    margin-top: 5mm;
+    padding: 0;
+    margin: 0;
 }
 
 @font-face {
@@ -12,18 +13,15 @@
 }
 
 #pdf-content {
+    box-sizing: border-box;
     font-family: 'Noto Sans KR', sans-serif;
     font-size: 10pt;
     margin: 0;
     padding: 0;
 }
 
-/*@page {*/
-/*    size: A4;*/
-/*    margin: 10mm;*/
-/*}*/
-
 .pdf-title-table {
+    box-sizing: border-box;
     height: 15mm;
     width: 180mm;
     border: 1mm solid darkgray;
@@ -35,73 +33,90 @@
 }
 
 .pdf-td-title {
+    box-sizing: border-box;
     border-right: 1mm solid darkgray;
     font-size: 12pt;
     width: 140mm;
 }
 
 .pdf-td-grade {
+    box-sizing: border-box;
     border-bottom: 1mm solid darkgray;
     padding-right: 2mm;
     text-align: right;
 }
 
 .pdf-td-name {
+    box-sizing: border-box;
     text-align: left;
 }
 
 .pdf-container {
+    box-sizing: border-box;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    height: 250mm;
+    height: 255mm;
     width: 180mm;
+    padding: 0;
+    margin: 0;
 }
 
 .pdf-item-container {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    height: 250mm;
+    height: 255mm;
 }
 
 .pdf-item-container-left {
+    box-sizing: border-box;
     border-right: 1px solid darkgray;
 }
 
 .pdf-item-container-right {
+    box-sizing: border-box;
     border-left: 1px solid darkgray;
 }
 
 .pdf-item {
+    box-sizing: border-box;
     break-inside: avoid;
     margin: 5mm auto;
     width: 75mm;
 }
 
-.pdf-item-question {
+.pdf-question-grid {
+    box-sizing: border-box;
     display: grid;
     grid-template-columns: 1fr auto;
 }
 
 .pdf-number {
+    box-sizing: border-box;
     margin-right: 3mm;
 }
 
 .pdf-answer {
+    box-sizing: border-box;
     color: green;
 }
 
 .pdf-div {
+    box-sizing: border-box;
     margin-bottom: 1mm;
 }
 
 .page {
-    page-break-after: always;
+    box-sizing: border-box;
+    page-break-before: auto;
     page-break-inside: avoid;
     height: 265mm;
     width: 180mm;
-    margin-bottom: 1mm;
+    padding: 0;
+    margin: 1mm 0;
 }
 
 .pdf-img {
+    box-sizing: border-box;
     max-width: 75mm;
 }
