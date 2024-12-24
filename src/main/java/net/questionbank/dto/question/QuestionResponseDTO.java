@@ -13,5 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 public class QuestionResponseDTO {
     private String successYn;
-    private List<QuestionApiDTO> itemList;
+    private List<QuestionImageApiDTO> itemImageList;
+    private List<QuestionHtmlApiDTO> itemList;
 }

@@ -1,3 +1,6 @@
+body {
+    font-size: 10pt;
+}
 .page-no {
     box-sizing: border-box;
     text-align: center;
@@ -15,7 +18,7 @@
 #pdf-content {
     box-sizing: border-box;
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 10pt;
+    font-size: 9pt;
     margin: 0;
     padding: 0;
 }
@@ -89,6 +92,7 @@
     box-sizing: border-box;
     display: grid;
     grid-template-columns: 1fr auto;
+    align-items: center;
 }
 
 .pdf-number {

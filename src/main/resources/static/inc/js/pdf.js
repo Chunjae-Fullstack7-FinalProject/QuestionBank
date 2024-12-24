@@ -1,6 +1,3 @@
-// window.onload = replaceSvgWithPng;
-
-
 // 개별 svg -> png
 async function convertSvgToPng(svgUrl) {
     return new Promise((resolve, reject) => {
@@ -23,12 +20,14 @@ async function convertSvgToPng(svgUrl) {
     });
 }
 
+
+
 //사용할 이미지 png로 변환
-async function replaceSvgWithPng() {
-    const svgImages = document.querySelectorAll('.pdf-img');
+async function replaceSvgWithPng(imageClassName) {
+    const svgImages = document.querySelectorAll(imageClassName);
 
     for (const svgImg of svgImages) {
-        const svgUrl = "/api/customExam/proxy?url=" + svgImg.src; // cors 문제 피하기 위해 서버로 우회
+        const svgUrl = "/api/customExam/proxy?url=" + svgImg.src; // cors 문제 피하기 위해 서버 우회
         try {
             const pngDataUrl = await convertSvgToPng(svgUrl);
             svgImg.src = pngDataUrl; // png로 교체
@@ -36,19 +35,66 @@ async function replaceSvgWithPng() {
             console.error(`SVG 변환 실패: ${svgUrl}`, error);
         }
     }
+
+}
+
+async function savePdf1(title, itemclass) {
+
+    await replaceSvgWithPng('.pdf-img');
+
+    const element = document.getElementById('pdf-content'); // 변환할 요소
+    const options = {
+        margin: 15, // 여백 설정
+        image: { type: 'jpeg', quality: 0.98 }, // 이미지 설정
+        html2canvas: { scale: 2, useCORS: true }, // 해상도 설정
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, // PDF 설정
+        pagebreak: { mode: ['css'] },
+    };
+
+    for (const item of itemclass) {
+        pagenation(item, title);
+        const filename = `${item}-[[${pdfFileId}]].pdf`; // 파일 이름 설정
+        options.filename = filename;
+
+        console.log(`Generating PDF for: ${item}`);
+
+        // PDF 생성 후 저장
+        html2pdf().set(options).from(element).save();
+
+    }
+
 }
 
 //시험지 레이아웃 맞추기
-function pagenation() {
-    const items = document.querySelectorAll(".pdf-item");
+function pagenation(itemclass, title) {
+    const items = document.querySelectorAll(".pdf-item-"+itemclass);
     const content = document.getElementById("pdf-content");
+
+    content.innerHTML = `
+			<div class="page">
+                <table class="pdf-title-table">
+                    <tr>
+                        <td rowspan="2" class="pdf-td-title">${title}</td>
+                        <td class="pdf-td-grade"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>
+                    </tr>
+                    <tr>
+                        <td class="pdf-td-name">이름:</td>
+                    </tr>
+                </table>
+                <div class="pdf-container" style="height: 235mm">
+                    <div class="pdf-item-container pdf-item-container-left" style="height: 235mm" id="left-1"></div>
+                    <div class="pdf-item-container pdf-item-container-right" style="height: 235mm" id="right-1"></div>
+                </div>
+                <div class="page-no">1</div>
+            </div>
+			`;
 
     const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
 
     let currentHeight = 15;
     let gridArea = document.getElementById("left-1");
     let page = 1;
-    let maxHeight = 230 * toPx;
+    let maxHeight = 235 * toPx;
     let currentArea = 0;
 
     items.forEach(value => {
@@ -56,7 +102,7 @@ function pagenation() {
 
         if (currentHeight + height > maxHeight) {
             if (currentArea === 1) {
-                maxHeight = 250 * toPx;
+                maxHeight = 255 * toPx;
                 page = page + 1;
                 currentArea = 0;
                 currentHeight = 19;
@@ -76,50 +122,8 @@ function pagenation() {
                 gridArea = document.getElementById("right-" + page);
             }
         }
-        currentHeight = currentHeight + height + 19;
+        currentHeight = currentHeight + height + 10 * toPx;
         gridArea.appendChild(value);
     });
-}
 
-
-function savePdf() {
-    // PDF 변환 및 다운로드 기능
-
-    const element = document.getElementById('pdf-content'); // 변환할 요소
-    const options = {
-        margin: 15, // 여백 설정
-        filename: 'test.pdf', // 파일 이름
-        image: {type: 'jpeg', quality: 0.98}, // 이미지 설정
-        html2canvas: {scale: 2, useCORS: true}, // 해상도 설정
-        jsPDF: {unit: 'mm', format: 'a4', orientation: 'portrait'}, // PDF 설정
-        pagebreak: {mode: ['css']}
-    };
-
-    html2pdf().set(options).from(element).outputPdf('blob')
-        .then((pdfBlob) => {
-            sendPdf(pdfBlob);
-        });
-}
-
-//서버에 변환된 pdf 파일 전송
-async function sendPdf(pdf) {
-    const formData = new FormData();
-    formData.append('file', pdf, 'test.pdf');
-
-    try {
-        const response = await fetch('/api/customExam/pdf', {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!response.ok) {
-            throw new Error('서버 전송 실패');
-        }
-
-        // 파일 저장 성공했을 때 어떻게 할지
-
-    } catch (error) {
-        console.error('PDF 전송 중 오류 발생:', error);
-        alert('PDF 전송 중 오류 발생');
-    }
 }

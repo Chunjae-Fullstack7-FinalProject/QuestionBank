@@ -7,7 +7,8 @@ import net.questionbank.domain.Member;
 import net.questionbank.domain.Question;
 import net.questionbank.domain.Test;
 import net.questionbank.domain.Textbook;
-import net.questionbank.dto.question.QuestionApiDTO;
+import net.questionbank.dto.question.QuestionImageApiDTO;
+import net.questionbank.dto.question.QuestionHtmlApiDTO;
 import net.questionbank.dto.question.QuestionRequestDTO;
 import net.questionbank.dto.question.QuestionResponseDTO;
 import net.questionbank.dto.test.TempTestDTO;
@@ -51,7 +52,7 @@ public class Step3ServiceImpl implements Step3Service {
 
     @Override
     public TempTestDTO testInfo(List<Long> itemIdList, Long subjectId) {
-        List<QuestionApiDTO> questionsFromApi = getQuestionsFromApi(itemIdList);
+        List<QuestionImageApiDTO> questionsFromApi = getQuestionsImageFromApi(itemIdList);
         return TempTestDTO.builder()
                 .questions(questionsFromApi)
                 .textbookApiDTO(getTextBookFromApi(subjectId))
@@ -60,11 +61,22 @@ public class Step3ServiceImpl implements Step3Service {
     }
 
     @Override
-    public List<QuestionApiDTO> getQuestionsFromApi(List<Long> itemIdList) {
+    public List<QuestionImageApiDTO> getQuestionsImageFromApi(List<Long> itemIdList) {
         QuestionRequestDTO questionRequestDTO = QuestionRequestDTO.builder().itemIdList(itemIdList).build();
         return Objects.requireNonNull(webClient
                 .post()
                 .uri("/item-img/item-list")
+                .bodyValue(questionRequestDTO)
+                .retrieve()
+                .bodyToMono(QuestionResponseDTO.class).block()).getItemImageList();
+    }
+
+    @Override
+    public List<QuestionHtmlApiDTO> getQuestionsHtmlFromApi(List<Long> itemIdList) {
+        QuestionRequestDTO questionRequestDTO = QuestionRequestDTO.builder().itemIdList(itemIdList).build();
+        return Objects.requireNonNull(webClient
+                .post()
+                .uri("/item/item-list")
                 .bodyValue(questionRequestDTO)
                 .retrieve()
                 .bodyToMono(QuestionResponseDTO.class).block()).getItemList();
@@ -153,7 +165,7 @@ public class Step3ServiceImpl implements Step3Service {
     }
 
     @Override
-    public Map<String, List<String>> testPdfImageList(List<QuestionApiDTO> questionsFromApi) {
+    public Map<String, List<String>> testPdfImageList(List<QuestionImageApiDTO> questionsFromApi) {
 
         if (questionsFromApi == null || questionsFromApi.isEmpty()) return null;
 
@@ -166,9 +178,9 @@ public class Step3ServiceImpl implements Step3Service {
         Long cpid = 0L;
 
         try {
-            QuestionApiDTO question = null;
+            QuestionImageApiDTO question = null;
 
-            for (QuestionApiDTO questionApiDTO : questionsFromApi) {
+            for (QuestionImageApiDTO questionApiDTO : questionsFromApi) {
                 question = questionApiDTO;
 
                 if (!cpid.equals(question.getPassageId())) {
@@ -200,39 +212,138 @@ public class Step3ServiceImpl implements Step3Service {
             }
 
             List<String> questions = all.stream().filter(str -> {
-                if(str.startsWith("(")) {
+                if (str.startsWith("(")) {
                     return false;
                 }
-                if(str.contains("answer")) {
+                if (str.contains("answer")) {
                     return false;
                 }
-                if(str.contains("explain")) {
+                if (str.contains("explain")) {
                     return false;
                 }
                 return true;
             }).toList();
 
             List<String> answers = all.stream().filter(str -> {
-                if(str.startsWith("(")) {
+                if (str.startsWith("(")) {
                     return true;
                 }
-                if(str.contains("answer")) {
+                if (str.contains("answer")) {
                     return true;
                 }
-                if(str.contains("explain")) {
+                if (str.contains("explain")) {
                     return true;
                 }
-                if(str.endsWith(".")) {
+                if (str.endsWith(".")) {
                     return true;
                 }
-                if(str.contains("question")) {
+                if (str.contains("question")) {
                     return true;
                 }
                 return false;
             }).map(str -> {
-                if(str.contains("question")) return "";
+                if (str.contains("question")) return "";
                 return str;
             }).toList();
+
+
+            map.put("all", all);
+            map.put("questions", questions);
+            map.put("answers", answers);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return map;
+    }
+
+    @Override
+    public Map<String, List<String>> testPdfHtmlList(List<QuestionHtmlApiDTO> questionsFromApi) {
+
+        if (questionsFromApi == null || questionsFromApi.isEmpty()) return null;
+
+        Map<String, List<String>> map = new HashMap<>();
+
+        List<String> all = new ArrayList<>();
+
+        int startNo = 0;
+        int passageIndex = 0;
+        Long cpid = 0L;
+
+        try {
+            QuestionHtmlApiDTO question = null;
+
+            for (QuestionHtmlApiDTO questionApiDTO : questionsFromApi) {
+                question = questionApiDTO;
+
+                if (!cpid.equals(question.getPassageId())) {
+                    if (startNo > 0 && startNo < question.getItemNo() - 1) {
+                        all.set(passageIndex, all.get(passageIndex).replaceFirst("<span class=\"txt \">","<span class=\"txt \">[" + startNo + "-" + (question.getItemNo() - 1) + "]</span>\n<span class=\"txt \">"));
+                    }
+                    all.add(question.getPassageHtml().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-passage\""));
+                    passageIndex = all.size();
+                    startNo = question.getItemNo();
+                }
+
+                cpid = question.getPassageId() != null ? question.getPassageId() : 0L;
+
+                all.add(question.getQuestionHtml().replace("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-question\"")
+                        .replaceFirst("<span class=\"txt \">","<span class=\"txt pdf-answer\">"+question.getItemNo()+".&nbsp;</span>\n<span class=\"txt \">")
+                );
+
+                if (question.getChoice1Html() != null) {
+                    all.add(question.getChoice1Html().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">①&nbsp;")
+                    );
+                }
+                if (question.getChoice2Html() != null) {
+                    all.add(question.getChoice2Html().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">②&nbsp;")
+                    );
+                }
+                if (question.getChoice3Html() != null) {
+                    all.add(question.getChoice3Html().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">③&nbsp;")
+                    );
+                }
+                if (question.getChoice4Html() != null) {
+                    all.add(question.getChoice4Html().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">④&nbsp;")
+                    );
+                }
+                if (question.getChoice5Html() != null) {
+                    all.add(question.getChoice5Html().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">⑤&nbsp;")
+                    );
+                }
+
+                all.add(question.getAnswerHtml().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-answer\"")
+                        .replaceFirst("<span class=\"txt \">","<span class=\"txt pdf-answer\">(답)</span>\n<span class=\"txt \">")
+                );
+                all.add(question.getExplainHtml().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-answer\"")
+                        .replaceFirst("<span class=\"txt \">","<span class=\"txt pdf-answer\">(해설)</span>\n<span class=\"txt \">")
+                );
+
+            }
+
+            cpid = 0L;
+            if (!cpid.equals(question.getPassageId())) {
+                if (startNo > 0 && startNo < question.getItemNo()) {
+                    all.set(passageIndex, all.get(passageIndex).replaceFirst("<span class=\"txt \">","<span class=\"txt \">[" + startNo + "-" + (question.getItemNo()) + "]</span>\n<span class=\"txt \">"));
+                    all.set(passageIndex, "[" + startNo + "-" + (question.getItemNo()) + "]");
+                }
+            }
+
+            all = all.stream().map(str ->
+                            str.replace("<html>\n <head></head>\n <body>\n ", "")
+                                    .replace(" </body>\n</html>", ""))
+                    .toList();
+
+            //문제만 추출
+            List<String> questions = all.stream().filter(str -> !str.contains("pdf-item-answer")).toList();
+
+            List<String> answers = all.stream().filter(str -> str.contains("pdf-item-answer")).toList();
 
 
             map.put("all", all);

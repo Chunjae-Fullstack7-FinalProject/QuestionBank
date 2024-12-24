@@ -1,12 +1,9 @@
 package net.questionbank.dto.test;
 
 import lombok.*;
-import net.questionbank.domain.Member;
-import net.questionbank.domain.Textbook;
-import net.questionbank.dto.question.QuestionApiDTO;
+import net.questionbank.dto.question.QuestionImageApiDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +14,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class TempTestDTO {
     private TextBookApiDTO textbookApiDTO;
-    private List<QuestionApiDTO> questions;
+    private List<QuestionImageApiDTO> questions;
     private Map<String, Integer> code;
     private Map<String,List<String>> imageList;
 //    private List<String> imageList2;

@@ -9,39 +9,70 @@
 <body>
 <div id="pdfArea">
     <div id="pdf-content">
-        <div class="page">
-            <table class="pdf-title-table">
-                <tr>
-                    <td rowspan="2" class="pdf-td-title">title</td>
-                    <td class="pdf-td-grade"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>
-                </tr>
-                <tr>
-                    <td class="pdf-td-name">이름:</td>
-                </tr>
-            </table>
-            <div class="pdf-container" style="height: 235mm">
-                <div class="pdf-item-container pdf-item-container-left" style="height: 235mm" id="left-1"></div>
-                <div class="pdf-item-container pdf-item-container-right" style="height: 235mm" id="right-1"></div>
-            </div>
-            <div class="page-no">1</div>
-        </div>
+
     </div>
-    <th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList.size()-2, 2)}">
-        <th:block th:if="${testInfo.imageList.get(item).endsWith('.')}">
-            <div class="pdf-item pdf-question">
-                <div class="pdf-number" th:text="${testInfo.imageList.get(item)}"></div>
-                <img class="pdf-img" th:src="${testInfo.imageList.get(item+1)}"/>
-            </div>
-        </th:block>
-        <th:block th:unless="${testInfo.imageList.get(item).endsWith('.')}">
-            <div class="pdf-item">
-                <div class="pdf-div" th:text="${testInfo.imageList.get(item)}"></div>
-                <img class="pdf-img" th:src="${testInfo.imageList.get(item+1)}"/>
-            </div>
-        </th:block>
+    <th:block th:each="item : ${htmlList['all']}">
+        <div class="pdf-item pdf-item-all">
+            <th:block class="pdf-img" th:utext="${item}"/>
+        </div>
     </th:block>
+<!--    <th:block th:each="item : ${htmlList['all']}">-->
+<!--        <th:block th:if="${htmlList['all'].get(item+1).contains('pdf-item-question')}">-->
+<!--            <div class="pdf-item pdf-item-all pdf-question-grid">-->
+<!--                <div class="pdf-number" th:text="${htmlList['all'].get(item)}"></div>-->
+<!--                <th:block class="pdf-img" th:utext="${htmlList['all'].get(item+1)}"/>-->
+<!--            </div>-->
+<!--        </th:block>-->
+<!--        <th:block th:if="${htmlList['all'].get(item+1).contains('pdf-item-choice')}">-->
+<!--            <div class="pdf-item pdf-item-all">-->
+<!--&lt;!&ndash;                <div class="pdf-number" th:text="${htmlList['all'].get(item)}"></div>&ndash;&gt;-->
+<!--                <th:block class="pdf-img" th:utext="${htmlList['all'].get(item+1)}"/>-->
+<!--            </div>-->
+<!--        </th:block>-->
+<!--        <th:block th:if="${htmlList['all'].get(item+1).contains('pdf-item-answer')}">-->
+<!--            <div class="pdf-item pdf-item-all">-->
+<!--                <div class="pdf-div pdf-answer" th:text="${htmlList['all'].get(item)}"></div>-->
+<!--                <th:block class="pdf-img" th:utext="${htmlList['all'].get(item+1)}"/>-->
+<!--            </div>-->
+<!--        </th:block>-->
+<!--        <th:block th:if="${htmlList['all'].get(item+1).contains('pdf-item-passage')}">-->
+<!--            <div class="pdf-item pdf-item-all">-->
+<!--                <div class="pdf-div" th:text="${htmlList['all'].get(item)}"></div>-->
+<!--                <th:block class="pdf-img" th:utext="${htmlList['all'].get(item+1)}"/>-->
+<!--            </div>-->
+<!--        </th:block>-->
+<!--    </th:block>-->
+
+<!--    <th:block th:each="item : ${#numbers.sequence(0, htmlList['questions'].size()-2, 2)}">-->
+<!--        <th:block th:if="${htmlList['questions'].get(item).endsWith('.')}">-->
+<!--            <div class="pdf-item pdf-item-question pdf-question-grid">-->
+<!--                <div class="pdf-number" th:text="${htmlList['questions'].get(item)}"></div>-->
+<!--                <th:block th:utext="${htmlList['questions'].get(item+1)}"/>-->
+<!--            </div>-->
+<!--        </th:block>-->
+<!--        <th:block th:if="${htmlList['questions'].get(item).endsWith(']') || htmlList['questions'].get(item).equals('')}">-->
+<!--            <div class="pdf-item pdf-item-question">-->
+<!--                <div class="pdf-div" th:text="${htmlList['questions'].get(item)}"></div>-->
+<!--                <th:block class="pdf-img" th:utext="${htmlList['questions'].get(item+1)}"/>-->
+<!--            </div>-->
+<!--        </th:block>-->
+<!--    </th:block>-->
+<!--    <th:block th:each="item : ${#numbers.sequence(0, htmlList['answers'].size()-2, 2)}">-->
+<!--        <th:block th:if="${htmlList['answers'].get(item).endsWith('.')}">-->
+<!--            <div class="pdf-item pdf-item-answer">-->
+<!--                <div class="pdf-number" th:text="${htmlList['answers'].get(item)}"></div>-->
+<!--            </div>-->
+<!--        </th:block>-->
+<!--        <th:block th:if="${htmlList['answers'].get(item).endsWith(')')}">-->
+<!--            <div class="pdf-item pdf-item-answer">-->
+<!--                <div class="pdf-div pdf-answer" th:text="${htmlList['answers'].get(item)}"></div>-->
+<!--                <th:block class="pdf-img" th:utext="${htmlList['answers'].get(item+1)}"/>-->
+<!--            </div>-->
+<!--        </th:block>-->
+<!--    </th:block>-->
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
 <script src="/inc/js/pdf.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
 </body>
 </html>
