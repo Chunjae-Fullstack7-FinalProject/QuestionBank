@@ -5,74 +5,158 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Document</title>
     <link rel="stylesheet" href="/inc/css/pdf.css"/>
+    <style>
+
+    </style>
 </head>
 <body>
 <div id="pdfArea">
     <div id="pdf-content">
 
     </div>
+
     <th:block th:each="item : ${htmlList['all']}">
-        <div class="pdf-item pdf-item-all">
-            <th:block class="pdf-img" th:utext="${item}"/>
-        </div>
+        <th:block th:utext="${item}"/>
     </th:block>
-<!--    <th:block th:each="item : ${htmlList['all']}">-->
-<!--        <th:block th:if="${htmlList['all'].get(item+1).contains('pdf-item-question')}">-->
-<!--            <div class="pdf-item pdf-item-all pdf-question-grid">-->
-<!--                <div class="pdf-number" th:text="${htmlList['all'].get(item)}"></div>-->
-<!--                <th:block class="pdf-img" th:utext="${htmlList['all'].get(item+1)}"/>-->
-<!--            </div>-->
-<!--        </th:block>-->
-<!--        <th:block th:if="${htmlList['all'].get(item+1).contains('pdf-item-choice')}">-->
-<!--            <div class="pdf-item pdf-item-all">-->
-<!--&lt;!&ndash;                <div class="pdf-number" th:text="${htmlList['all'].get(item)}"></div>&ndash;&gt;-->
-<!--                <th:block class="pdf-img" th:utext="${htmlList['all'].get(item+1)}"/>-->
-<!--            </div>-->
-<!--        </th:block>-->
-<!--        <th:block th:if="${htmlList['all'].get(item+1).contains('pdf-item-answer')}">-->
-<!--            <div class="pdf-item pdf-item-all">-->
-<!--                <div class="pdf-div pdf-answer" th:text="${htmlList['all'].get(item)}"></div>-->
-<!--                <th:block class="pdf-img" th:utext="${htmlList['all'].get(item+1)}"/>-->
-<!--            </div>-->
-<!--        </th:block>-->
-<!--        <th:block th:if="${htmlList['all'].get(item+1).contains('pdf-item-passage')}">-->
-<!--            <div class="pdf-item pdf-item-all">-->
-<!--                <div class="pdf-div" th:text="${htmlList['all'].get(item)}"></div>-->
-<!--                <th:block class="pdf-img" th:utext="${htmlList['all'].get(item+1)}"/>-->
-<!--            </div>-->
-<!--        </th:block>-->
+
+<!--    <th:block th:each="item : ${htmlList['questions']}">-->
+<!--        <div class="pdf-item pdf-item-all">-->
+<!--            <th:block class="pdf-img" th:utext="${item}"/>-->
+<!--        </div>-->
+<!--    </th:block>-->
+<!--    <th:block th:each="item, status:${htmlList['answers']}">-->
+<!--        <div class="pdf-item pdf-item-all">-->
+<!--            <span th:if="${status.odd}" th:text="${(status.count+1)/2}+'.'"></span>-->
+<!--            <th:block class="pdf-img" th:utext="${item}"/>-->
+<!--        </div>-->
 <!--    </th:block>-->
 
-<!--    <th:block th:each="item : ${#numbers.sequence(0, htmlList['questions'].size()-2, 2)}">-->
-<!--        <th:block th:if="${htmlList['questions'].get(item).endsWith('.')}">-->
-<!--            <div class="pdf-item pdf-item-question pdf-question-grid">-->
-<!--                <div class="pdf-number" th:text="${htmlList['questions'].get(item)}"></div>-->
-<!--                <th:block th:utext="${htmlList['questions'].get(item+1)}"/>-->
-<!--            </div>-->
-<!--        </th:block>-->
-<!--        <th:block th:if="${htmlList['questions'].get(item).endsWith(']') || htmlList['questions'].get(item).equals('')}">-->
-<!--            <div class="pdf-item pdf-item-question">-->
-<!--                <div class="pdf-div" th:text="${htmlList['questions'].get(item)}"></div>-->
-<!--                <th:block class="pdf-img" th:utext="${htmlList['questions'].get(item+1)}"/>-->
-<!--            </div>-->
-<!--        </th:block>-->
-<!--    </th:block>-->
-<!--    <th:block th:each="item : ${#numbers.sequence(0, htmlList['answers'].size()-2, 2)}">-->
-<!--        <th:block th:if="${htmlList['answers'].get(item).endsWith('.')}">-->
-<!--            <div class="pdf-item pdf-item-answer">-->
-<!--                <div class="pdf-number" th:text="${htmlList['answers'].get(item)}"></div>-->
-<!--            </div>-->
-<!--        </th:block>-->
-<!--        <th:block th:if="${htmlList['answers'].get(item).endsWith(')')}">-->
-<!--            <div class="pdf-item pdf-item-answer">-->
-<!--                <div class="pdf-div pdf-answer" th:text="${htmlList['answers'].get(item)}"></div>-->
-<!--                <th:block class="pdf-img" th:utext="${htmlList['answers'].get(item+1)}"/>-->
-<!--            </div>-->
-<!--        </th:block>-->
-<!--    </th:block>-->
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
 <script src="/inc/js/pdf.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<script>
+    // const items = document.querySelectorAll(".pdf-item");
+    const title ="aasdf";
+
+    function page() {
+        const items = document.querySelectorAll(".pdf-item");
+        const content = document.getElementById("pdf-content");
+
+        content.innerHTML = `
+			<div class="page">
+                <table class="pdf-title-table">
+                    <tr>
+                        <td rowspan="2" class="pdf-td-title">${title}</td>
+                        <td class="pdf-td-grade"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>
+                    </tr>
+                    <tr>
+                        <td class="pdf-td-name">이름:</td>
+                    </tr>
+                </table>
+                <div class="pdf-container" style="height: 235mm">
+                    <div class="pdf-item-container pdf-item-container-left" style="height: 235mm" id="left-1"></div>
+                    <div class="pdf-item-container pdf-item-container-right" style="height: 235mm" id="right-1"></div>
+                </div>
+                <div class="page-no">1</div>
+            </div>
+			`;
+
+        const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
+
+        let currentHeight = 15;
+        let gridArea = document.getElementById("left-1");
+        let page = 1;
+        let maxHeight = 235 * toPx;
+        let currentArea = 0;
+
+        items.forEach(value => {
+            const height = value.offsetHeight;
+
+            if (currentHeight + height > maxHeight) {
+
+                if (currentArea === 1) {
+                    maxHeight = 255 * toPx;
+                    page = page + 1;
+                    currentArea = 0;
+                    content.innerHTML += `
+                            <div class="page">
+                                <div class="pdf-container">
+                                    <div class="pdf-item-container pdf-item-container-left" id="left-${page}"></div>
+                                    <div class="pdf-item-container pdf-item-container-right" id="right-${page}"></div>
+                                </div>
+                                <div class="page-no">${page}</div>
+                            </div>
+                    `;
+
+                    if(currentHeight > maxHeight) {
+
+                    }
+                    // if(height > maxHeight) {
+                    //     const
+                    // }
+
+                    gridArea = document.getElementById("left-" + page);
+                } else {
+                    currentArea = 1;
+                    currentHeight = 0;
+                    gridArea = document.getElementById("right-" + page);
+                }
+            }
+            currentHeight = currentHeight + height + 10*toPx ;
+            gridArea.appendChild(value);
+        });
+    }
+
+    function generatePdf() {
+        const element = document.getElementById('pdf-content');
+        const options = {
+            margin: 10,
+            filename: 'two-column.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['css'] },
+        };
+
+        html2pdf().set(options).from(element).save();
+    }
+    // generatePdf();
+
+
+    // 테이블 분리 및 배치
+    function splitTableAndDistribute(element, container, availableHeight, switchAreaCallback) {
+        const originalTable = element.querySelector("table");
+        const rows = Array.from(originalTable.querySelectorAll("tr"));
+        let currentHeight = 0;
+
+        // 새 테이블 생성
+        let newTable = createNewTableStructure(originalTable);
+
+        rows.forEach((row) => {
+            const rowHeight = row.offsetHeight;
+
+            if (currentHeight + rowHeight > availableHeight) {
+                // 현재 컨테이너가 가득 찼으면 새 컨테이너로 전환
+                container.appendChild(newTable);
+                ({ container, availableHeight } = switchAreaCallback());
+                newTable = createNewTableStructure(originalTable);
+                currentHeight = 0;
+            }
+
+            // 현재 테이블 또는 새 테이블에 행 추가
+            newTable.querySelector("tbody").appendChild(row);
+            currentHeight += rowHeight;
+        });
+
+        // 마지막 테이블 추가
+        if (newTable.querySelector("tbody").children.length > 0) {
+            container.appendChild(newTable);
+        }
+    }
+
+
+
+</script>
 </body>
 </html>
+

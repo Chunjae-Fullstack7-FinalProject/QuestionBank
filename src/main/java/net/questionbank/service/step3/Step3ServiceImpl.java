@@ -7,10 +7,7 @@ import net.questionbank.domain.Member;
 import net.questionbank.domain.Question;
 import net.questionbank.domain.Test;
 import net.questionbank.domain.Textbook;
-import net.questionbank.dto.question.QuestionImageApiDTO;
-import net.questionbank.dto.question.QuestionHtmlApiDTO;
-import net.questionbank.dto.question.QuestionRequestDTO;
-import net.questionbank.dto.question.QuestionResponseDTO;
+import net.questionbank.dto.question.*;
 import net.questionbank.dto.test.TempTestDTO;
 import net.questionbank.dto.test.TestDTO;
 import net.questionbank.dto.test.TestDataDTO;
@@ -68,7 +65,7 @@ public class Step3ServiceImpl implements Step3Service {
                 .uri("/item-img/item-list")
                 .bodyValue(questionRequestDTO)
                 .retrieve()
-                .bodyToMono(QuestionResponseDTO.class).block()).getItemImageList();
+                .bodyToMono(QuestionImageResponseDTO.class).block()).getItemList();
     }
 
     @Override
@@ -79,7 +76,7 @@ public class Step3ServiceImpl implements Step3Service {
                 .uri("/item/item-list")
                 .bodyValue(questionRequestDTO)
                 .retrieve()
-                .bodyToMono(QuestionResponseDTO.class).block()).getItemList();
+                .bodyToMono(QuestionHtmlResponseDTO.class).block()).getItemList();
     }
 
     @Override
@@ -279,50 +276,71 @@ public class Step3ServiceImpl implements Step3Service {
 
                 if (!cpid.equals(question.getPassageId())) {
                     if (startNo > 0 && startNo < question.getItemNo() - 1) {
-                        all.set(passageIndex, all.get(passageIndex).replaceFirst("<span class=\"txt \">","<span class=\"txt \">[" + startNo + "-" + (question.getItemNo() - 1) + "]</span>\n<span class=\"txt \">"));
+                        all.set(passageIndex, all.get(passageIndex)
+                                        .replaceFirst("<span class=\"txt \">", "<div class=\"paragraph\" style=\"border-left:0.2mm none;border-right:0.2mm none;border-top:0.2mm none;border-bottom:0.2mm none;text-indent: 14px;margin-left: 0px;margin-right: 0px;\">\n         <span class=\"txt \">[" + startNo + "-" + (question.getItemNo() - 1) + "]</span>\n        </div>\n<span class=\"txt \">")
+//                                .replaceFirst("<caption></caption>","<caption>[" + startNo + "-" + (question.getItemNo() - 1) + "]</caption>")
+                        );
                     }
-                    all.add(question.getPassageHtml().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-passage\""));
                     passageIndex = all.size();
+                    all.add(question.getPassageHtml()
+                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-passage\"")
+                            .replace("class=\"paragraph\"", "class=\"paragraph pdf-line\"")
+                    );
                     startNo = question.getItemNo();
                 }
 
                 cpid = question.getPassageId() != null ? question.getPassageId() : 0L;
 
-                all.add(question.getQuestionHtml().replace("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-question\"")
-                        .replaceFirst("<span class=\"txt \">","<span class=\"txt pdf-answer\">"+question.getItemNo()+".&nbsp;</span>\n<span class=\"txt \">")
-                );
+                String html = question.getQuestionHtml()
+                        .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-question\"")
+                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt\">" + question.getItemNo() + ".&nbsp;</span>\n<span class=\"txt \">");
+
+                if (html.contains("<table")) {
+                    html = html.replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-question\"")
+                            .replace("class=\"paragraph\"", "class=\"paragraph pdf-line\"")
+                    ;
+                }
+
+                all.add(html);
 
                 if (question.getChoice1Html() != null) {
-                    all.add(question.getChoice1Html().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                    all.add(question.getChoice1Html()
+                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
                             .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">①&nbsp;")
                     );
                 }
                 if (question.getChoice2Html() != null) {
-                    all.add(question.getChoice2Html().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                    all.add(question.getChoice2Html()
+                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
                             .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">②&nbsp;")
                     );
                 }
                 if (question.getChoice3Html() != null) {
-                    all.add(question.getChoice3Html().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                    all.add(question.getChoice3Html()
+                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
                             .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">③&nbsp;")
                     );
                 }
                 if (question.getChoice4Html() != null) {
-                    all.add(question.getChoice4Html().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                    all.add(question.getChoice4Html()
+                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
                             .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">④&nbsp;")
                     );
                 }
                 if (question.getChoice5Html() != null) {
-                    all.add(question.getChoice5Html().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                    all.add(question.getChoice5Html()
+                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
                             .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">⑤&nbsp;")
                     );
                 }
 
-                all.add(question.getAnswerHtml().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-answer\"")
-                        .replaceFirst("<span class=\"txt \">","<span class=\"txt pdf-answer\">(답)</span>\n<span class=\"txt \">")
+                all.add(question.getAnswerHtml()
+                        .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-answer\"")
+                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt pdf-answer\">(답)</span>\n<span class=\"txt \">")
                 );
-                all.add(question.getExplainHtml().replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-answer\"")
-                        .replaceFirst("<span class=\"txt \">","<span class=\"txt pdf-answer\">(해설)</span>\n<span class=\"txt \">")
+                all.add(question.getExplainHtml()
+                        .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-answer\"")
+                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt pdf-answer\">(해설)</span>\n<span class=\"txt \">")
                 );
 
             }
@@ -330,14 +348,19 @@ public class Step3ServiceImpl implements Step3Service {
             cpid = 0L;
             if (!cpid.equals(question.getPassageId())) {
                 if (startNo > 0 && startNo < question.getItemNo()) {
-                    all.set(passageIndex, all.get(passageIndex).replaceFirst("<span class=\"txt \">","<span class=\"txt \">[" + startNo + "-" + (question.getItemNo()) + "]</span>\n<span class=\"txt \">"));
+                    all.set(passageIndex, all.get(passageIndex)
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">[" + startNo + "-" + (question.getItemNo()) + "]</span>\n<span class=\"txt \">"));
                     all.set(passageIndex, "[" + startNo + "-" + (question.getItemNo()) + "]");
                 }
             }
 
             all = all.stream().map(str ->
-                            str.replace("<html>\n <head></head>\n <body>\n ", "")
-                                    .replace(" </body>\n</html>", ""))
+                                    str.replace("<html>\n <head></head>\n <body>\n ", "")
+                                            .replace(" </body>\n</html>", "")
+                                            .replace("style=\"border-left:0.2mm none;border-right:0.2mm none;border-top:0.2mm none;border-bottom:0.2mm none;text-indent: 14px;margin-left: 0px;margin-right: 0px;\"", "")
+                                            .replace("style=\"border-left:0.2mm none;border-right:0.2mm none;border-top:0.2mm none;border-bottom:0.2mm none;text-indent: 0px;margin-left: 0px;margin-right: 0px;\"", "")
+//                                    .replace("class=\"paragraph\"", "class=\"paragraph inner-item\"")
+                    )
                     .toList();
 
             //문제만 추출

@@ -1,5 +1,6 @@
 package net.questionbank.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
@@ -91,6 +92,7 @@ public class TestController {
     public String step3(Model model, @RequestParam(required = false) List<Long> itemIdList, @RequestParam(required = false) Long subjectId) {
         int testId = 1;
         List<Long> ids = new ArrayList<>();
+//        ids.add(491164L);
         ids.add(494519L);
         ids.add(494552L);
         ids.add(494553L);
@@ -104,7 +106,7 @@ public class TestController {
 
         Long testSubjectId = 1154L;
 
-        model.addAttribute("testInfo", step3Service.testInfo(itemIdList == null ? ids : itemIdList, subjectId == null ? testSubjectId : subjectId));
+        model.addAttribute("testInfo", step3Service.testInfo(ids, testSubjectId));
         model.addAttribute("subjectId", subjectId == null ? testSubjectId : subjectId);
         model.addAttribute("itemIdList", itemIdList == null ? ids : itemIdList);
         model.addAttribute("pdfFileId", UUID.randomUUID().toString());
@@ -120,6 +122,7 @@ public class TestController {
     @GetMapping("/pdf")
     public String pdf(Model model) {
         List<Long> ids = new ArrayList<>();
+        ids.add(491164L);
         ids.add(494519L);
         ids.add(494552L);
         ids.add(494553L);
@@ -130,8 +133,72 @@ public class TestController {
         ids.add(493141L);
         ids.add(487792L);
         ids.add(494581L);
+        ids.add(493497L);
+
 
         model.addAttribute("htmlList", step3Service.testPdfHtmlList(step3Service.getQuestionsHtmlFromApi(ids)));
         return "test/test2";
     }
+
+    //    public void pdf() {
+//        Document document = new Document(PageSize.A4, 30, 30, 30, 30);
+//
+//        try {
+//            PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream("test.pdf"));
+//            pdfWriter.setInitialLeading(10f);
+//            document.open();
+//
+//            CSSResolver cssResolver = new StyleAttrCSSResolver();
+//            CssFile cssFile = null;
+//        } catch (DocumentException | FileNotFoundException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
+//    @GetMapping("/pdf")
+//    public String step3(Model model, HttpServletResponse response) {
+//        List<Long> ids = new ArrayList<>();
+//        ids.add(494519L);
+//        ids.add(494552L);
+//        ids.add(494553L);
+//        ids.add(493138L);
+//        ids.add(493140L);
+//        ids.add(493137L);
+//        ids.add(493139L);
+//        ids.add(493141L);
+//        ids.add(487792L);
+//        ids.add(494581L);
+//
+//        Long testSubjectId = 1154L;
+//
+//        step3Service.testPdfHtmlList(step3Service.getQuestionsHtmlFromApi(ids));
+//        model.addAttribute("htmlList", step3Service.testPdfHtmlList(step3Service.getQuestionsHtmlFromApi(ids));
+////        model.addAttribute("testInfo", step3Service.testInfo(ids, testSubjectId));
+//        return "test/test2";
+//
+////        String htmlContent = renderHtml("test/test2", model);
+////
+////        response.setCharacterEncoding("utf-8");
+////        response.setContentType("application/pdf");
+////        response.setHeader("Content-Disposition", "inline; filename=test.pdf");
+////
+////        try (OutputStream os = response.getOutputStream()) {
+////            ITextRenderer renderer = new ITextRenderer();
+////            renderer.getFontResolver().addFont("C:/Windows/Fonts/malgun.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+////            renderer.setDocumentFromString(htmlContent);
+////            renderer.layout();
+////            renderer.createPDF(os);
+////        } catch (IOException e) {
+////            log.info("pdf - error");
+//////            throw new RuntimeException(e);
+////        } catch (DocumentException e) {
+////            log.info("pdf - error2");
+////        }
+//    }
+//
+//    private String renderHtml(String templateName, Model model) {
+//        org.thymeleaf.context.Context context = new org.thymeleaf.context.Context();
+//        model.asMap().forEach(context::setVariable);
+//        return templateEngine.process(templateName, context);
+//    }
 }

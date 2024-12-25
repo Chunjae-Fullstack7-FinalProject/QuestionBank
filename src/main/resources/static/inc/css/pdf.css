@@ -1,6 +1,6 @@
-body {
-    font-size: 10pt;
-}
+/*body {*/
+/*    font-size: 10pt;*/
+/*}*/
 .page-no {
     box-sizing: border-box;
     text-align: center;
@@ -92,7 +92,6 @@ body {
     box-sizing: border-box;
     display: grid;
     grid-template-columns: 1fr auto;
-    align-items: center;
 }
 
 .pdf-number {

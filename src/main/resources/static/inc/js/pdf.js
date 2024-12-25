@@ -81,9 +81,9 @@ function pagenation(itemclass, title) {
                         <td class="pdf-td-name">이름:</td>
                     </tr>
                 </table>
-                <div class="pdf-container" style="height: 235mm">
-                    <div class="pdf-item-container pdf-item-container-left" style="height: 235mm" id="left-1"></div>
-                    <div class="pdf-item-container pdf-item-container-right" style="height: 235mm" id="right-1"></div>
+                <div class="pdf-container" style="height: 240mm">
+                    <div class="pdf-item-container pdf-item-container-left" style="height: 240mm" id="left-1"></div>
+                    <div class="pdf-item-container pdf-item-container-right" style="height: 240mm" id="right-1"></div>
                 </div>
                 <div class="page-no">1</div>
             </div>
@@ -91,10 +91,10 @@ function pagenation(itemclass, title) {
 
     const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
 
-    let currentHeight = 15;
+    let currentHeight = 15*toPx;
     let gridArea = document.getElementById("left-1");
     let page = 1;
-    let maxHeight = 235 * toPx;
+    let maxHeight = 240 * toPx;
     let currentArea = 0;
 
     items.forEach(value => {
@@ -105,7 +105,7 @@ function pagenation(itemclass, title) {
                 maxHeight = 255 * toPx;
                 page = page + 1;
                 currentArea = 0;
-                currentHeight = 19;
+                currentHeight = 0;
                 content.innerHTML += `
                             <div class="page">
                                 <div class="pdf-container">
@@ -122,7 +122,7 @@ function pagenation(itemclass, title) {
                 gridArea = document.getElementById("right-" + page);
             }
         }
-        currentHeight = currentHeight + height + 10 * toPx;
+        currentHeight = currentHeight + height + 5 * toPx;
         gridArea.appendChild(value);
     });
 
