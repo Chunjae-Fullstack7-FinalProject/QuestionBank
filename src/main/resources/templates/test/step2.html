@@ -111,7 +111,7 @@
 								<li class="ui-tab-btn">
 									<a href="javascript:;">유사 문제</a>
 								</li>
-								<li class="ui-tab-btn">
+								<li class="ui-tab-btn" id="deleteTab">
 									<a href="javascript:;">삭제 문항</a>
 								</li>
 							</ul>
@@ -159,46 +159,6 @@
 							</div>
 							<div class="contents">
 								<div class="view-que-list scroll-inner" id="deleteContainer">
-									<div class="sort-group">
-										<div class="view-que-box">
-											<div class="que-top">
-												<div class="title">
-													<span class="num">1</span>
-													<div class="que-badge-group">
-														<span class="que-badge yellow">상</span>
-														<span class="que-badge gray">객관식</span>
-													</div>
-												</div>
-												<div class="btn-wrap">
-													<div class="btn-wrap">
-														<div class="tooltip-wrap">
-															<button type="button" class="btn-error pop-btn" data-pop="error-report-pop"></button>
-														</div>
-													</div>
-												</div>
-											</div>
-											<div class="view-que">
-												<div class="que-content">
-													<p class="txt">7×2×2와 5×5×5×5를 각각 거듭제곱을 사용하여 나타낼 때, 2의 거듭제곱의 지수와 5의 거듭제곱의 밑의 곱은?</p>
-													<ul>
-														<ol><em>①</em><span>5, 7</span></ol>
-														<ol><em>②</em><span>5, 9</span></ol>
-														<ol><em>③</em><span>7, 5</span></ol>
-														<ol><em>④</em><span>7, 9</span></ol>
-														<ol><em>⑤</em><span>7, 10</span></ol>
-													</ul>
-												</div>
-												<div class="que-bottom">
-													<div class="btn-wrap">
-														<button type="button" class="btn-default"><i class="add-type02"></i>추가</button>
-													</div>
-												</div>
-											</div>
-											<div class="que-info-last">
-												<p class="chapter">자연수의 성질&gt;소인수분해&gt;거듭제곱&gt;거듭제곱으로표현</p>
-											</div>
-										</div>
-									</div>
 								</div>
 							</div>
 						</div>
@@ -542,7 +502,7 @@
 		let renderedPassageIds = new Set();
 		questions.forEach((q, index) => {
 			let questionHTML ='';
-			<!-- 앞 passgeId값과 다를 경우 -->
+			<!-- 앞 passageId값과 다를 경우 -->
 			const prevPassageId = index > 0 ? questions[index-1].passageId : null;
 			//console.log("현재" + q.passageId);
 			//console.log("이전" + prevPassageId);
@@ -567,7 +527,7 @@
 									<span class="num">${rangeText}</span>
 								</div>
 								<div class="btn-wrap">
-									<button type="button" class="btn-delete" data-type="all" data-passage-id="${q.passageId}"></button>
+									<button type="button" class="btn-delete" data-type="all" data-passage-id="${q.passageId}" onclick="executeDelete(this)"></button>
 								</div>
 							</div>
 							<div class="view-que">
@@ -592,7 +552,7 @@
 								</div>
 								<div class="btn-wrap">
 									<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${q.itemId}" onclick="popFunc(this)"></button>
-									<button type="button" class="btn-delete" data-item-id="${q.itemId}"></button>
+									<button type="button" class="btn-delete" data-item-id="${q.itemId}" onclick="executeDelete(this)"></button>
 								</div>
 							</div>
 							<div class="view-que">
@@ -915,7 +875,6 @@
 				// 문항 추가
 				targetItem.insertAdjacentHTML("afterend", newQuestionHTML);
 			}
-
 			// DOM 상태 반영
 			updateAllOrder(newItem);
 		} else {
@@ -1250,9 +1209,290 @@
 </script>
 <!--강감찬 추가(문항삭제부분)-->
 <script>
-	const deleteQuestions = [];
+	let deletedQuestions = [];
+	//삭제버튼 클릭하면 questions배열에서 삭제하고 deletedQuestions 배열로 추가함
 	function deleteQuestion(button){
-
+		console.log("deleteQuestions start");
+		const type = button.getAttribute("data-type") || '';
+		console.log("type : "+type);
+		//지문 전체 삭제 클릭시
+		if(type === 'all'){
+			console.log("type === all");
+			//지문번호
+			const passageId = parseInt(button.getAttribute("data-passage-id"));
+			console.log("passageId : " + passageId);
+			//지문에 해당하는 문제들 넣을 배열
+			const removed = [];
+			//questions배열에서 지문번호가 같은 문제들 찾아서 삭제하고 removed에 넣음
+			for(let i = questions.length - 1; i >= 0; i--){
+				console.log("questions[i] : "+questions[i]);
+				if(questions[i].passageId === passageId){
+					console.log("passageId equals");
+					removed.unshift(questions.splice(i,1)[0]);
+				}
+			}
+			console.log("removed : "+removed);
+			//removed를 deletedQuestions에 넣음
+			deletedQuestions.push(...removed);
+			console.log("deletedQuestions : " + deletedQuestions);
+			return;
+		}
+		//문제 단일 삭제시
+		console.log("type === ''");
+		//문제 번호
+		const deletedItemId = parseInt(button.getAttribute("data-item-id"));
+		console.log("deletedItemId : "+deletedItemId);
+		//questions에서 해당 문제의 index를 가져옴
+		const indexOfQuestion = questions.findIndex(item => {
+			console.log("item.itemId"+item.itemId);
+			return parseInt(item.itemId) === deletedItemId;
+		});
+		console.log("indexOfQuestion : "+indexOfQuestion);
+		//문제번호가 questions에 없을때
+		if(indexOfQuestion === -1){
+			alert('존재하지 않는 문항입니다.');
+			return;
+		}
+		//questions에서 index에 해당하는 문제를 가져옴
+		const removed = questions.splice(indexOfQuestion, 1)[0];
+		console.log("removed : "+removed);
+		for(let [key,value] of Object.entries(removed)){
+			console.log("key : " + key + ", value : " + value);
+		}
+		//deletedQuestions에 넣음
+		deletedQuestions.push(removed);
+		console.log("deletedQuestions");
+		console.log(deletedQuestions);
+	}
+	//deletedQUestions 같은지문끼리 묶어서 정렬하는 함수
+	function sortAndReorder(questionArray){
+		console.log("sortAndReorder start");
+		//지문번호를 key로 하는 객체를 생성해서 같은 지문인 문제끼리 묶음 지문 없으면 그 문제 하나만 문제번호로 묶음
+		const grouped = questionArray.reduce((acc,cur)=>{
+			const key = cur.passageId || cur.itemId;
+			if(!acc[key]){
+				acc[key] = [];
+			}
+			acc[key].push(cur);
+			return acc;
+		},{});
+		console.log("grouped : ");
+		console.log(grouped);
+		//grouped의 values 들만 배열로 만들고 itemNo를 1번부터 순서대로 재입력
+		const sorted = Object.values(grouped).flat(1).map((item, index) => {
+			item.itemNo = index + 1;
+			return item;
+		});
+		console.log("sorted : ");
+		console.log(sorted);
+		//정렬된 배열 반환
+		return sorted;
+	}
+	//형식 코드에 따라 객관식, 주관식으로 반환함
+	function getQuestionType(questionFormCode) {
+		if (questionFormCode >= '10' && questionFormCode <= '50') {
+			return '객관식';
+		} else if (questionFormCode >= '60' && questionFormCode <= '99') {
+			return '주관식';
+		} else {
+			return ''; // 다른 형식이 있다면 여기에 추가
+		}
+	}
+	//deletedQuestions배열의 문제들로 구성된 html 소스를 문자열로 반환함
+	function getDeletedQuestionsHtml(){
+		console.log("getDeletedQuestionHtml start");
+		let html = '';
+		if(deletedQuestions.length == 0){
+			return '<p>삭제 항목이 없습니다.</p>';
+		}
+		const grouped = deletedQuestions.reduce((acc,cur) => {
+			const key = cur.passageId || 'no' + cur.itemId;
+			if(!acc[key]) acc[key] = [];
+			acc[key].push(cur);
+			return acc;
+		},{});
+		console.log("grouped : ");
+		console.log(grouped);
+		for(let [key, value] of Object.entries(grouped)){
+			console.log(`key : ${key}, value : ${value}`);
+			if(key.startsWith("no")){
+				html += `
+				<div class="sort-group">
+					<div class="view-que-box">
+						<div class="que-top">
+							<div class="title">
+								<span class="num">${value[0].itemNo}</span>
+								<div class="que-badge-group">
+									<span class="que-badge yellow">${value[0].difficultyName}</span>
+									<span class="que-badge gray">${getQuestionType(value[0].questionFormCode)}</span>
+								</div>
+							</div>
+							<div class="btn-wrap">
+								<div class="btn-wrap">
+									<div class="tooltip-wrap">
+										<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${value[0].itemId}" onclick="popFunc(this)"></button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="view-que">
+							<div class="que-content">
+								<img src="${value[0].questionUrl}" alt="${value[0].itemId}" width="453px">
+							</div>
+							<div class="que-bottom">
+								<div class="data-area">
+									<div class="que-info answer-area" style="display: none">
+										<p class="answer">
+											<span class="label type01">정답</span>
+										</p>
+										<div class="data-answer-area">
+											<img src="${value[0].answerUrl}" alt="${value[0].itemId}" width="453px">
+										</div>
+									</div>
+								</div>
+								<div class="data-area type01">
+									<div class="que-info explain-area" style="display: none">
+										<p class="answer">
+											<span class="label">해설</span>
+										</p>
+										<div class="data-answer-area">
+											<img src="${value[0].explainUrl}" alt="${value[0].itemId}" width="453px">
+										</div>
+									</div>
+									<div class="btn-wrap etc-btn-wrap">
+										<button type="button" class="btn-default btn-add" data-type="">
+											<i class="add-type02"></i>추가
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="que-info-last">
+							<p class="chapter">
+								${value[0].largeChapterName}&gt;${value[0].mediumChapterName}&gt;${value[0].smallChapterName}&gt;${value[0].topicChapterName}
+							</p>
+						</div>
+					</div>
+				</div>
+				`
+			}else{
+				const length = value.length;
+				const startNo = value[0].itemNo;
+				const endNo = parseInt(startNo) + length -1;
+				const range = length == 1 ? startNo : startNo + ' ~ ' + endNo;
+				html+=`
+				<div class="passage-view-que-box sort-group">
+					<div class="view-que-box passage-box" data-passageid="${key}">
+						<div class="que-top">
+							<div class="title">
+								<span class="num">${range}</span>
+							</div>
+							<div class="btn-wrap delete-btn-wrap">
+							</div>
+						</div>
+						<div class="view-que">
+							<div class="que-bottom">
+								<div class="passage-area">
+									<img src="${value[0].passageUrl}" alt="${key}" width="453px">
+								</div>
+								<div class="btn-wrap etc-btn-wrap" style="margin-top: 10px;">
+									<button type="button" class="btn-default btn-add" data-type="all">
+										<i class="add-type02"></i>전체 추가
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				`;
+				for(let item of value){
+					console.log(item);
+					html+=`
+					<div class="view-que-box item-box" data-papertitle="">
+						<div class="que-top">
+							<div class="title">
+								<span class="num">${item.itemNo}</span>
+								<div class="que-badge-group">
+									<span class="que-badge yellow">${item.difficultyName}</span>
+									<span class="que-badge gray">${getQuestionType(item.questionFormCode)}</span>
+								</div>
+							</div>
+							<div class="btn-wrap">
+								<div class="btn-wrap">
+									<div class="tooltip-wrap">
+										<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${item.itemId}" onclick="popFunc(this)"></button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="view-que">
+							<div class="que-content">
+								<img src="${item.questionUrl}" alt="${item.itemId}" width="453px">
+							</div>
+							<div class="que-bottom">
+								<div class="data-area">
+									<div class="que-info answer-area" style="display: none">
+										<p class="answer">
+											<span class="label type01">정답</span>
+										</p>
+										<div class="data-answer-area">
+											<img src="${item.answerUrl}" alt="${item.itemId}" width="453px">
+										</div>
+									</div>
+								</div>
+								<div class="data-area type01">
+									<div class="que-info explain-area" style="display: none">
+										<p class="answer">
+											<span class="label">해설</span>
+										</p>
+										<div class="data-answer-area">
+											<img src="${item.explainUrl}" alt="${item.itemId}" width="453px">
+										</div>
+									</div>
+									<div class="btn-wrap etc-btn-wrap">
+										<button type="button" class="btn-default btn-add" data-type="">
+											<i class="add-type02"></i>추가
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="que-info-last">
+							<p class="chapter">
+								${item.largeChapterName}&gt;${item.mediumChapterName}&gt;${item.smallChapterName}&gt;${item.topicChapterName}
+							</p>
+						</div>
+					</div>
+					`
+				}
+				html+=`
+				</div>
+				`;
+			}
+		}
+		return html;
+	}
+	//우측영역 삭제 문항을 담을 요소
+	const deleteContainer = document.querySelector("#deleteContainer");
+	//deletedContainer의 html 렌더링
+	function renderDeletedQuestions(){
+		console.log("renderDeletedQuestions start");
+		deleteContainer.innerHTML = getDeletedQuestionsHtml();
+	}
+	//삭제문항 탭
+	const deleteTab = document.querySelector("#deleteTab");
+	//삭제문항 클릭시 렌더링
+	deleteTab.addEventListener("click",(e)=>{
+		renderDeletedQuestions();
+	});
+	//삭제버튼 클릭시 삭제 ~ 렌더링까지 수행하는 함수
+	function executeDelete(button){
+		deleteQuestion(button);
+		deletedQuestions = sortAndReorder(deletedQuestions);
+		console.log(questions);
+		console.log(deletedQuestions);
+		renderDeletedQuestions();
+		renderQuestions(questions);
+		renderSummary(questions);
 	}
 </script>
 </body>
