@@ -158,7 +158,48 @@
 								</div>
 							</div>
 							<div class="contents">
-								탭 컨텐츠 (3)
+								<div class="view-que-list scroll-inner" id="deleteContainer">
+									<div class="sort-group">
+										<div class="view-que-box">
+											<div class="que-top">
+												<div class="title">
+													<span class="num">1</span>
+													<div class="que-badge-group">
+														<span class="que-badge yellow">상</span>
+														<span class="que-badge gray">객관식</span>
+													</div>
+												</div>
+												<div class="btn-wrap">
+													<div class="btn-wrap">
+														<div class="tooltip-wrap">
+															<button type="button" class="btn-error pop-btn" data-pop="error-report-pop"></button>
+														</div>
+													</div>
+												</div>
+											</div>
+											<div class="view-que">
+												<div class="que-content">
+													<p class="txt">7×2×2와 5×5×5×5를 각각 거듭제곱을 사용하여 나타낼 때, 2의 거듭제곱의 지수와 5의 거듭제곱의 밑의 곱은?</p>
+													<ul>
+														<ol><em>①</em><span>5, 7</span></ol>
+														<ol><em>②</em><span>5, 9</span></ol>
+														<ol><em>③</em><span>7, 5</span></ol>
+														<ol><em>④</em><span>7, 9</span></ol>
+														<ol><em>⑤</em><span>7, 10</span></ol>
+													</ul>
+												</div>
+												<div class="que-bottom">
+													<div class="btn-wrap">
+														<button type="button" class="btn-default"><i class="add-type02"></i>추가</button>
+													</div>
+												</div>
+											</div>
+											<div class="que-info-last">
+												<p class="chapter">자연수의 성질&gt;소인수분해&gt;거듭제곱&gt;거듭제곱으로표현</p>
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -524,6 +565,9 @@
 								<div class="title">
 									<span class="num">${rangeText}</span>
 								</div>
+								<div class="btn-wrap">
+									<button type="button" class="btn-delete" data-type="all" data-passage-id="${q.passageId}"></button>
+								</div>
 							</div>
 							<div class="view-que">
 								<div class="que-bottom">
@@ -547,7 +591,7 @@
 								</div>
 								<div class="btn-wrap">
 									<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${q.itemId}" onclick="popFunc(this)"></button>
-									<button type="button" class="btn-delete"></button>
+									<button type="button" class="btn-delete" data-item-id="${q.itemId}"></button>
 								</div>
 							</div>
 							<div class="view-que">
@@ -1177,6 +1221,13 @@
 			console.error(error);
 			alert("오류 신고 실패");
 		}
+	}
+</script>
+<!--강감찬 추가(문항삭제부분)-->
+<script>
+	const deleteQuestions = [];
+	function deleteQuestion(button){
+
 	}
 </script>
 </body>
