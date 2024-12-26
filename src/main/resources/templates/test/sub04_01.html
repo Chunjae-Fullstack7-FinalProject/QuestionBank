@@ -40,6 +40,11 @@
 			padding: 0;
 		}
 	</style>
+	<!-- MathJax 라이브러리 -->
+	<script type="text/javascript" async
+			src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+	</script>
+	<script th:src="@{/assets/js/mathjax-config.js}"></script>
 </head>
 
 <body>
@@ -155,61 +160,80 @@
         <div id="pdf-content">
 
         </div>
-        <th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['all'].size()-2, 2)}">
-            <th:block th:if="${testInfo.imageList['all'].get(item).endsWith('.')}">
-                <div class="pdf-item pdf-item-all pdf-question-grid">
-                    <div class="pdf-number" th:text="${testInfo.imageList['all'].get(item)}"></div>
-                    <img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>
-                </div>
-            </th:block>
-            <th:block th:if="${testInfo.imageList['all'].get(item).endsWith(')')}">
-                <div class="pdf-item pdf-item-all">
-                    <div class="pdf-div pdf-answer" th:text="${testInfo.imageList['all'].get(item)}"></div>
-                    <img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>
-                </div>
-            </th:block>
-			<th:block th:if="${testInfo.imageList['all'].get(item).endsWith(']') || testInfo.imageList['all'].get(item).equals('')}">
-				<div class="pdf-item pdf-item-all">
-					<div class="pdf-div" th:text="${testInfo.imageList['all'].get(item)}"></div>
-					<img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>
-				</div>
-			</th:block>
-        </th:block>
 
-		<th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['questions'].size()-2, 2)}">
-			<th:block th:if="${testInfo.imageList['questions'].get(item).endsWith('.')}">
-				<div class="pdf-item pdf-item-question pdf-question-grid">
-					<div class="pdf-number" th:text="${testInfo.imageList['questions'].get(item)}"></div>
-					<img class="pdf-img" th:src="${testInfo.imageList['questions'].get(item+1)}"/>
-				</div>
+
+
+<!--        <th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['all'].size()-2, 2)}">-->
+<!--            <th:block th:if="${testInfo.imageList['all'].get(item).endsWith('.')}">-->
+<!--                <div class="pdf-item pdf-item-all pdf-question-grid">-->
+<!--                    <div class="pdf-number" th:text="${testInfo.imageList['all'].get(item)}"></div>-->
+<!--                    <img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>-->
+<!--                </div>-->
+<!--            </th:block>-->
+<!--            <th:block th:if="${testInfo.imageList['all'].get(item).endsWith(')')}">-->
+<!--                <div class="pdf-item pdf-item-all">-->
+<!--                    <div class="pdf-div pdf-answer" th:text="${testInfo.imageList['all'].get(item)}"></div>-->
+<!--                    <img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>-->
+<!--                </div>-->
+<!--            </th:block>-->
+<!--			<th:block th:if="${testInfo.imageList['all'].get(item).endsWith(']') || testInfo.imageList['all'].get(item).equals('')}">-->
+<!--				<div class="pdf-item pdf-item-all">-->
+<!--					<div class="pdf-div" th:text="${testInfo.imageList['all'].get(item)}"></div>-->
+<!--					<img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>-->
+<!--				</div>-->
+<!--			</th:block>-->
+<!--        </th:block>-->
+
+<!--		<th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['questions'].size()-2, 2)}">-->
+<!--			<th:block th:if="${testInfo.imageList['questions'].get(item).endsWith('.')}">-->
+<!--				<div class="pdf-item pdf-item-question pdf-question-grid">-->
+<!--					<div class="pdf-number" th:text="${testInfo.imageList['questions'].get(item)}"></div>-->
+<!--					<img class="pdf-img" th:src="${testInfo.imageList['questions'].get(item+1)}"/>-->
+<!--				</div>-->
+<!--			</th:block>-->
+<!--			<th:block th:if="${testInfo.imageList['questions'].get(item).endsWith(']') || testInfo.imageList['questions'].get(item).equals('')}">-->
+<!--				<div class="pdf-item pdf-item-question">-->
+<!--					<div class="pdf-div" th:text="${testInfo.imageList['questions'].get(item)}"></div>-->
+<!--					<img class="pdf-img" th:src="${testInfo.imageList['questions'].get(item+1)}"/>-->
+<!--				</div>-->
+<!--			</th:block>-->
+<!--		</th:block>-->
+<!--		<th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['answers'].size()-2, 2)}">-->
+<!--			<th:block th:if="${testInfo.imageList['answers'].get(item).endsWith('.')}">-->
+<!--				<div class="pdf-item pdf-item-answer">-->
+<!--					<div class="pdf-number" th:text="${testInfo.imageList['answers'].get(item)}"></div>-->
+<!--				</div>-->
+<!--			</th:block>-->
+<!--			<th:block th:if="${testInfo.imageList['answers'].get(item).endsWith(')')}">-->
+<!--				<div class="pdf-item pdf-item-answer">-->
+<!--					<div class="pdf-div pdf-answer" th:text="${testInfo.imageList['answers'].get(item)}"></div>-->
+<!--					<img class="pdf-img" th:src="${testInfo.imageList['answers'].get(item+1)}"/>-->
+<!--				</div>-->
+<!--			</th:block>-->
+<!--		</th:block>-->
+		<div id="all">
+			<th:block th:each="item : ${testInfo.htmlList['all']}">
+				<th:block th:utext="${item}"/>
 			</th:block>
-			<th:block th:if="${testInfo.imageList['questions'].get(item).endsWith(']') || testInfo.imageList['questions'].get(item).equals('')}">
-				<div class="pdf-item pdf-item-question">
-					<div class="pdf-div" th:text="${testInfo.imageList['questions'].get(item)}"></div>
-					<img class="pdf-img" th:src="${testInfo.imageList['questions'].get(item+1)}"/>
-				</div>
+		</div>
+		<div id="question">
+			<th:block th:each="item : ${testInfo.htmlList['questions']}">
+				<th:block th:utext="${item}"/>
 			</th:block>
-		</th:block>
-		<th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['answers'].size()-2, 2)}">
-			<th:block th:if="${testInfo.imageList['answers'].get(item).endsWith('.')}">
-				<div class="pdf-item pdf-item-answer">
-					<div class="pdf-number" th:text="${testInfo.imageList['answers'].get(item)}"></div>
-				</div>
+		</div>
+		<div id="answer">
+			<th:block th:each="item, status:${testInfo.htmlList['answers']}">
+				<div class="pdf-item" th:if="${status.odd}" th:text="${status.count/2 + 1}+'.'"></div>
+				<th:block th:utext="${item}"/>
 			</th:block>
-			<th:block th:if="${testInfo.imageList['answers'].get(item).endsWith(')')}">
-				<div class="pdf-item pdf-item-answer">
-					<div class="pdf-div pdf-answer" th:text="${testInfo.imageList['answers'].get(item)}"></div>
-					<img class="pdf-img" th:src="${testInfo.imageList['answers'].get(item+1)}"/>
-				</div>
-			</th:block>
-		</th:block>
+		</div>
     </div>
+
 
     <script src="/inc/js/step3.js"></script>
 	<script src="/inc/js/pdf.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
     <script>
-
 		const itemclass = ['all', 'question','answer'];
 
 		async function savePdf(title) {
@@ -220,24 +244,24 @@
 			const options = {
 				margin: 15, // 여백 설정
 				image: { type: 'jpeg', quality: 0.98 }, // 이미지 설정
-				html2canvas: { scale: 2, useCORS: true }, // 해상도 설정
+				html2canvas: { scale: 2 }, // 해상도 설정
 				jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, // PDF 설정
 				pagebreak: { mode: ['css'] },
 			};
 
-			for (const item of itemclass) {
-				pagenation(item, title);
-				const filename = `${item}-[[${pdfFileId}]].pdf`; // 파일 이름 설정
+			for(item of itemclass) {
+				page(title, item);
+				let filename = `${item}-[[${pdfFileId}]].pdf`; // 파일 이름 설정
 				options.filename = filename;
 
 				console.log(`Generating PDF for: ${item}`);
 
 				// PDF 생성 및 Blob 반환
-				const pdfBlob = await html2pdf().set(options).from(element).outputPdf('blob');
+				let pdfBlob = await html2pdf().set(options).from(element).outputPdf('blob');
 
 				// PDF 전송
 				await sendPdf(pdfBlob, item);
-				console.log(`PDF for ${item} completed.`);
+				console.log(`PDF for all completed.`);
 			}
 
 			console.log('All PDFs have been generated and sent.');
@@ -306,7 +330,8 @@
                     'subjectId': [[${testInfo.textbookApiDTO.subjectId}]],
                     'subjectName': `[[${testInfo.textbookApiDTO.areaName}]]`,
                     'itemIdList': [[${itemIdList}]],
-                    'pdfFileId' : `[[${pdfFileId}]]`
+                    'pdfFileId' : `[[${pdfFileId}]]`,
+					'descriptive' : `[[${ testInfo.descriptive=='O' }]]`
                 })
             });
 

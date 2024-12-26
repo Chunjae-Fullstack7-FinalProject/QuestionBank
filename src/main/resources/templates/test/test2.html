@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Document</title>
     <link rel="stylesheet" href="/inc/css/pdf.css"/>
-    <style>
-
-    </style>
+    <!-- MathJax 라이브러리 -->
+    <script type="text/javascript" async
+            src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <script th:src="@{/assets/js/mathjax-config.js}"></script>
 </head>
 <body>
 <div id="pdfArea">
@@ -15,9 +17,23 @@
 
     </div>
 
-    <th:block th:each="item : ${htmlList['all']}">
-        <th:block th:utext="${item}"/>
-    </th:block>
+    <div id="all">
+        <th:block th:each="item : ${htmlList['all']}">
+            <th:block th:utext="${item}"/>
+        </th:block>
+    </div>
+    <div id="question">
+        <th:block th:each="item : ${htmlList['questions']}">
+            <th:block th:utext="${item}"/>
+        </th:block>
+    </div>
+    <div id="answer">
+        <th:block th:each="item, status:${htmlList['answers']}">
+            <div class="pdf-item" th:if="${status.odd}" th:text="${status.count/2 + 1}+'.'"></div>
+            <th:block th:utext="${item}"/>
+        </th:block>
+    </div>
+
 
 <!--    <th:block th:each="item : ${htmlList['questions']}">-->
 <!--        <div class="pdf-item pdf-item-all">-->
@@ -36,81 +52,11 @@
 <script src="/inc/js/pdf.js"></script>
 <script>
     // const items = document.querySelectorAll(".pdf-item");
-    const title ="aasdf";
-
-    function page() {
-        const items = document.querySelectorAll(".pdf-item");
-        const content = document.getElementById("pdf-content");
-
-        content.innerHTML = `
-			<div class="page">
-                <table class="pdf-title-table">
-                    <tr>
-                        <td rowspan="2" class="pdf-td-title">${title}</td>
-                        <td class="pdf-td-grade"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>
-                    </tr>
-                    <tr>
-                        <td class="pdf-td-name">이름:</td>
-                    </tr>
-                </table>
-                <div class="pdf-container" style="height: 235mm">
-                    <div class="pdf-item-container pdf-item-container-left" style="height: 235mm" id="left-1"></div>
-                    <div class="pdf-item-container pdf-item-container-right" style="height: 235mm" id="right-1"></div>
-                </div>
-                <div class="page-no">1</div>
-            </div>
-			`;
-
-        const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
-
-        let currentHeight = 15;
-        let gridArea = document.getElementById("left-1");
-        let page = 1;
-        let maxHeight = 235 * toPx;
-        let currentArea = 0;
-
-        items.forEach(value => {
-            const height = value.offsetHeight;
-
-            if (currentHeight + height > maxHeight) {
-
-                if (currentArea === 1) {
-                    maxHeight = 255 * toPx;
-                    page = page + 1;
-                    currentArea = 0;
-                    content.innerHTML += `
-                            <div class="page">
-                                <div class="pdf-container">
-                                    <div class="pdf-item-container pdf-item-container-left" id="left-${page}"></div>
-                                    <div class="pdf-item-container pdf-item-container-right" id="right-${page}"></div>
-                                </div>
-                                <div class="page-no">${page}</div>
-                            </div>
-                    `;
-
-                    if(currentHeight > maxHeight) {
-
-                    }
-                    // if(height > maxHeight) {
-                    //     const
-                    // }
-
-                    gridArea = document.getElementById("left-" + page);
-                } else {
-                    currentArea = 1;
-                    currentHeight = 0;
-                    gridArea = document.getElementById("right-" + page);
-                }
-            }
-            currentHeight = currentHeight + height + 10*toPx ;
-            gridArea.appendChild(value);
-        });
-    }
 
     function generatePdf() {
         const element = document.getElementById('pdf-content');
         const options = {
-            margin: 10,
+            margin: 15,
             filename: 'two-column.pdf',
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
@@ -153,8 +99,6 @@
             container.appendChild(newTable);
         }
     }
-
-
 
 </script>
 </body>

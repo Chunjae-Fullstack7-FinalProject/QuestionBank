@@ -65,7 +65,164 @@ async function savePdf1(title, itemclass) {
 
 }
 
-//시험지 레이아웃 맞추기
+//html 시험지 레이아웃
+function page(title, item) {
+    const include = document.getElementById(item);
+    const items = include.querySelectorAll(".pdf-item");
+    const content = document.getElementById("pdf-content");
+
+    content.innerHTML = `
+			<div class="page">
+                <table class="pdf-title-table">
+                    <tr>
+                        <td rowspan="2" class="pdf-td-title">${title}</td>
+                        <td class="pdf-td-grade"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>
+                    </tr>
+                    <tr>
+                        <td class="pdf-td-name">이름:</td>
+                    </tr>
+                </table>
+                <div class="pdf-container" style="height: 235mm">
+                    <div class="pdf-item-container pdf-item-container-left" style="height: 235mm" id="left-1"></div>
+                    <div class="pdf-item-container pdf-item-container-right" style="height: 235mm" id="right-1"></div>
+                </div>
+                <div class="page-no">1</div>
+            </div>
+			`;
+
+    const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
+
+    console.log(toPx);
+
+    let currentHeight = 5*toPx;
+    let gridArea = document.getElementById("left-1");
+    let pageNo = 1;
+    let maxHeight = 235 * toPx;
+    let currentArea = 0;
+
+    items.forEach(value => {
+        value.removeAttribute("style");
+        const height = value.offsetHeight;
+
+        if(value.innerHTML.includes("<table")) {
+            value.querySelectorAll("table").forEach(table => {
+                table.removeAttribute("style");
+                table.classList.add("pdf-item-table");
+            })
+        }
+
+        if(value.innerHTML.includes("<table") && height > maxHeight-currentHeight && maxHeight-currentHeight > 30*toPx) {
+            let divElement = document.createElement("div");
+            divElement.classList.add("pdf-item");
+
+            const passageNo = value.querySelector(".pdf-passage-no");
+            const question_main = value.querySelector(".pdf-item-question-main");
+
+            if(passageNo != null && passageNo.offsetHeight <= maxHeight-currentHeight) {
+                divElement.appendChild(passageNo);
+            }
+            if(question_main != null && question_main.offsetHeight <= maxHeight-currentHeight) {
+                divElement.appendChild(question_main);
+            }
+
+            gridArea.appendChild(divElement);
+
+            currentHeight += divElement.offsetHeight;
+
+            divElement = document.createElement("div");
+            divElement.classList.add("pdf-item");
+
+            let table = document.createElement("table");
+            table.classList.add("pdf-item-table");
+            divElement.appendChild(table);
+            let tr = document.createElement("tr");
+            let td = document.createElement("td");
+            table.appendChild(tr);
+            tr.appendChild(td);
+
+            gridArea.appendChild(divElement);
+
+            value.querySelectorAll(".pdf-line").forEach(value1 => {
+                if(value1.innerHTML.includes("<table")){
+                    return;
+                }
+                if (value1.offsetHeight + currentHeight + divElement.offsetHeight < maxHeight) {
+                    td.appendChild(value1);
+                }
+                else {
+                    if(td.childNodes.length === 0) {
+                        gridArea.removeChild(divElement);
+                    }
+                    currentHeight = 5*toPx;
+                    if (currentArea === 1) {
+                        maxHeight = 255 * toPx;
+                        pageNo = pageNo + 1;
+                        currentArea = 0;
+                        content.innerHTML += `
+                            <div class="page">
+                                <div class="pdf-container">
+                                    <div class="pdf-item-container pdf-item-container-left" id="left-${pageNo}"></div>
+                                    <div class="pdf-item-container pdf-item-container-right" id="right-${pageNo}"></div>
+                                </div>
+                                <div class="page-no">${pageNo}</div>
+                            </div>
+                    `;
+
+                        gridArea = document.getElementById("left-" + pageNo);
+                    } else {
+                        currentArea = 1;
+                        gridArea = document.getElementById("right-" + pageNo);
+                    }
+
+                    currentHeight = 5*toPx;
+                    divElement = document.createElement("div");
+                    divElement.classList.add("pdf-item");
+                    table = document.createElement("table");
+                    table.classList.add("pdf-item-table");
+                    divElement.appendChild(table);
+                    tr = document.createElement("tr");
+                    td = document.createElement("td");
+                    table.appendChild(tr);
+                    tr.appendChild(td);
+
+                    gridArea.appendChild(divElement);
+
+                    td.appendChild(value1);
+                }
+            });
+            currentHeight += divElement.offsetHeight + 5 * toPx;
+            value.remove();
+            return;
+        }
+
+        if (maxHeight-currentHeight < height) {
+            currentHeight = 5 * toPx;
+            if (currentArea === 1) {
+                maxHeight = 255 * toPx;
+                pageNo = pageNo + 1;
+                currentArea = 0;
+                content.innerHTML += `
+                            <div class="page">
+                                <div class="pdf-container">
+                                    <div class="pdf-item-container pdf-item-container-left" id="left-${pageNo}"></div>
+                                    <div class="pdf-item-container pdf-item-container-right" id="right-${pageNo}"></div>
+                                </div>
+                                <div class="page-no">${pageNo}</div>
+                            </div>
+                    `;
+
+                gridArea = document.getElementById("left-" + pageNo);
+            } else {
+                currentArea = 1;
+                gridArea = document.getElementById("right-" + pageNo);
+            }
+        }
+        currentHeight = currentHeight + height + 5*toPx ;
+        gridArea.appendChild(value);
+    });
+}
+
+//이미지 시험지 레이아웃
 function pagenation(itemclass, title) {
     const items = document.querySelectorAll(".pdf-item-"+itemclass);
     const content = document.getElementById("pdf-content");

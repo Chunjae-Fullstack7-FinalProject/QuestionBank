@@ -1,7 +1,11 @@
 package net.questionbank.dto.test;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import net.questionbank.dto.question.QuestionHtmlApiDTO;
 import net.questionbank.dto.question.QuestionImageApiDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 
@@ -14,16 +18,37 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Log4j2
-public class TempTestDTO {
+public class TempTestHtmlDTO {
     private TextBookApiDTO textbookApiDTO;
-    private List<QuestionImageApiDTO> questions;
+    private List<QuestionHtmlApiDTO> questions;
     private Map<String, Integer> code;
-    private Map<String,List<String>> imageList;
+    private Map<String,List<String>> htmlList;
+    private String descriptive;
+
+    public String getDescriptive() {
+        if (this.descriptive != null) {
+            return this.descriptive;
+        }
+
+        this.descriptive = "X";
+
+        for(QuestionHtmlApiDTO question : questions) {
+            if(question.getQuestionFormName().equals("서술형")) {
+                this.descriptive = "O";
+                return this.descriptive;
+            }
+            if(question.getQuestionFormCode().equals("85")) {
+                this.descriptive = "O";
+                return this.descriptive;
+            }
+        }
+
+        return descriptive;
+    }
 
     public Map<String, Integer> getCode() {
         if(code != null) { return code; }
         this.code = new HashMap<>();
-        log.info("==ss="+questions);
         questions.forEach(question -> {
             this.code.put(question.getDifficultyCode(), this.code.getOrDefault(question.getDifficultyCode(), 0) + 1);
             String formCode = "12";
@@ -41,4 +66,5 @@ public class TempTestDTO {
         });
         return this.code;
     }
+
 }

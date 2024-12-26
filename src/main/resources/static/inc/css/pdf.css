@@ -9,11 +9,12 @@
     width: 180mm;
     padding: 0;
     margin: 0;
+    justify-items: center;
 }
 
-@font-face {
-    font-family: 'Noto Sans KR', sans-serif;
-}
+/*@font-face {*/
+/*    font-family: 'Noto Sans KR', sans-serif;*/
+/*}*/
 
 #pdf-content {
     box-sizing: border-box;
@@ -21,6 +22,9 @@
     font-size: 9pt;
     margin: 0;
     padding: 0;
+}
+.paragraph {
+    font-size: 9pt;
 }
 
 .pdf-title-table {
@@ -83,7 +87,7 @@
 
 .pdf-item {
     box-sizing: border-box;
-    break-inside: avoid;
+    /*break-inside: avoid;*/
     margin: 5mm auto;
     width: 75mm;
 }
@@ -111,15 +115,28 @@
 
 .page {
     box-sizing: border-box;
-    page-break-before: auto;
+    /*page-break-before: auto;*/
     page-break-inside: avoid;
     height: 265mm;
     width: 180mm;
-    padding: 0;
-    margin: 1mm 0;
+    padding: 1mm 0;
+    margin: 0;
 }
 
 .pdf-img {
     box-sizing: border-box;
     max-width: 75mm;
+}
+
+.pdf-item-table {
+    box-sizing: border-box;
+    border-collapse: collapse;
+    border: 0.5mm solid dimgray;
+    width: 100%;
+    margin: 2mm 0;
+    padding: 0;
+}
+
+td {
+    padding: 1mm;
 }

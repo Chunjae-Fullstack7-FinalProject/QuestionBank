@@ -8,10 +8,7 @@ import net.questionbank.domain.Question;
 import net.questionbank.domain.Test;
 import net.questionbank.domain.Textbook;
 import net.questionbank.dto.question.*;
-import net.questionbank.dto.test.TempTestDTO;
-import net.questionbank.dto.test.TestDTO;
-import net.questionbank.dto.test.TestDataDTO;
-import net.questionbank.dto.test.TestDataResponseDTO;
+import net.questionbank.dto.test.*;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.dto.textbook.TextBookRequestDTO;
 import net.questionbank.dto.textbook.TextbookApiResponse;
@@ -48,12 +45,22 @@ public class Step3ServiceImpl implements Step3Service {
     private String fileUri;
 
     @Override
-    public TempTestDTO testInfo(List<Long> itemIdList, Long subjectId) {
+    public TempTestImageDTO testInfoImage(List<Long> itemIdList, Long subjectId) {
         List<QuestionImageApiDTO> questionsFromApi = getQuestionsImageFromApi(itemIdList);
-        return TempTestDTO.builder()
+        return TempTestImageDTO.builder()
                 .questions(questionsFromApi)
                 .textbookApiDTO(getTextBookFromApi(subjectId))
                 .imageList(testPdfImageList(questionsFromApi))
+                .build();
+    }
+
+    @Override
+    public TempTestHtmlDTO testInfoHtml(List<Long> itemIdList, Long subjectId) {
+        List<QuestionHtmlApiDTO> questionsFromApi = getQuestionsHtmlFromApi(itemIdList);
+        return TempTestHtmlDTO.builder()
+                .questions(questionsFromApi)
+                .textbookApiDTO(getTextBookFromApi(subjectId))
+                .htmlList(testPdfHtmlList(questionsFromApi))
                 .build();
     }
 
@@ -107,7 +114,7 @@ public class Step3ServiceImpl implements Step3Service {
         Test test = Test.builder()
                 .title(testDTO.getTitle())
                 .createdAt(LocalDateTime.now())
-                .member(Member.builder().memberId(testDTO.getUserId()).build())
+                .member(Member.builder().memberId(testDTO.getUserId()).name(testDTO.getUserName()).build())
                 .textbook(Textbook.builder().textbookId(testDTO.getSubjectId().intValue()).build())
                 .filePath(testDTO.getPdfFileId())
                 .build();
@@ -131,6 +138,10 @@ public class Step3ServiceImpl implements Step3Service {
 
         // 전송 실패했을 때 어떻게 할지 정해야함
         // 일단 로그만 찍음
+        // 서술형 있으면 제외
+//        if(testDTO.isDescriptive()) {
+//            return;
+//        }
 //        try {
 //            boolean b = sendTestInfo(TestDataDTO.builder()
 //                    .examId((long) test.getTestId())
@@ -151,7 +162,7 @@ public class Step3ServiceImpl implements Step3Service {
 
     @Override
     public boolean sendTestInfo(TestDataDTO testDataDto) throws IllegalStateException {
-        TestDataResponseDTO block = webClient.post().uri("http주소/api/exam")
+        TestDataResponseDTO block = webClient.post().uri("https://www.gyeongminiya.asia/api/exam")
                 .bodyValue(testDataDto)
                 .retrieve()
                 .bodyToMono(TestDataResponseDTO.class).block();
@@ -274,16 +285,18 @@ public class Step3ServiceImpl implements Step3Service {
             for (QuestionHtmlApiDTO questionApiDTO : questionsFromApi) {
                 question = questionApiDTO;
 
-                if (!cpid.equals(question.getPassageId())) {
+                if (!cpid.equals(question.getPassageId()) && question.getPassageId() != null) {
                     if (startNo > 0 && startNo < question.getItemNo() - 1) {
                         all.set(passageIndex, all.get(passageIndex)
-                                        .replaceFirst("<span class=\"txt \">", "<div class=\"paragraph\" style=\"border-left:0.2mm none;border-right:0.2mm none;border-top:0.2mm none;border-bottom:0.2mm none;text-indent: 14px;margin-left: 0px;margin-right: 0px;\">\n         <span class=\"txt \">[" + startNo + "-" + (question.getItemNo() - 1) + "]</span>\n        </div>\n<span class=\"txt \">")
+                                        .replaceFirst("<span class=\"txt \">", "<div class=\"paragraph pdf-passage-no\" style=\"border-left:0.2mm none;border-right:0.2mm none;border-top:0.2mm none;border-bottom:0.2mm none;text-indent: 14px;margin-left: 0px;margin-right: 0px;\">\n         <span class=\"txt \"><strong>[" + startNo + "-" + (question.getItemNo() - 1) + "]</strong></span>\n        </div>\n<span class=\"txt \">")
 //                                .replaceFirst("<caption></caption>","<caption>[" + startNo + "-" + (question.getItemNo() - 1) + "]</caption>")
                         );
                     }
                     passageIndex = all.size();
                     all.add(question.getPassageHtml()
-                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-passage\"")
+                            .replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-question\">")
+                            .replace(" </body>\n</html>", "</div>")
+                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item-passage\"")
                             .replace("class=\"paragraph\"", "class=\"paragraph pdf-line\"")
                     );
                     startNo = question.getItemNo();
@@ -292,55 +305,59 @@ public class Step3ServiceImpl implements Step3Service {
                 cpid = question.getPassageId() != null ? question.getPassageId() : 0L;
 
                 String html = question.getQuestionHtml()
-                        .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-question\"")
-                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt\">" + question.getItemNo() + ".&nbsp;</span>\n<span class=\"txt \">");
+                        .replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-question\">")
+                        .replace(" </body>\n</html>", "</div>")
+                        .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item-question-main\"")
+                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt\"><strong>" + question.getItemNo() + ".</strong>&nbsp;</span>\n<span class=\"txt \">");
 
                 if (html.contains("<table")) {
-                    html = html.replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-question\"")
+                    html = html.replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-question\">")
+                            .replace(" </body>\n</html>", "</div>")
                             .replace("class=\"paragraph\"", "class=\"paragraph pdf-line\"")
                     ;
                 }
 
                 all.add(html);
 
-                if (question.getChoice1Html() != null) {
-                    all.add(question.getChoice1Html()
-                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                if (question.getChoice1Html() != null && !question.getChoice1Html().isEmpty()) {
+                    all.add(question.getChoice1Html().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-choice\">")
+                            .replace(" </body>\n</html>", "</div>")
                             .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">①&nbsp;")
                     );
                 }
-                if (question.getChoice2Html() != null) {
-                    all.add(question.getChoice2Html()
-                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                if (question.getChoice2Html() != null && !question.getChoice2Html().isEmpty()) {
+                    all.add(question.getChoice2Html().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-choice\">")
+                            .replace(" </body>\n</html>", "</div>")
                             .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">②&nbsp;")
                     );
                 }
-                if (question.getChoice3Html() != null) {
-                    all.add(question.getChoice3Html()
-                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                if (question.getChoice3Html() != null && !question.getChoice3Html().isEmpty()) {
+                    all.add(question.getChoice3Html().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-choice\">")
+                            .replace(" </body>\n</html>", "</div>")
                             .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">③&nbsp;")
                     );
                 }
-                if (question.getChoice4Html() != null) {
-                    all.add(question.getChoice4Html()
-                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                if (question.getChoice4Html() != null && !question.getChoice4Html().isEmpty()) {
+                    all.add(question.getChoice4Html().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-choice\">")
+                            .replace(" </body>\n</html>", "</div>")
                             .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">④&nbsp;")
                     );
                 }
-                if (question.getChoice5Html() != null) {
-                    all.add(question.getChoice5Html()
-                            .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-choice\"")
+                if (question.getChoice5Html() != null && !question.getChoice5Html().isEmpty()) {
+                    all.add(question.getChoice5Html().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-choice\">")
+                            .replace(" </body>\n</html>", "</div>")
                             .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">⑤&nbsp;")
                     );
                 }
 
-                all.add(question.getAnswerHtml()
-                        .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-answer\"")
-                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt pdf-answer\">(답)</span>\n<span class=\"txt \">")
+                all.add(question.getAnswerHtml().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-answer\">")
+                        .replace(" </body>\n</html>", "</div>")
+                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt pdf-answer\">(답)<br></span>\n<span class=\"txt \">")
                 );
-                all.add(question.getExplainHtml()
-                        .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-answer\"")
-                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt pdf-answer\">(해설)</span>\n<span class=\"txt \">")
+                all.add(question.getExplainHtml().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-answer\">")
+                                .replace(" </body>\n</html>", "</div>")
+                                .replaceFirst("<span class=\"txt \">", "<span class=\"txt pdf-answer\">(해설)<br></span>\n<span class=\"txt \">")
+//                        .replace("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-answer\"")
                 );
 
             }
@@ -355,9 +372,7 @@ public class Step3ServiceImpl implements Step3Service {
             }
 
             all = all.stream().map(str ->
-                                    str.replace("<html>\n <head></head>\n <body>\n ", "")
-                                            .replace(" </body>\n</html>", "")
-                                            .replace("style=\"border-left:0.2mm none;border-right:0.2mm none;border-top:0.2mm none;border-bottom:0.2mm none;text-indent: 14px;margin-left: 0px;margin-right: 0px;\"", "")
+                                    str.replace("style=\"border-left:0.2mm none;border-right:0.2mm none;border-top:0.2mm none;border-bottom:0.2mm none;text-indent: 14px;margin-left: 0px;margin-right: 0px;\"", "")
                                             .replace("style=\"border-left:0.2mm none;border-right:0.2mm none;border-top:0.2mm none;border-bottom:0.2mm none;text-indent: 0px;margin-left: 0px;margin-right: 0px;\"", "")
 //                                    .replace("class=\"paragraph\"", "class=\"paragraph inner-item\"")
                     )
@@ -365,7 +380,6 @@ public class Step3ServiceImpl implements Step3Service {
 
             //문제만 추출
             List<String> questions = all.stream().filter(str -> !str.contains("pdf-item-answer")).toList();
-
             List<String> answers = all.stream().filter(str -> str.contains("pdf-item-answer")).toList();
 
 

@@ -27,4 +27,6 @@ public class TestDTO {
     private String userName; //만든사람 이름
     private List<Long> itemIdList; //문항 아이디 리스트
     private String pdfFileId; //파일 uuid
+
+    private boolean descriptive; // 서술형 유무
 }
