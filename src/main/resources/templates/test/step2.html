@@ -303,7 +303,7 @@
 			const data = await response.json();
 			if (data.successYn === 'Y') {
 				questions = data.itemList;
-				//console.log("성공:", questions);
+				console.log("성공:", questions);
 				sortByPassageId(questions);
 			} else {
 				console.error("실패:", data);
@@ -527,7 +527,7 @@
 									<span class="num">${rangeText}</span>
 								</div>
 								<div class="btn-wrap">
-									<button type="button" class="btn-delete" data-type="all" data-passage-id="${q.passageId}" onclick="executeDelete(this)"></button>
+									<button type="button" class="btn-delete" data-type="all" data-passage-id="${q.passageId}" onclick="executeDelete(event, this)"></button>
 								</div>
 							</div>
 							<div class="view-que">
@@ -552,7 +552,7 @@
 								</div>
 								<div class="btn-wrap">
 									<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${q.itemId}" onclick="popFunc(this)"></button>
-									<button type="button" class="btn-delete" data-item-id="${q.itemId}" onclick="executeDelete(this)"></button>
+									<button type="button" class="btn-delete" data-item-id="${q.itemId}" onclick="executeDelete(event, this)"></button>
 								</div>
 							</div>
 							<div class="view-que">
@@ -924,7 +924,7 @@
 		// 초기화 함수
 		function initializeSortable() {
 			console.log("Initializing sortable...");
-
+			console.log(questions);
 			// 전체 테이블에서 지문 및 단일 항목 이동 가능
 			$("#table-1").sortable({
 				items: "> .depth-01, > .singleQuestion",
@@ -1214,40 +1214,40 @@
 	function deleteQuestion(button){
 		console.log("deleteQuestions start");
 		const type = button.getAttribute("data-type") || '';
-		console.log("type : "+type);
+		//console.log("type : "+type);
 		//지문 전체 삭제 클릭시
 		if(type === 'all'){
 			console.log("type === all");
 			//지문번호
 			const passageId = parseInt(button.getAttribute("data-passage-id"));
-			console.log("passageId : " + passageId);
+			//console.log("passageId : " + passageId);
 			//지문에 해당하는 문제들 넣을 배열
 			const removed = [];
 			//questions배열에서 지문번호가 같은 문제들 찾아서 삭제하고 removed에 넣음
 			for(let i = questions.length - 1; i >= 0; i--){
-				console.log("questions[i] : "+questions[i]);
+				//console.log("questions[i] : "+questions[i]);
 				if(questions[i].passageId === passageId){
-					console.log("passageId equals");
+					//console.log("passageId equals");
 					removed.unshift(questions.splice(i,1)[0]);
 				}
 			}
-			console.log("removed : "+removed);
+			//console.log("removed : "+removed);
 			//removed를 deletedQuestions에 넣음
 			deletedQuestions.push(...removed);
-			console.log("deletedQuestions : " + deletedQuestions);
+			//console.log("deletedQuestions : " + deletedQuestions);
 			return;
 		}
 		//문제 단일 삭제시
 		console.log("type === ''");
 		//문제 번호
 		const deletedItemId = parseInt(button.getAttribute("data-item-id"));
-		console.log("deletedItemId : "+deletedItemId);
+		//console.log("deletedItemId : "+deletedItemId);
 		//questions에서 해당 문제의 index를 가져옴
 		const indexOfQuestion = questions.findIndex(item => {
-			console.log("item.itemId"+item.itemId);
+			//console.log("item.itemId"+item.itemId);
 			return parseInt(item.itemId) === deletedItemId;
 		});
-		console.log("indexOfQuestion : "+indexOfQuestion);
+		//console.log("indexOfQuestion : "+indexOfQuestion);
 		//문제번호가 questions에 없을때
 		if(indexOfQuestion === -1){
 			alert('존재하지 않는 문항입니다.');
@@ -1255,10 +1255,10 @@
 		}
 		//questions에서 index에 해당하는 문제를 가져옴
 		const removed = questions.splice(indexOfQuestion, 1)[0];
-		console.log("removed : "+removed);
-		for(let [key,value] of Object.entries(removed)){
-			console.log("key : " + key + ", value : " + value);
-		}
+		//console.log("removed : "+removed);
+		// for(let [key,value] of Object.entries(removed)){
+		// 	console.log("key : " + key + ", value : " + value);
+		// }
 		//deletedQuestions에 넣음
 		deletedQuestions.push(removed);
 		console.log("deletedQuestions");
@@ -1360,7 +1360,7 @@
 										</div>
 									</div>
 									<div class="btn-wrap etc-btn-wrap">
-										<button type="button" class="btn-default btn-add" data-type="">
+										<button type="button" class="btn-default btn-add" data-item-id="${value[0].itemId}" data-type="" onclick="executeRestore(this)">
 											<i class="add-type02"></i>추가
 										</button>
 									</div>
@@ -1382,7 +1382,7 @@
 				const range = length == 1 ? startNo : startNo + ' ~ ' + endNo;
 				html+=`
 				<div class="passage-view-que-box sort-group">
-					<div class="view-que-box passage-box" data-passageid="${key}">
+					<div class="view-que-box passage-box" data-passage-id="${key}">
 						<div class="que-top">
 							<div class="title">
 								<span class="num">${range}</span>
@@ -1396,7 +1396,7 @@
 									<img src="${value[0].passageUrl}" alt="${key}" width="453px">
 								</div>
 								<div class="btn-wrap etc-btn-wrap" style="margin-top: 10px;">
-									<button type="button" class="btn-default btn-add" data-type="all">
+									<button type="button" class="btn-default btn-add" data-type="all" data-passage-id="${key}" onclick="executeRestore(this)">
 										<i class="add-type02"></i>전체 추가
 									</button>
 								</div>
@@ -1449,7 +1449,7 @@
 										</div>
 									</div>
 									<div class="btn-wrap etc-btn-wrap">
-										<button type="button" class="btn-default btn-add" data-type="">
+										<button type="button" class="btn-default btn-add" data-type="" data-item-id="${item.itemId}" onclick="executeRestore(this)">
 											<i class="add-type02"></i>추가
 										</button>
 									</div>
@@ -1484,12 +1484,82 @@
 	deleteTab.addEventListener("click",(e)=>{
 		renderDeletedQuestions();
 	});
+	//추가버튼 누르면 deletedQuestions 에서 questions로 이동시키는 함수
+	function restoreQuestion(button){
+		console.log("restoreQuestions start");
+		const type = button.getAttribute("data-type") || '';
+		//지문 전체 추가 클릭시
+		if(type === 'all'){
+			console.log("type === all");
+			//지문번호
+			const passageId = parseInt(button.getAttribute("data-passage-id"));
+			//console.log("passageId : " + passageId);
+			//지문에 해당하는 문제들 넣을 배열
+			const restored = [];
+			//questions배열에서 지문번호가 같은 문제들 찾아서 삭제하고 removed에 넣음
+			for(let i = deletedQuestions.length - 1; i >= 0; i--){
+				//console.log("questions[i] : "+questions[i]);
+				if(deletedQuestions[i].passageId === passageId){
+					//console.log("passageId equals");
+					restored.unshift(deletedQuestions.splice(i,1)[0]);
+				}
+			}
+			//console.log("removed : "+removed);
+			//removed를 deletedQuestions에 넣음
+			questions.push(...restored);
+			//console.log("deletedQuestions : " + deletedQuestions);
+			console.log("questions");
+			console.log(questions);
+			return;
+		}
+		//문제 단일 추가시
+		console.log("type === ''");
+		//문제 번호
+		const restoredItemId = parseInt(button.getAttribute("data-item-id"));
+		//console.log("deletedItemId : "+deletedItemId);
+		//deletedQuestions에서 해당 문제의 index를 가져옴
+		const indexOfQuestion = deletedQuestions.findIndex(item => {
+			//console.log("item.itemId"+item.itemId);
+			return parseInt(item.itemId) === restoredItemId;
+		});
+		//console.log("indexOfQuestion : "+indexOfQuestion);
+		//문제번호가 deletedQuestions에 없을때
+		if(indexOfQuestion === -1){
+			alert('삭제내역에 존재하지 않는 문항입니다.');
+			return;
+		}
+		//deletedQuestions에서 index에 해당하는 문제를 가져옴
+		const restored = deletedQuestions.splice(indexOfQuestion, 1)[0];
+		//console.log("restored : "+restored);
+		// for(let [key,value] of Object.entries(restored)){
+		// 	console.log("key : " + key + ", value : " + value);
+		// }
+		//questions에 넣음
+		questions.push(restored);
+		console.log("questions");
+		console.log(questions);
+	}
 	//삭제버튼 클릭시 삭제 ~ 렌더링까지 수행하는 함수
-	function executeDelete(button){
+	function executeDelete(event, button){
+		event.stopPropagation();
+		event.preventDefault();
 		deleteQuestion(button);
 		deletedQuestions = sortAndReorder(deletedQuestions);
+		questions = sortAndReorder(questions);
 		console.log(questions);
 		console.log(deletedQuestions);
+		renderDeletedQuestions();
+		renderQuestions(questions);
+		renderSummary(questions);
+	}
+	//추가버튼 클릭시 복구 ~ 렌더링까지 수행하는 함수
+	function executeRestore(button){
+		console.log("executeResotre start");
+		restoreQuestion(button);
+		console.log("questions : ",questions);
+		questions = sortAndReorder(questions);
+		deletedQuestions = sortAndReorder(deletedQuestions);
+		console.log("questions : ",questions);
 		renderDeletedQuestions();
 		renderQuestions(questions);
 		renderSummary(questions);
