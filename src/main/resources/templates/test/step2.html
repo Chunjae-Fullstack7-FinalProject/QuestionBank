@@ -777,7 +777,7 @@
 								</div>
 							</div>
 							<div class="btn-wrap etc-btn-wrap" style="margin-top: 10px;">
-									<button type="button" class="btn-default btn-add" data-type="all"  onclick="executeRestore(this)">
+									<button type="button" class="btn-default btn-add" data-type="all"  onclick="executeAllQuestion(${q.passageId}, ${itemId})">
 										<i class="add-type02"></i>전체 추가
 									</button>
 							</div>
@@ -834,10 +834,20 @@
 		const newItem = JSON.parse(decodeURIComponent(newItemData)); // JSON 파싱
 		console.log("추가할 데이터:", newItem);
 
-		// 기존 문항 찾기
+		// 기존 문항 찾기(단일 문항일때는 ?)
 		const targetItem = questions.find(q => q.itemId === targetItemId);
 		if (!targetItem) {
 			console.error("기존 문항을 찾을 수 없음", targetItemId);
+			return;
+		}
+
+		// 중복 확인: 동일한 itemId를 가진 요소 검사
+		const existingElement = questions.find(q => q.itemId === newItem.itemId);
+		if (existingElement) {
+			console.log("이미 추가된 문항");
+			console.log("지금 추가 하려는 문항 번호: " + newItem.itemId);
+			//알럿 추가해야함
+			alert("이미 추가된 문항입니다.");
 			return;
 		}
 
@@ -871,6 +881,75 @@
 			questions.splice(targetIndex + 1, 0, newItem);
 			console.log("업데이트된 questions 배열 (단일 문항):", questions);
 		}
+	}
+
+	function addAllQuestion(passageId, targetItemId) {
+		console.log(passageId);
+		console.log(targetItemId);
+		//기존 passageId 가진 문항 찾기
+		if(!passageId){
+			console.log("지문 없음")
+		}
+
+		if(!targetItemId){
+			console.log("지문 없음")
+		}
+
+		//passageId에 해당하는 문항 정보 가져오기
+		const newItems = similarQuestions.filter(s =>s.passageId === passageId).reverse();
+		if(!newItems || newItems === 0 ){
+			console.log("지문에 대한 문항을 찾을 수 없음");
+			return;
+		}
+
+
+		//기존 passageId 가진 문항 찾기
+		const existingItem = questions.filter(q => q.passageId === passageId);
+		if(!existingItem || existingItem.length === 0){
+			console.log("지문이 동일하지 않는 유사 문항. 단일 문항으로 추가");
+			//targetItemId의 위치 찾기
+			const targetIndex = questions.findIndex(q => q.itemId === targetItemId);
+			if (targetIndex === -1) {
+				console.error("대상 문항을 찾을 수 없음", targetItemId);
+				return;
+			}
+
+			//문항 추가
+			// 새로운 문항 추가
+			newItems.forEach(n => {
+				// 중복 확인
+				const isAdd = questions.some(q => q.itemId === n.itemId);
+				if (!isAdd) {
+					questions.splice(targetIndex + 1, 0, n);
+					console.log("단일 문항으로 추가됨:", n);
+				} else {
+					console.log("이미 추가되어 있음");
+					alert("이미 추가된 문항입니다.");
+					return;
+				}
+			});
+			console.log("업데이트된 questions 배열:", questions);
+			return;
+		}
+
+		//문항 마지막 위치 찾기
+		const lastIndex = questions.lastIndexOf(existingItem.length-1);
+		console.log(lastIndex);
+
+		//중복 확인 및 데이터 추가
+		newItems.forEach(n => {
+			console.log(n);
+			const isAdd = questions.some(q => q.itemId === n.itemId);
+			if(!isAdd){
+				questions.splice(lastIndex+1, 0, n);
+			}else{
+				console.log("이미 추가되어 있음");
+				alert("이미 추가된 문항입니다.");
+				return;
+			}
+		})
+		console.log("업데이트 된 questions: " + questions);
+
 	}
 
 
@@ -1056,6 +1135,23 @@
 		renderSummary(questions);
 		console.log("======renderSummary 호출 완료=====");
 	}
+
+	function executeAllQuestion(passageId, targetItemId){
+		console.log("======addAllQuestion 호출======");
+		addAllQuestion(passageId, targetItemId);
+		console.log(questions);
+		console.log("======addAllQuestion 호출 완료=====");
+
+		console.log("======renderQuestions 호출======");
+		renderQuestions(questions);
+		console.log("======renderQuestions 호출 완료=====");
+
+		console.log("======renderSummary 호출======");
+		renderSummary(questions);
+		console.log("======renderSummary 호출 완료=====");
+	}
+
+
 
 
 
