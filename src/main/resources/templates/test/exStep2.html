@@ -283,7 +283,6 @@
 	const questionIds = [[${questionIds}]];
 	const API_BASE_URL = '/bridge/t-sherpa'; // 프록시 서버 경로
 	let questions = [];
-	let similarQuestions = [];
 	async function getQuestionInfo() {
 		try {
 			const response = await fetch(`${API_BASE_URL}/item-img/item-list`, {
@@ -297,7 +296,9 @@
 			});
 			const data = await response.json();
 			if (data.successYn === 'Y') {
-				return data.itemList;
+				questions = data.itemList;
+				console.log("성공:", questions);
+				sortByPassageId(questions);
 			} else {
 				console.error("실패:", data);
 			}
@@ -306,9 +307,10 @@
 		}
 	}
 
+
 	// 문항 id로 유사 문항 조회
 	async function getSimilarQuestionInfo(itemId, index){
-		//console.log("itemId: " + itemId);
+		console.log("itemId: " + itemId);
 		try{
 			const response = await fetch(`${API_BASE_URL}/item-img/similar-list`, {
 				method: "POST",
@@ -321,8 +323,9 @@
 			});
 			const data = await response.json();
 			if (data.successYn === 'Y') {
-				console.log(data.itemList);
-				return data.itemList;
+				similarQuestions = data.itemList;
+				console.log(similarQuestions);
+				renderSimilar(similarQuestions, index, itemId);
 			} else {
 				console.error("실패:", data);
 			}
@@ -330,7 +333,6 @@
 			console.error("유사 문항 fetch 오류:", error);
 		}
 	}
-
 	//검색 조건 버튼 이벤트
 	function searchQuestions(status){
 		console.log(status);
@@ -435,7 +437,7 @@
 			case "문제 형태순":
 				break;
 			default: //단원순
-				console.log("기본값 단원순");
+					console.log("기본값 단원순");
 				sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
 				break;
 		}
@@ -453,13 +455,10 @@
 		})
 	})
 
-
 	//지문 정렬(그룹 -> 정렬)
-	function sortByPassageId(){
-		if (!questions || questions.length === 0) {
-			console.error("questions 배열이 비어있음");
-			return;
-		}
+	function sortByPassageId(questions){
+		//console.log(questions);
+		// questions 이 null인 경우 추가해야함
 		//그룹화
 		const groupList = questions.reduce((groups, question) =>{
 			const passageId = question.passageId || "null";
@@ -485,7 +484,8 @@
 		sortedPassageIds.forEach(passageId => {
 			sortedQuestions.push(...groupList[passageId]);
 		})
-		questions = sortedQuestions;
+		renderQuestions(sortedQuestions); // 좌측에 노출
+		renderSummary(sortedQuestions); // 우측에 노출
 	}
 
 	//문제 데이터를 화면에 렌더링
@@ -583,7 +583,7 @@
 											<!-- e: 정답 데이터 영역 -->
 										</div>
 									</div>
-									<button type="button" class="btn-similar-que btn-default" onclick="excuteSimilarAPI(${q.itemId}, ${index+1})">
+									<button type="button" class="btn-similar-que btn-default" onclick="getSimilarQuestionInfo(${q.itemId}, ${index+1})">
 										<i class="similar"></i> 유사 문제
 									</button>
 								</div>
@@ -700,9 +700,14 @@
 	}
 
 	//유사 문항 탭
-	function renderSimilar(similarQuestions, index, itemId){
+	function renderSimilar(questions, index, itemId){
+		console.log("renderSimilar");
+		console.log(questions);
+		// console.log("index: " + index);
+		// console.log("itemId: " + itemId);
+		// console.log(questions);
 		const container = document.querySelector(".data");
-		if (!similarQuestions || similarQuestions.length === 0) {
+		if (!questions || questions.length === 0) {
 			console.error("유사 항목 없음");
 			container.style.display = "block";
 			container.innerHTML = "<p>유사 항목이 없습니다.</p>";
@@ -731,7 +736,7 @@
 				<div class="view-que-list scroll-inner">
 			`
 
-		similarQuestions.forEach((q, index) => {
+		questions.forEach((q, index) => {
 			questionHTML += `
 				<div class="sort-group">
 					<div class="view-que-box">
@@ -759,7 +764,7 @@
 							</div>
 							<div class="que-bottom">
 								<div class="btn-wrap">
-									<button type="button" class="btn-default" onclick="excuteSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId})">
+									<button type="button" class="btn-default" onclick="addQuestion('${encodeURIComponent(JSON.stringify(q))}',${itemId})">
 										<i class="add-type02"></i>추가
 									</button>
 								</div>
@@ -771,9 +776,12 @@
 					</div>
 				</div>
 			`
+			//console.log(q);
+			//questionCache(q);
 		});
 		questionHTML += `</div>`
 		container.insertAdjacentHTML("beforeend", questionHTML);
+
 	}
 
 	function addQuestion(newItemData, targetItemId) {
@@ -852,54 +860,56 @@
 				// 문항 추가
 				targetItem.insertAdjacentHTML("afterend", newQuestionHTML);
 			}
-			return newItem;
+
+			// DOM 상태 반영
+			updateAllOrder(newItem);
 		} else {
 			console.log("추가할 데이터 정보 없음");
 		}
 	}
 
-	function updateAllOrder(newItem) {
-		console.log("==updateAllOrder==");
-		console.log(newItem);
-		//console.log(questions);
-		const overallOrder = Array.from($("#table-1").children(".depth-01, .singleQuestion"))
-				.flatMap((element) => {
-					const $element = $(element);
-					const type = $element.hasClass("depth-01") ? "passage" : "question";
 
-					// 지문일 경우 내부 문항 포함
-					if (type === "passage") {
-						return $element.find(".col").map(function () {
-							return { id: $(this).data("item-id"), type: "question" };
-						}).get();
-					}
 
-					// 단일 문항일 경우
-					return { id: $element.data("item-id"), type };
-				});
+	// // tooltip hover
+	// let tipBtns = $(".btn-tip");
 
-		console.log("전체 순서 (지문 제외):", overallOrder);
+	// $(function () {
+	// 	tipBtns.on("mouseover", function () {
+	// 		let _this = $(this);
+	// 		let _tooltip = _this.next(".tooltip"); // 툴팁 요소를 바로 뒤에 있는 요소로 찾아옴
+	// 		let _tooltipPosition = _this.offset().top; // 버튼(_this)의 전체 문서에서의 위치값을 가져옴
 
-		// `questions` 배열을 재구성
-		const reordered = [];
-		overallOrder.forEach(({ id, type }) => {
-			if (type === "question") {
-				// 단일 문항 및 지문 내부 문항만 추가
-				const question = questions.find(q => q.itemId === id);
-				if(!question){
-					console.log("새로운 문항");
-					// 새로 추가된 문항의 기본 데이터를 생성
-					const newElement = document.querySelector(`[data-item-id="${id}"]`);
-					reordered.push(newItem);
-				}
-				if (question) reordered.push(question);
-			}
-		});
-		console.log("reordered: " + reordered.length);
-		questions = reordered;
-		console.log("변경된 배열:", questions);
+	// 		console.log(_tooltipPosition);
+
+	// 		if (_tooltipPosition > 490) {
+	// 			_tooltip.css("top", "-130px"); // 툴팁 위치 변경
+	// 			_tooltip.addClass("before-active"); // 클래스 추가
+	// 		}
+	// 	});
+	// });
+	//
+	// function initializeSortable1() {
+	// 	$("#table-1").sortable({
+	// 		handle: ".dragHandle",
+	// 	}).disableSelection();
+	//
+	// 	$(".depth-01").sortable({
+	// 		items: ".col",
+	// 		handle: ".drag-type01",
+	// 		cancel: ".drag-type02",
+	// 	}).disableSelection();
+	//
+	// 	$(".drag-type01").sortable({
+	// 		items: ".col",
+	// 		handle: ".drag-type02",
+	// 		connectWith: ".drag-type01",
+	// 	}).disableSelection();
+	// }
+
+	function aaa(){
+		console.log("aaaaa");
+		console.log(questions);
 	}
-
 
 	$(document).ready(function () {
 		// 초기화 함수
@@ -989,62 +999,60 @@
 		});
 	});
 
-	// 초기 화면
-	window.onload = async function(){
-		console.log("======api 호출======");
-		questions = await getQuestionInfo();
+	function updateAllOrder(newItem) {
+		console.log("==updateAllOrder==");
+		console.log(newItem);
+		//console.log(questions);
+		const overallOrder = Array.from($("#table-1").children(".depth-01, .singleQuestion"))
+				.flatMap((element) => {
+					const $element = $(element);
+					const type = $element.hasClass("depth-01") ? "passage" : "question";
+
+					// 지문일 경우 내부 문항 포함
+					if (type === "passage") {
+						return $element.find(".col").map(function () {
+							return { id: $(this).data("item-id"), type: "question" };
+						}).get();
+					}
+
+					// 단일 문항일 경우
+					return { id: $element.data("item-id"), type };
+				});
+
+		console.log("전체 순서 (지문 제외):", overallOrder);
+
+		// `questions` 배열을 재구성
+		console.log("xxxxxxxxxxxxx");
 		console.log(questions);
-		console.log("======api 호출 완료======");
+		const reordered = [];
+		overallOrder.forEach(({ id, type }) => {
+			if (type === "question") {
+				// 단일 문항 및 지문 내부 문항만 추가
+				const question = questions.find(q => q.itemId === id);
+				if(!question){
+					console.log("새로운 문항");
+					// 새로 추가된 문항의 기본 데이터를 생성
+					const newElement = document.querySelector(`[data-item-id="${id}"]`);
+					// console.log(newElement);
+					// //console.log(newElement);
+					reordered.push(newItem);
 
-		console.log("======sortByPassageId 호출======");
-		sortByPassageId(questions);
-		console.log(questions);
-		console.log("======sortByPassageId 호출 완료=====");
+				}
+					//reordered.push(newElement);
 
-		console.log("======renderQuestions 호출======");
-		renderQuestions(questions);
-		console.log("======renderQuestions 호출 완료=====");
+				if (question) reordered.push(question);
+			}
+		});
+		console.log("reordered: " + reordered.length);
 
-		console.log("======renderSummary 호출======");
+		questions = reordered;
+		console.log("변경된 배열:", questions);
+
+		// UI 업데이트
 		renderSummary(questions);
-		console.log("======renderSummary 호출 완료=====");
-	}
-
-	// 유사 문항 불러오기
-	async function excuteSimilarAPI(itemId, index){
-		console.log("======getSimilarQuestionInfo 호출======");
-		similarQuestions = await getSimilarQuestionInfo(itemId, index);
-		console.log(similarQuestions);
-		console.log("======getSimilarQuestionInfo 호출 완료=====");
-
-		console.log("======renderSimilar 호출======");
-		renderSimilar(similarQuestions, index, itemId);
-		console.log("======renderSimilar 호출 완료=====");
-	}
-
-	// 유사 문항 추가
-
-	function excuteSimilarAdd(newItemData, targetItemId){
-		console.log("======addQuestion 호출======");
-		const newItem = addQuestion(newItemData, targetItemId);
-		console.log("======addQuestion 호출 완료=====");
-
-		console.log("======updateAllOrder 호출======");
-		updateAllOrder(newItem);
-		console.log("======updateAllOrder 호출 완료=====");
-
-		console.log("======renderQuestions 호출======");
 		renderQuestions(questions);
-		console.log("======renderQuestions 호출 완료=====");
 
-		console.log("======renderSummary 호출======");
-		renderSummary(questions);
-		console.log("======renderSummary 호출 완료=====");
 	}
-
-
-
-
 
 	$(function () {
 		let _leg = $('.view-que').length;
