@@ -111,7 +111,7 @@
 								<li class="ui-tab-btn">
 									<a href="javascript:;">유사 문제</a>
 								</li>
-								<li class="ui-tab-btn" id="deleteTab">
+								<li class="ui-tab-btn">
 									<a href="javascript:;">삭제 문항</a>
 								</li>
 							</ul>
@@ -158,8 +158,7 @@
 								</div>
 							</div>
 							<div class="contents">
-								<div class="view-que-list scroll-inner" id="deleteContainer">
-								</div>
+								탭 컨텐츠 (3)
 							</div>
 						</div>
 					</div>
@@ -178,66 +177,61 @@
 		<div class="pop-inner">
 			<div class="pop-header">
 				<span>문항 오류 신고</span>
-				<button type="button" class="pop-close" onclick="popClose()"></button>
+				<button type="button" class="pop-close"></button>
 			</div>
 			<div class="pop-content">
-				<form id="reportForm">
-					<table>
-						<colgroup>
-							<col width="30%">
-							<col width="*">
-						</colgroup>
-						<tbody>
-						<tr>
-							<th>오류유형</th>
-							<td>
-								<div class="select-wrap">
-									<input name="type" type="hidden" id="errorType" value="question">
-									<input name="itemId" type="hidden" id="reportItemId">
-									<button type="button" class="select-btn">문제오류</button>
-									<ul class="select-list">
-										<li>
-											<a href="javascript:;" data-type="question">문제오류</a>
-										</li>
-										<li>
-											<a href="javascript:;" data-type="answer">정답오류</a>
-										</li>
-										<li>
-											<a href="javascript:;" data-type="explain">풀이오류</a>
-										</li>
-										<li>
-											<a href="javascript:;" data-type="image">이미지오류</a>
-										</li>
-										<li>
-											<a href="javascript:;" data-type="type">유형오류</a>
-										</li>
-										<li>
-											<a href="javascript:;" data-type="etc">기타</a>
-										</li>
-									</ul>
-								</div>
-							</td>
-						</tr>
-						<tr>
-							<th>첨부파일</th>
-							<td class="file">
-								<input type="text" id="fileText" readonly placeholder="최대 100MB까지 등록가능">
-								<input type="file" name="file" id="file" style="display : none" accept=".png,.jpg,.jpeg,.hwp">
-								<button type="button" class="btn-icon" id="btnFile">파일 첨부</button>
-							</td>
-						</tr>
-						<tr>
-							<th>오류 내용</th>
-							<td>
-								<textarea name="description" id="errorContent" cols="30" rows="4" placeholder="오류내용을 간단히 적어주세요. (최대 50자)"></textarea>
-							</td>
-						</tr>
-						</tbody>
-					</table>
-				</form>
+				<table>
+					<colgroup>
+						<col width="30%">
+						<col width="*">
+					</colgroup>
+					<tbody>
+					<tr>
+						<th>오류유형</th>
+						<td>
+							<div class="select-wrap">
+								<button type="button" class="select-btn">문제오류</button>
+								<ul class="select-list">
+									<li>
+										<a href="javascript:;">문제오류</a>
+									</li>
+									<li>
+										<a href="javascript:;">정답오류</a>
+									</li>
+									<li>
+										<a href="javascript:;">풀이오류</a>
+									</li>
+									<li>
+										<a href="javascript:;">이미지오류</a>
+									</li>
+									<li>
+										<a href="javascript:;">유형오류</a>
+									</li>
+									<li>
+										<a href="javascript:;">기타</a>
+									</li>
+								</ul>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th>첨부파일</th>
+						<td class="file">
+							<input type="text" placeholder="최대 100MB까지 등록가능">
+							<button type="button" class="btn-icon">파일 첨부</button>
+						</td>
+					</tr>
+					<tr>
+						<th>오류 내용</th>
+						<td>
+							<textarea name="" id="" cols="30" rows="4" placeholder="오류내용을 간단히 적어주세요. (최대 50자)"></textarea>
+						</td>
+					</tr>
+					</tbody>
+				</table>
 			</div>
 			<div class="pop-footer">
-				<button type="button" id="btnSubmitError">신고하기</button>
+				<button type="button">신고하기</button>
 			</div>
 		</div>
 	</div>
@@ -289,7 +283,6 @@
 	const questionIds = [[${questionIds}]];
 	const API_BASE_URL = '/bridge/t-sherpa'; // 프록시 서버 경로
 	let questions = [];
-	let similarQuestions = [];
 	async function getQuestionInfo() {
 		try {
 			const response = await fetch(`${API_BASE_URL}/item-img/item-list`, {
@@ -303,7 +296,9 @@
 			});
 			const data = await response.json();
 			if (data.successYn === 'Y') {
-				return data.itemList;
+				questions = data.itemList;
+				console.log("성공:", questions);
+				sortByPassageId(questions);
 			} else {
 				console.error("실패:", data);
 			}
@@ -312,9 +307,10 @@
 		}
 	}
 
+
 	// 문항 id로 유사 문항 조회
 	async function getSimilarQuestionInfo(itemId, index){
-		//console.log("itemId: " + itemId);
+		console.log("itemId: " + itemId);
 		try{
 			const response = await fetch(`${API_BASE_URL}/item-img/similar-list`, {
 				method: "POST",
@@ -327,8 +323,9 @@
 			});
 			const data = await response.json();
 			if (data.successYn === 'Y') {
-				console.log(data.itemList);
-				return data.itemList;
+				similarQuestions = data.itemList;
+				console.log(similarQuestions);
+				renderSimilar(similarQuestions, index, itemId);
 			} else {
 				console.error("실패:", data);
 			}
@@ -336,7 +333,6 @@
 			console.error("유사 문항 fetch 오류:", error);
 		}
 	}
-
 	//검색 조건 버튼 이벤트
 	function searchQuestions(status){
 		console.log(status);
@@ -441,7 +437,7 @@
 			case "문제 형태순":
 				break;
 			default: //단원순
-				console.log("기본값 단원순");
+					console.log("기본값 단원순");
 				sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
 				break;
 		}
@@ -459,13 +455,10 @@
 		})
 	})
 
-
 	//지문 정렬(그룹 -> 정렬)
-	function sortByPassageId(){
-		if (!questions || questions.length === 0) {
-			console.error("questions 배열이 비어있음");
-			return;
-		}
+	function sortByPassageId(questions){
+		//console.log(questions);
+		// questions 이 null인 경우 추가해야함
 		//그룹화
 		const groupList = questions.reduce((groups, question) =>{
 			const passageId = question.passageId || "null";
@@ -491,7 +484,8 @@
 		sortedPassageIds.forEach(passageId => {
 			sortedQuestions.push(...groupList[passageId]);
 		})
-		questions = sortedQuestions;
+		renderQuestions(sortedQuestions); // 좌측에 노출
+		renderSummary(sortedQuestions); // 우측에 노출
 	}
 
 	//문제 데이터를 화면에 렌더링
@@ -503,7 +497,7 @@
 		let renderedPassageIds = new Set();
 		questions.forEach((q, index) => {
 			let questionHTML ='';
-			<!-- 앞 passageId값과 다를 경우 -->
+			<!-- 앞 passgeId값과 다를 경우 -->
 			const prevPassageId = index > 0 ? questions[index-1].passageId : null;
 			//console.log("현재" + q.passageId);
 			//console.log("이전" + prevPassageId);
@@ -527,9 +521,6 @@
 								<div class="title">
 									<span class="num">${rangeText}</span>
 								</div>
-								<div class="btn-wrap">
-									<button type="button" class="btn-delete" data-type="all" data-passage-id="${q.passageId}" onclick="executeDelete(event, this)"></button>
-								</div>
 							</div>
 							<div class="view-que">
 								<div class="que-bottom">
@@ -552,8 +543,8 @@
 									</div>
 								</div>
 								<div class="btn-wrap">
-									<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${q.itemId}" onclick="popFunc(this)"></button>
-									<button type="button" class="btn-delete" data-item-id="${q.itemId}" onclick="executeDelete(event, this)"></button>
+									<button type="button" class="btn-error pop-btn" data-pop="error-report-pop"></button>
+									<button type="button" class="btn-delete"></button>
 								</div>
 							</div>
 							<div class="view-que">
@@ -592,7 +583,7 @@
 											<!-- e: 정답 데이터 영역 -->
 										</div>
 									</div>
-									<button type="button" class="btn-similar-que btn-default" onclick="excuteSimilarAPI(${q.itemId}, ${index+1})">
+									<button type="button" class="btn-similar-que btn-default" onclick="getSimilarQuestionInfo(${q.itemId}, ${index+1})">
 										<i class="similar"></i> 유사 문제
 									</button>
 								</div>
@@ -709,9 +700,14 @@
 	}
 
 	//유사 문항 탭
-	function renderSimilar(similarQuestions, index, itemId){
+	function renderSimilar(questions, index, itemId){
+		console.log("renderSimilar");
+		console.log(questions);
+		// console.log("index: " + index);
+		// console.log("itemId: " + itemId);
+		// console.log(questions);
 		const container = document.querySelector(".data");
-		if (!similarQuestions || similarQuestions.length === 0) {
+		if (!questions || questions.length === 0) {
 			console.error("유사 항목 없음");
 			container.style.display = "block";
 			container.innerHTML = "<p>유사 항목이 없습니다.</p>";
@@ -740,7 +736,7 @@
 				<div class="view-que-list scroll-inner">
 			`
 
-		similarQuestions.forEach((q, index) => {
+		questions.forEach((q, index) => {
 			questionHTML += `
 				<div class="sort-group">
 					<div class="view-que-box">
@@ -755,7 +751,7 @@
 							<div class="btn-wrap">
 								<div class="btn-wrap">
 									<div class="tooltip-wrap">
-										<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${q.itemId}" onclick="popFunc(this)"></button>
+										<button type="button" class="btn-error pop-btn" data-pop="error-report-pop"></button>
 									</div>
 								</div>
 							</div>
@@ -768,7 +764,7 @@
 							</div>
 							<div class="que-bottom">
 								<div class="btn-wrap">
-									<button type="button" class="btn-default" onclick="excuteSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId})">
+									<button type="button" class="btn-default" onclick="addQuestion('${encodeURIComponent(JSON.stringify(q))}',${itemId})">
 										<i class="add-type02"></i>추가
 									</button>
 								</div>
@@ -780,9 +776,12 @@
 					</div>
 				</div>
 			`
+			//console.log(q);
+			//questionCache(q);
 		});
 		questionHTML += `</div>`
 		container.insertAdjacentHTML("beforeend", questionHTML);
+
 	}
 
 	function addQuestion(newItemData, targetItemId) {
@@ -861,54 +860,56 @@
 				// 문항 추가
 				targetItem.insertAdjacentHTML("afterend", newQuestionHTML);
 			}
-			return newItem;
+
+			// DOM 상태 반영
+			updateAllOrder(newItem);
 		} else {
 			console.log("추가할 데이터 정보 없음");
 		}
 	}
 
-	function updateAllOrder(newItem) {
-		console.log("==updateAllOrder==");
-		console.log(newItem);
-		//console.log(questions);
-		const overallOrder = Array.from($("#table-1").children(".depth-01, .singleQuestion"))
-				.flatMap((element) => {
-					const $element = $(element);
-					const type = $element.hasClass("depth-01") ? "passage" : "question";
 
-					// 지문일 경우 내부 문항 포함
-					if (type === "passage") {
-						return $element.find(".col").map(function () {
-							return { id: $(this).data("item-id"), type: "question" };
-						}).get();
-					}
 
-					// 단일 문항일 경우
-					return { id: $element.data("item-id"), type };
-				});
+	// // tooltip hover
+	// let tipBtns = $(".btn-tip");
 
-		console.log("전체 순서 (지문 제외):", overallOrder);
+	// $(function () {
+	// 	tipBtns.on("mouseover", function () {
+	// 		let _this = $(this);
+	// 		let _tooltip = _this.next(".tooltip"); // 툴팁 요소를 바로 뒤에 있는 요소로 찾아옴
+	// 		let _tooltipPosition = _this.offset().top; // 버튼(_this)의 전체 문서에서의 위치값을 가져옴
 
-		// `questions` 배열을 재구성
-		const reordered = [];
-		overallOrder.forEach(({ id, type }) => {
-			if (type === "question") {
-				// 단일 문항 및 지문 내부 문항만 추가
-				const question = questions.find(q => q.itemId === id);
-				if(!question){
-					console.log("새로운 문항");
-					// 새로 추가된 문항의 기본 데이터를 생성
-					const newElement = document.querySelector(`[data-item-id="${id}"]`);
-					reordered.push(newItem);
-				}
-				if (question) reordered.push(question);
-			}
-		});
-		console.log("reordered: " + reordered.length);
-		questions = reordered;
-		console.log("변경된 배열:", questions);
+	// 		console.log(_tooltipPosition);
+
+	// 		if (_tooltipPosition > 490) {
+	// 			_tooltip.css("top", "-130px"); // 툴팁 위치 변경
+	// 			_tooltip.addClass("before-active"); // 클래스 추가
+	// 		}
+	// 	});
+	// });
+	//
+	// function initializeSortable1() {
+	// 	$("#table-1").sortable({
+	// 		handle: ".dragHandle",
+	// 	}).disableSelection();
+	//
+	// 	$(".depth-01").sortable({
+	// 		items: ".col",
+	// 		handle: ".drag-type01",
+	// 		cancel: ".drag-type02",
+	// 	}).disableSelection();
+	//
+	// 	$(".drag-type01").sortable({
+	// 		items: ".col",
+	// 		handle: ".drag-type02",
+	// 		connectWith: ".drag-type01",
+	// 	}).disableSelection();
+	// }
+
+	function aaa(){
+		console.log("aaaaa");
+		console.log(questions);
 	}
-
 
 	$(document).ready(function () {
 		// 초기화 함수
@@ -998,62 +999,60 @@
 		});
 	});
 
-	// 초기 화면
-	window.onload = async function(){
-		console.log("======api 호출======");
-		questions = await getQuestionInfo();
+	function updateAllOrder(newItem) {
+		console.log("==updateAllOrder==");
+		console.log(newItem);
+		//console.log(questions);
+		const overallOrder = Array.from($("#table-1").children(".depth-01, .singleQuestion"))
+				.flatMap((element) => {
+					const $element = $(element);
+					const type = $element.hasClass("depth-01") ? "passage" : "question";
+
+					// 지문일 경우 내부 문항 포함
+					if (type === "passage") {
+						return $element.find(".col").map(function () {
+							return { id: $(this).data("item-id"), type: "question" };
+						}).get();
+					}
+
+					// 단일 문항일 경우
+					return { id: $element.data("item-id"), type };
+				});
+
+		console.log("전체 순서 (지문 제외):", overallOrder);
+
+		// `questions` 배열을 재구성
+		console.log("xxxxxxxxxxxxx");
 		console.log(questions);
-		console.log("======api 호출 완료======");
+		const reordered = [];
+		overallOrder.forEach(({ id, type }) => {
+			if (type === "question") {
+				// 단일 문항 및 지문 내부 문항만 추가
+				const question = questions.find(q => q.itemId === id);
+				if(!question){
+					console.log("새로운 문항");
+					// 새로 추가된 문항의 기본 데이터를 생성
+					const newElement = document.querySelector(`[data-item-id="${id}"]`);
+					// console.log(newElement);
+					// //console.log(newElement);
+					reordered.push(newItem);
 
-		console.log("======sortByPassageId 호출======");
-		sortByPassageId(questions);
-		console.log(questions);
-		console.log("======sortByPassageId 호출 완료=====");
+				}
+					//reordered.push(newElement);
 
-		console.log("======renderQuestions 호출======");
-		renderQuestions(questions);
-		console.log("======renderQuestions 호출 완료=====");
+				if (question) reordered.push(question);
+			}
+		});
+		console.log("reordered: " + reordered.length);
 
-		console.log("======renderSummary 호출======");
+		questions = reordered;
+		console.log("변경된 배열:", questions);
+
+		// UI 업데이트
 		renderSummary(questions);
-		console.log("======renderSummary 호출 완료=====");
-	}
-
-	// 유사 문항 불러오기
-	async function excuteSimilarAPI(itemId, index){
-		console.log("======getSimilarQuestionInfo 호출======");
-		similarQuestions = await getSimilarQuestionInfo(itemId, index);
-		console.log(similarQuestions);
-		console.log("======getSimilarQuestionInfo 호출 완료=====");
-
-		console.log("======renderSimilar 호출======");
-		renderSimilar(similarQuestions, index, itemId);
-		console.log("======renderSimilar 호출 완료=====");
-	}
-
-	// 유사 문항 추가
-
-	function excuteSimilarAdd(newItemData, targetItemId){
-		console.log("======addQuestion 호출======");
-		const newItem = addQuestion(newItemData, targetItemId);
-		console.log("======addQuestion 호출 완료=====");
-
-		console.log("======updateAllOrder 호출======");
-		updateAllOrder(newItem);
-		console.log("======updateAllOrder 호출 완료=====");
-
-		console.log("======renderQuestions 호출======");
 		renderQuestions(questions);
-		console.log("======renderQuestions 호출 완료=====");
 
-		console.log("======renderSummary 호출======");
-		renderSummary(questions);
-		console.log("======renderSummary 호출 완료=====");
 	}
-
-
-
-
 
 	$(function () {
 		let _leg = $('.view-que').length;
@@ -1094,472 +1093,6 @@
 			})
 		}
 	})
-</script>
-
-<script>
-	<!-- 강감찬 추가js(오류신고부분) -->
-	// popup : common.js 에서 가져와서 일부 수정
-	let _dim = $(".dim");
-	let _html = $("html , body");
-	let popBtn = $(".pop-btn");
-	let closePop = $(".pop-close");
-
-	function popFunc(errorPop) {
-		let popData = errorPop.getAttribute("data-pop");
-		console.log("popData : "+popData);
-		_html.css("overflow", "hidden");
-		_dim.fadeIn();
-
-		$(".pop-wrap[data-pop='" + popData + "']").show();
-		document.querySelector("#reportItemId").value = errorPop.getAttribute("data-item-id");
-		console.log($(".pop-wrap[data-pop='" + popData + "']"));
-	}
-
-	function popClose() {
-		let _this = $(this);
-		$(".pop-wrap").hide();
-		_html.css("overflow", "auto");
-		_dim.fadeOut();
-	}
-
-	popBtn.on("click", popFunc);
-	closePop.on("click", popClose);
-
-	const reportForm = document.querySelector("#reportForm");
-	const selectList = reportForm.querySelector(".select-list");
-	const selectOption = reportForm.querySelectorAll(".select-list li a");
-	const errorType = reportForm.querySelector("#errorType");
-	const errorSelectBtn = reportForm.querySelector(".select-btn");
-	selectOption.forEach((option)=>{
-		option.addEventListener("click", (e)=>{
-			selectError(option);
-		})
-	});
-	function selectError(selectedError){
-		selectOption.forEach(a=>a.classList.remove("active"));
-		selectedError.classList.add("active");
-		errorSelectBtn.classList.remove("active");
-		errorSelectBtn.textContent = '';
-		errorSelectBtn.textContent = selectedError.textContent;
-		selectList.style.display = "none";
-		errorType.value = "";
-		errorType.value = selectedError.getAttribute("data-type");
-	}
-	const file = reportForm.querySelector("#file");
-	const btnFile = reportForm.querySelector("#btnFile");
-	const fileText = reportForm.querySelector("#fileText");
-	btnFile.addEventListener("click",(e)=>{
-		e.preventDefault();
-		e.stopPropagation();
-		file.click();
-	})
-	file.addEventListener("change",(e)=>{
-		const selectedFile = file.files[0];
-		console.log("selectedFile : " + selectedFile.name);
-		if(selectedFile.size > 100*1024*1024){
-			alert("100MB 이하의 파일만 등록 가능합니다.");
-			return;
-		}
-		if(selectedFile){
-			fileText.value = selectedFile.name;
-		}
-	});
-	document.querySelector("#btnSubmitError").addEventListener("click",async (e)=>{
-		e.stopPropagation();
-		e.preventDefault();
-		if(reportForm.errorContent.value.length > 50){
-			alert("오류내용은 50자 이하로 작성해주세요.");
-			return;
-		}
-		const allowed_type = ["question", "answer", "explain", "image", "etc"];
-		if(!allowed_type.includes(reportForm.errorType.value)){
-			alert("잘못된 오류 유형입니다.");
-			return;
-		}
-		reportForm.enctype="multipart/form-data";
-		reportForm.method="post";
-		await submitReport();
-	});
-	async function submitReport(){
-		const formData = new FormData(reportForm);
-		try{
-			const response = await fetch("/reports",{
-				method : "POST",
-				body : formData,
-			});
-			if(!response.ok){
-				const error = await response.json();
-				console.error(error);
-				alert("오류 신고 실패 : " + error.message);
-				return;
-			}
-			const result = await response.json();
-			console.log(result.message);
-			alert("오류 신고 완료");
-			popClose();
-		}catch(error){
-			console.error(error);
-			alert("오류 신고 실패");
-		}
-	}
-</script>
-<!--강감찬 추가(문항삭제부분)-->
-<script>
-	let deletedQuestions = [];
-	//삭제버튼 클릭하면 questions배열에서 삭제하고 deletedQuestions 배열로 추가함
-	function deleteQuestion(button){
-		console.log("deleteQuestions start");
-		const type = button.getAttribute("data-type") || '';
-		//console.log("type : "+type);
-		//지문 전체 삭제 클릭시
-		if(type === 'all'){
-			console.log("type === all");
-			//지문번호
-			const passageId = parseInt(button.getAttribute("data-passage-id"));
-			//console.log("passageId : " + passageId);
-			//지문에 해당하는 문제들 넣을 배열
-			const removed = [];
-			//questions배열에서 지문번호가 같은 문제들 찾아서 삭제하고 removed에 넣음
-			for(let i = questions.length - 1; i >= 0; i--){
-				//console.log("questions[i] : "+questions[i]);
-				if(questions[i].passageId === passageId){
-					//console.log("passageId equals");
-					removed.unshift(questions.splice(i,1)[0]);
-				}
-			}
-			//console.log("removed : "+removed);
-			//removed를 deletedQuestions에 넣음
-			deletedQuestions.push(...removed);
-			//console.log("deletedQuestions : " + deletedQuestions);
-			return;
-		}
-		//문제 단일 삭제시
-		console.log("type === ''");
-		//문제 번호
-		const deletedItemId = parseInt(button.getAttribute("data-item-id"));
-		//console.log("deletedItemId : "+deletedItemId);
-		//questions에서 해당 문제의 index를 가져옴
-		const indexOfQuestion = questions.findIndex(item => {
-			//console.log("item.itemId"+item.itemId);
-			return parseInt(item.itemId) === deletedItemId;
-		});
-		//console.log("indexOfQuestion : "+indexOfQuestion);
-		//문제번호가 questions에 없을때
-		if(indexOfQuestion === -1){
-			alert('존재하지 않는 문항입니다.');
-			return;
-		}
-		//questions에서 index에 해당하는 문제를 가져옴
-		const removed = questions.splice(indexOfQuestion, 1)[0];
-		//console.log("removed : "+removed);
-		// for(let [key,value] of Object.entries(removed)){
-		// 	console.log("key : " + key + ", value : " + value);
-		// }
-		//deletedQuestions에 넣음
-		deletedQuestions.push(removed);
-		console.log("deletedQuestions");
-		console.log(deletedQuestions);
-	}
-	//deletedQUestions 같은지문끼리 묶어서 정렬하는 함수
-	function sortAndReorder(questionArray){
-		console.log("sortAndReorder start");
-		//지문번호를 key로 하는 객체를 생성해서 같은 지문인 문제끼리 묶음 지문 없으면 그 문제 하나만 문제번호로 묶음
-		const grouped = questionArray.reduce((acc,cur)=>{
-			const key = cur.passageId || cur.itemId;
-			if(!acc[key]){
-				acc[key] = [];
-			}
-			acc[key].push(cur);
-			return acc;
-		},{});
-		console.log("grouped : ");
-		console.log(grouped);
-		//grouped의 values 들만 배열로 만들고 itemNo를 1번부터 순서대로 재입력
-		const sorted = Object.values(grouped).flat(1).map((item, index) => {
-			item.itemNo = index + 1;
-			return item;
-		});
-		console.log("sorted : ");
-		console.log(sorted);
-		//정렬된 배열 반환
-		return sorted;
-	}
-	//형식 코드에 따라 객관식, 주관식으로 반환함
-	function getQuestionType(questionFormCode) {
-		if (questionFormCode >= '10' && questionFormCode <= '50') {
-			return '객관식';
-		} else if (questionFormCode >= '60' && questionFormCode <= '99') {
-			return '주관식';
-		} else {
-			return ''; // 다른 형식이 있다면 여기에 추가
-		}
-	}
-	//deletedQuestions배열의 문제들로 구성된 html 소스를 문자열로 반환함
-	function getDeletedQuestionsHtml(){
-		console.log("getDeletedQuestionHtml start");
-		let html = '';
-		if(deletedQuestions.length == 0){
-			return '<p>삭제 항목이 없습니다.</p>';
-		}
-		const grouped = deletedQuestions.reduce((acc,cur) => {
-			const key = cur.passageId || 'no' + cur.itemId;
-			if(!acc[key]) acc[key] = [];
-			acc[key].push(cur);
-			return acc;
-		},{});
-		console.log("grouped : ");
-		console.log(grouped);
-		for(let [key, value] of Object.entries(grouped)){
-			console.log(`key : ${key}, value : ${value}`);
-			if(key.startsWith("no")){
-				html += `
-				<div class="sort-group">
-					<div class="view-que-box">
-						<div class="que-top">
-							<div class="title">
-								<span class="num">${value[0].itemNo}</span>
-								<div class="que-badge-group">
-									<span class="que-badge yellow">${value[0].difficultyName}</span>
-									<span class="que-badge gray">${getQuestionType(value[0].questionFormCode)}</span>
-								</div>
-							</div>
-							<div class="btn-wrap">
-								<div class="btn-wrap">
-									<div class="tooltip-wrap">
-										<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${value[0].itemId}" onclick="popFunc(this)"></button>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="view-que">
-							<div class="que-content">
-								<img src="${value[0].questionUrl}" alt="${value[0].itemId}" width="453px">
-							</div>
-							<div class="que-bottom">
-								<div class="data-area">
-									<div class="que-info answer-area" style="display: none">
-										<p class="answer">
-											<span class="label type01">정답</span>
-										</p>
-										<div class="data-answer-area">
-											<img src="${value[0].answerUrl}" alt="${value[0].itemId}" width="453px">
-										</div>
-									</div>
-								</div>
-								<div class="data-area type01">
-									<div class="que-info explain-area" style="display: none">
-										<p class="answer">
-											<span class="label">해설</span>
-										</p>
-										<div class="data-answer-area">
-											<img src="${value[0].explainUrl}" alt="${value[0].itemId}" width="453px">
-										</div>
-									</div>
-									<div class="btn-wrap etc-btn-wrap">
-										<button type="button" class="btn-default btn-add" data-item-id="${value[0].itemId}" data-type="" onclick="executeRestore(this)">
-											<i class="add-type02"></i>추가
-										</button>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="que-info-last">
-							<p class="chapter">
-								${value[0].largeChapterName}&gt;${value[0].mediumChapterName}&gt;${value[0].smallChapterName}&gt;${value[0].topicChapterName}
-							</p>
-						</div>
-					</div>
-				</div>
-				`
-			}else{
-				const length = value.length;
-				const startNo = value[0].itemNo;
-				const endNo = parseInt(startNo) + length -1;
-				const range = length == 1 ? startNo : startNo + ' ~ ' + endNo;
-				html+=`
-				<div class="passage-view-que-box sort-group">
-					<div class="view-que-box passage-box" data-passage-id="${key}">
-						<div class="que-top">
-							<div class="title">
-								<span class="num">${range}</span>
-							</div>
-							<div class="btn-wrap delete-btn-wrap">
-							</div>
-						</div>
-						<div class="view-que">
-							<div class="que-bottom">
-								<div class="passage-area">
-									<img src="${value[0].passageUrl}" alt="${key}" width="453px">
-								</div>
-								<div class="btn-wrap etc-btn-wrap" style="margin-top: 10px;">
-									<button type="button" class="btn-default btn-add" data-type="all" data-passage-id="${key}" onclick="executeRestore(this)">
-										<i class="add-type02"></i>전체 추가
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-				`;
-				for(let item of value){
-					console.log(item);
-					html+=`
-					<div class="view-que-box item-box" data-papertitle="">
-						<div class="que-top">
-							<div class="title">
-								<span class="num">${item.itemNo}</span>
-								<div class="que-badge-group">
-									<span class="que-badge yellow">${item.difficultyName}</span>
-									<span class="que-badge gray">${getQuestionType(item.questionFormCode)}</span>
-								</div>
-							</div>
-							<div class="btn-wrap">
-								<div class="btn-wrap">
-									<div class="tooltip-wrap">
-										<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${item.itemId}" onclick="popFunc(this)"></button>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="view-que">
-							<div class="que-content">
-								<img src="${item.questionUrl}" alt="${item.itemId}" width="453px">
-							</div>
-							<div class="que-bottom">
-								<div class="data-area">
-									<div class="que-info answer-area" style="display: none">
-										<p class="answer">
-											<span class="label type01">정답</span>
-										</p>
-										<div class="data-answer-area">
-											<img src="${item.answerUrl}" alt="${item.itemId}" width="453px">
-										</div>
-									</div>
-								</div>
-								<div class="data-area type01">
-									<div class="que-info explain-area" style="display: none">
-										<p class="answer">
-											<span class="label">해설</span>
-										</p>
-										<div class="data-answer-area">
-											<img src="${item.explainUrl}" alt="${item.itemId}" width="453px">
-										</div>
-									</div>
-									<div class="btn-wrap etc-btn-wrap">
-										<button type="button" class="btn-default btn-add" data-type="" data-item-id="${item.itemId}" onclick="executeRestore(this)">
-											<i class="add-type02"></i>추가
-										</button>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="que-info-last">
-							<p class="chapter">
-								${item.largeChapterName}&gt;${item.mediumChapterName}&gt;${item.smallChapterName}&gt;${item.topicChapterName}
-							</p>
-						</div>
-					</div>
-					`
-				}
-				html+=`
-				</div>
-				`;
-			}
-		}
-		return html;
-	}
-	//우측영역 삭제 문항을 담을 요소
-	const deleteContainer = document.querySelector("#deleteContainer");
-	//deletedContainer의 html 렌더링
-	function renderDeletedQuestions(){
-		console.log("renderDeletedQuestions start");
-		deleteContainer.innerHTML = getDeletedQuestionsHtml();
-	}
-	//삭제문항 탭
-	const deleteTab = document.querySelector("#deleteTab");
-	//삭제문항 클릭시 렌더링
-	deleteTab.addEventListener("click",(e)=>{
-		renderDeletedQuestions();
-	});
-	//추가버튼 누르면 deletedQuestions 에서 questions로 이동시키는 함수
-	function restoreQuestion(button){
-		console.log("restoreQuestions start");
-		const type = button.getAttribute("data-type") || '';
-		//지문 전체 추가 클릭시
-		if(type === 'all'){
-			console.log("type === all");
-			//지문번호
-			const passageId = parseInt(button.getAttribute("data-passage-id"));
-			//console.log("passageId : " + passageId);
-			//지문에 해당하는 문제들 넣을 배열
-			const restored = [];
-			//questions배열에서 지문번호가 같은 문제들 찾아서 삭제하고 removed에 넣음
-			for(let i = deletedQuestions.length - 1; i >= 0; i--){
-				//console.log("questions[i] : "+questions[i]);
-				if(deletedQuestions[i].passageId === passageId){
-					//console.log("passageId equals");
-					restored.unshift(deletedQuestions.splice(i,1)[0]);
-				}
-			}
-			//console.log("removed : "+removed);
-			//removed를 deletedQuestions에 넣음
-			questions.push(...restored);
-			//console.log("deletedQuestions : " + deletedQuestions);
-			console.log("questions");
-			console.log(questions);
-			return;
-		}
-		//문제 단일 추가시
-		console.log("type === ''");
-		//문제 번호
-		const restoredItemId = parseInt(button.getAttribute("data-item-id"));
-		//console.log("deletedItemId : "+deletedItemId);
-		//deletedQuestions에서 해당 문제의 index를 가져옴
-		const indexOfQuestion = deletedQuestions.findIndex(item => {
-			//console.log("item.itemId"+item.itemId);
-			return parseInt(item.itemId) === restoredItemId;
-		});
-		//console.log("indexOfQuestion : "+indexOfQuestion);
-		//문제번호가 deletedQuestions에 없을때
-		if(indexOfQuestion === -1){
-			alert('삭제내역에 존재하지 않는 문항입니다.');
-			return;
-		}
-		//deletedQuestions에서 index에 해당하는 문제를 가져옴
-		const restored = deletedQuestions.splice(indexOfQuestion, 1)[0];
-		//console.log("restored : "+restored);
-		// for(let [key,value] of Object.entries(restored)){
-		// 	console.log("key : " + key + ", value : " + value);
-		// }
-		//questions에 넣음
-		questions.push(restored);
-		console.log("questions");
-		console.log(questions);
-	}
-	//삭제버튼 클릭시 삭제 ~ 렌더링까지 수행하는 함수
-	function executeDelete(event, button){
-		event.stopPropagation();
-		event.preventDefault();
-		deleteQuestion(button);
-		deletedQuestions = sortAndReorder(deletedQuestions);
-		questions = sortAndReorder(questions);
-		console.log(questions);
-		console.log(deletedQuestions);
-		renderDeletedQuestions();
-		renderQuestions(questions);
-		renderSummary(questions);
-	}
-	//추가버튼 클릭시 복구 ~ 렌더링까지 수행하는 함수
-	function executeRestore(button){
-		console.log("executeResotre start");
-		restoreQuestion(button);
-		console.log("questions : ",questions);
-		questions = sortAndReorder(questions);
-		deletedQuestions = sortAndReorder(deletedQuestions);
-		console.log("questions : ",questions);
-		renderDeletedQuestions();
-		renderQuestions(questions);
-		renderSummary(questions);
-	}
 </script>
 </body>
 </html>
