@@ -1266,16 +1266,17 @@
 		//지문번호를 key로 하는 객체를 생성해서 같은 지문인 문제끼리 묶음 지문 없으면 그 문제 하나만 문제번호로 묶음
 		const grouped = questionArray.reduce((acc,cur)=>{
 			const key = cur.passageId || cur.itemId;
-			if(!acc[key]){
-				acc[key] = [];
+			console.log("key: ",key);
+			if(!acc.has(key)){
+				acc.set(key,[]);
 			}
-			acc[key].push(cur);
+			acc.get(key).push(cur);
 			return acc;
-		},{});
+		},new Map());
 		console.log("grouped : ");
 		console.log(grouped);
 		//grouped의 values 들만 배열로 만들고 itemNo를 1번부터 순서대로 재입력
-		const sorted = Object.values(grouped).flat(1).map((item, index) => {
+		const sorted = [...grouped.values()].flat(1).map((item, index) => {
 			item.itemNo = index + 1;
 			return item;
 		});
@@ -1299,19 +1300,23 @@
 		console.log("getDeletedQuestionHtml start");
 		let html = '';
 		if(deletedQuestions.length == 0){
-			return '<p>삭제 항목이 없습니다.</p>';
+			return `
+			<div class="no-data view-que-list">
+				<p>삭제 항목이 없습니다.</p>
+			</div>
+			`;
 		}
 		const grouped = deletedQuestions.reduce((acc,cur) => {
 			const key = cur.passageId || 'no' + cur.itemId;
-			if(!acc[key]) acc[key] = [];
-			acc[key].push(cur);
+			if(!acc.has(key)) acc.set(key,[]);
+			acc.get(key).push(cur);
 			return acc;
-		},{});
+		},new Map());
 		console.log("grouped : ");
 		console.log(grouped);
-		for(let [key, value] of Object.entries(grouped)){
+		for(let [key, value] of grouped.entries()){
 			console.log(`key : ${key}, value : ${value}`);
-			if(key.startsWith("no")){
+			if(String(key).startsWith("no")){
 				html += `
 				<div class="sort-group">
 					<div class="view-que-box">
@@ -1551,11 +1556,12 @@
 	//추가버튼 클릭시 복구 ~ 렌더링까지 수행하는 함수
 	function executeRestore(button){
 		console.log("executeResotre start");
+		//deletedQuestions 에서 questions로 이동
 		restoreQuestion(button);
-		console.log("questions : ",questions);
+		//console.log("before questions : ",questions);
 		questions = sortAndReorder(questions);
 		deletedQuestions = sortAndReorder(deletedQuestions);
-		console.log("questions : ",questions);
+		//console.log("after questions : ",questions);
 		renderDeletedQuestions();
 		renderQuestions(questions);
 		renderSummary(questions);
