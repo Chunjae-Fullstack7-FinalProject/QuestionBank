@@ -9,5 +9,5 @@ import java.util.List;
 public interface TestServiceIf {
     Mono<PresetExamApiResponse> getPresetExam(String subjectId);
     List<LargeChapterDTO> getPresetExamList(String subjectId);
-
+    String[] getPresetExamQuestions(String[] examIds);
 }
