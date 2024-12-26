@@ -190,8 +190,7 @@
                                 <div class="box">
                                     <div class="title-wrap">
 											<span class="tit-text">난이도별 문제 수
-												<button type="button" class="btn-icon2 pop-btn" data-pop="que-range-pop" ><i
-                                                        class="setting"></i></button>
+												<button type="button" id="btn-icon2" class="btn-icon2 pop-btn" data-pop="que-range-pop" disabled><i class="setting"></i></button>
 											</span>
                                     </div>
                                     <div class="range-wrap" id="level-distribution-btn-group">
@@ -231,29 +230,29 @@
             </div>
             <div class="pop-content">
                 <span class="txt">문제 수를 입력하여<br> 난이도별 문제 수를 조정하세요.</span>
-                <div class="range-wrap">
+                <div class="range-wrap" id="range-wrap">
                     <!-- S: 문제 수 맞지 않을 시 .fail 클래스 추가 -->
-                    <div class="range color01 fail">
-                        <span class="color01">최하</span>
-                        <input type="number">
-                    </div>
+<!--                    <div class="range color01 fail">-->
+<!--                        <span class="color01">최하</span>-->
+<!--                        <input type="number">-->
+<!--                    </div>-->
                     <div class="range color02">
                         <span class="color02">하</span>
-                        <input type="number">
+                        <input type="number" data-step="2">
                     </div>
                     <div class="range color03">
                         <span class="color03">중</span>
-                        <input type="number">
+                        <input type="number" data-step="3">
                     </div>
                     <div class="range color04">
                         <span class="color04">상</span>
-                        <input type="number">
+                        <input type="number" data-step="4">
                     </div>
-                    <div class="range color05">
-                        <span class="color05">최상</span>
-                        <input type="number">
-                    </div>
-                    <div class="range total fail">
+<!--                    <div class="range color05">-->
+<!--                        <span class="color05">최상</span>-->
+<!--                        <input type="number">-->
+<!--                    </div>-->
+                    <div class="range total">
                         <span>합계</span>
                         <span class="num">20</span>
                     </div>
@@ -313,12 +312,12 @@
     <!-- 문항 충족하지 않을 시 노출 팝업 -->
 </div>
 
-
+<!-- (1) > 펼쳐짐, (2) 체크박스, (3) 난이도 구성 버튼 선택 시 난이도별 문제 수 display -->
 <script>
     $(function () {
-        // depth
-        let depBtn = $('.dep-btn');
 
+        // depth --> 펼쳐지는 거
+        let depBtn = $('.dep-btn');
         function depFunc() {
             let _this = $(this);
 
@@ -334,7 +333,7 @@
         }
         depBtn.on('click', depFunc);
 
-        // "전체 선택" 체크박스 이벤트 핸들러
+        // 전체 선택 체크박스 로직 --> 맹글어둔 거 사용
         $('#checkAll').on('change', function () {
             const isChecked = $(this).prop('checked'); // 전체 선택 여부
             const largeCheckboxes = $('#chapter-tree').find('.depth01'); // 모든 대단원 체크박스
@@ -344,15 +343,17 @@
                 $(this).prop('checked', !isChecked).trigger('click'); // 상태 변경 후 클릭 이벤트 트리거
             });
         });
-
+        // 전체 선택 체크박스 선택 시에는 대단원이 모두 체크되었는지만 확인
         $('#chapter-tree').on('change', '.depth01', function () {
             const largeCheckboxes = $('#chapter-tree').find('input[type=checkbox].depth01'); // 모든 대단원 체크박스
             const isAllChecked = largeCheckboxes.length === largeCheckboxes.filter(':checked').length; // 모두 체크 여부 확인
             $('#checkAll').prop('checked', isAllChecked); // 전체 선택 상태 업데이트
         });
 
-        let queChkAll = $('.que-allCheck');
 
+        // 모든 체크박스 선택자
+        let queChkAll = $('.que-allCheck');
+        // depth01, 02, 03 체크박스 선택 시 펼쳐지게 하기
         function queCheckFunc() {
             let _this = $(this);
             let parentGroup = _this.parents('.check-group');
@@ -449,6 +450,7 @@
         }
         queChkAll.on('click', queCheckFunc);
 
+        //부모 체크박스 업데이트
         queChkAll.on('change', function () {
             let _this = $(this); // 현재 선택된 체크박스
             let parentCheckBox; // 상위 체크박스
@@ -472,7 +474,7 @@
             // 상위 체크박스 상태 업데이트 함수 호출
             updateAllParentCheckboxes(_this);
         });
-
+        //부모 체크박스 업데이트
         function updateAllParentCheckboxes(element) {
             let currentDepth = parseInt(element.data('depth')); // 현재 체크박스의 depth
 
@@ -496,11 +498,9 @@
         }
 
 
-
+        // 난이도 누르면 아래에 디스플레이
         $(".type-box .box .range").hide();
-
         let stepBtn = $('.step-wrap .btn-line');
-
         function stepFunc() {   // 난이도 누르면 디스플레이 되는 거
             let _this = $(this);
             let stepData = _this.data('step');
@@ -514,14 +514,15 @@
             }
             inputCheck();
         }
-
         stepBtn.on('click', stepFunc);
     });
 </script>
+<!-- (1) 소단원, 토픽 문항 수 가져와서 바인딩 -->
 <script th:inline="javascript">
-    const subjectId = [[${subjectId}]];
-    document.addEventListener('DOMContentLoaded', drawItemCounts);
-    async function drawItemCounts() {
+    const subjectId = [[${subjectId}]]; // 단원 아이디
+    document.addEventListener('DOMContentLoaded', itemCounts);
+    //소단원, 토픽 문항 수 가져오기
+    async function itemCounts() {
         let requestData ={
             "subjectId": subjectId.toString()  //"/bridge/t-sherpa/customExam/count"
         };
@@ -559,7 +560,7 @@
             console.error('Error fetching data:', error);
         }
     }
-
+    //평가유형 받아오기
     document.addEventListener("DOMContentLoaded", async () => {
 
         const requestData = {
@@ -587,8 +588,6 @@
             evaluationListData.forEach(data => {
                 const domainId = data.domainId;
                 const domainName = data.domainName;
-
-
                 evaluationList.innerHTML += `
                      <button type="button" class="btn-line" data-domainId="${domainId}" disabled>${domainName}</button>
                 `;
@@ -597,14 +596,6 @@
         } catch (error) {
             console.error('Error fetching data:', error);
         }
-
-        // const evalList = document.getElementById('evaluationList');
-        // evalList.addEventListener('click', function(event) {
-        //     if(event.target.classList.contains('btn-line')) {
-        //         btnClickFunc.call(event.target);
-        //     }
-        // });
-        // button active
 
         let _btnMul = $(".btn-wrap.multi .btn-line");
 
@@ -626,17 +617,10 @@
         _btn.on("click", btnClickFunc);
 
     });
-
-
 </script>
+<!-- (1) 체크박스 선택 시 우측 영역 활성화/비활성화, (2)문항 수, input관련 js, (3) 난이도별 문제 수 상세조정 -->
 <script>
-
-
-
-
-
-
-    //체크박스 선택 시 우측 영역 활성화 ㄹ
+    //체크박스 선택 시 우측 영역 활성화
     let checkBox = $('div.unit-cnt').find('input[type=checkbox]');
     checkBox.on('change', function() {
         const checkedCount = checkBox.filter(':checked').length;
@@ -679,6 +663,8 @@
         // 문제형태 비활성화
         $("#type-btn-group button").attr("disabled", true);
         $("#type-btn-group button").removeClass("active");
+
+        $('#btn-icon2').attr("disabled",true);
 
         // 난이도 구성 비활성화
         $("#btn-pop-que-range").attr("disabled", true);
@@ -736,7 +722,7 @@
         $("#level-btn-group button").eq(2).addClass("active");
         $("#level-btn-group button").eq(3).addClass("active");
 
-
+        $('#btn-icon2').attr("disabled",false);
 
         //TODO 230914 임시 최상, 최하 난이도 비활성 처리 230914x
         $("#level-btn-group button").eq(0).attr("disabled", true);
@@ -764,7 +750,6 @@
         $("#total-num-val").text($(this).text());
         inputCheck()
     });
-
 
     // input 컨트롤
     const _input = $('#txt-exam-num');
@@ -823,7 +808,7 @@
         }
     }
 
-    // 문제 수 input 에 따라서 난이도별 문제 수 계산하기
+    // 문제 수 input 에 따라서 난이도별 문제 수 계산하기. 최상최하 포함해도 동작됨.
     function inputCheck() {
         const _input = $('#txt-exam-num');
         const levelBtnGroup = $('#level-btn-group');
@@ -836,15 +821,24 @@
                 const button = $('#level-distribution-btn-group').find(`span[data-step=${step}]`);
                 const stepLevel = button.data('level');
                 button.text(`${stepLevel}${Math.floor(_input.val()/selectedCnt)}`);
+
+                //팝업에도 추가
+                const popInput = $('#range-wrap').find(`input[type=number][data-step=${step}]`);
+                const stepValue = Math.floor(_input.val() / selectedCnt);
+                popInput.val(stepValue);
+
+
             });
         } else if (_input.val() % selectedCnt > 0) {
             const remainder = _input.val() % selectedCnt;
-            let additionalIndex = 0; // 여기에 추가
+            let additionalIndex = 0; // 추가되는 곳
 
             selectedLevel.each(function () {
                 const step = $(this).data('step');
                 const button = $('#level-distribution-btn-group').find(`span[data-step=${step}]`);
                 const stepLevel = button.data('level');
+                //팝업에도 추가
+                const popInput = $('#range-wrap').find(`input[type=number][data-step=${step}]`);
 
 
                 const baseValue = Math.floor(_input.val() / selectedCnt);
@@ -856,13 +850,14 @@
                 }
 
                 button.text(`${stepLevel}${baseValue + additionalValue}`);
+                // 팝업에도 반영
+                popInput.val(baseValue + additionalValue);
             });
         }
 
     }
 
-
-
+    // 난이도별 문제 수 상세조정
 
 </script>
 </body>
