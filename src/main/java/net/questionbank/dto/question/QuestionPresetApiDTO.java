@@ -9,7 +9,7 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuestionPresetApiDTO extends QuestionApiDTO{
+public class QuestionPresetApiDTO extends QuestionImageApiDTO{
     private Long examId;
     private String examName;
 }

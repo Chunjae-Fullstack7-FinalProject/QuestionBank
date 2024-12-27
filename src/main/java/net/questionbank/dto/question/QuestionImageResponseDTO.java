@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuestionResponseDTO<T extends QuestionImageApiDTO> {
+public class QuestionImageResponseDTO {
     private String successYn;
-    private List<T> itemList;
+    private List<QuestionImageApiDTO> itemList;
 }

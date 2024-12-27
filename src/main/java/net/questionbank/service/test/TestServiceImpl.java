@@ -6,33 +6,27 @@ import lombok.extern.log4j.Log4j2;
 import net.questionbank.annotation.Logging;
 import net.questionbank.dto.main.SubjectRequestDTO;
 import net.questionbank.dto.test.*;
-import org.springframework.http.HttpMethod;
+
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
-import net.questionbank.annotation.Logging;
-import net.questionbank.annotation.RedirectWithError;
 import net.questionbank.dto.presetExam.LargeChapterDTO;
 import net.questionbank.dto.presetExam.PresetExamApiResponse;
 import net.questionbank.dto.presetExam.PresetExamDTO;
 import net.questionbank.dto.presetExam.PresetExamResponseDTO;
-import net.questionbank.dto.question.QuestionApiDTO;
+import net.questionbank.dto.question.QuestionImageApiDTO;
 import net.questionbank.dto.question.QuestionPresetApiDTO;
 import net.questionbank.dto.question.QuestionPresetRequestDTO;
 import net.questionbank.dto.question.QuestionResponseDTO;
 import net.questionbank.exception.CustomRuntimeException;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.stereotype.Service;
+
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -131,7 +125,7 @@ public class TestServiceImpl implements TestServiceIf {
             }
             List<QuestionPresetApiDTO> itemList = questionResponseDTO.getItemList();
             return longListToStringArray(
-                    itemList.stream().map(QuestionApiDTO::getItemId).toList()
+                    itemList.stream().map(QuestionImageApiDTO::getItemId).toList()
             );
         }catch(Exception e) {
             log.error(e.getMessage());
@@ -174,7 +168,7 @@ public class TestServiceImpl implements TestServiceIf {
 
 
     public List<LargeDTO> step1(SubjectRequestDTO subjectRequestDTO) {
-    // WebClient로 POST 요청을 보내고 응답을 받아옴
+        // WebClient로 POST 요청을 보내고 응답을 받아옴
         ApiResponseDTO response = webClient.post()
                 .uri("https://tsherpa.item-factory.com/chapter/chapter-list")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -256,4 +250,5 @@ public class TestServiceImpl implements TestServiceIf {
         } else {
             return null;
         }
+    }
 }
