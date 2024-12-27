@@ -38,7 +38,7 @@
 						이준열(2015)
 					</div>
 					<button class="btn-default btn-research"><i class="research"></i>재검색</button>
-					<button class="btn-default pop-btn" data-pop="que-scope-pop">출제범위</button>
+					<button class="btn-default pop-btn" data-pop="que-scope-pop" id="scopeBtn" onclick="popFunc(this)">출제범위</button>
 				</div>
 				<div class="view-bottom type01">
 					<div class="cnt-box">
@@ -245,38 +245,31 @@
 	<div class="pop-wrap scope-type" data-pop="que-scope-pop">
 		<div class="pop-inner">
 			<div class="pop-header">
-				<span>국어 1-1</span>
-				<button type="button" class="pop-close"></button>
+				<span th:text="${textbookDetailDTO?.subjectName}"></span>
+				<button type="button" class="pop-close" onclick="popClose()"></button>
 			</div>
 			<div class="pop-content scroll-inner">
-				<div class="scope-wrap">
+				<div class="scope-wrap" id="scopeContainer">
 					<!-- 출제 범위 내용-->
-					<ul>1. 새로운 시작
-						<li>(1)시의 아름다움
-							<span>[1] 포근한 봄</span>
-							<span>[2] 포근한 봄</span>
+					<ul>대단원
+						<li>중단원
+							<span>소단원</span>
+							<span>소단원</span>
 						</li>
-						<li>(2)산문의 향기
-							<span>[1] 꿩</span>
+						<li>중단원
+							<span>소단원</span>
+							<span>소단원</span>
 						</li>
 					</ul>
-					<ul>2. 세상과 함께 자라는 꿈
-						<li>(1) 자료 찾으며 책 읽기
-							<span>[1] 버터 플라이</span>
+					<ul>대단원
+						<li>중단원
+							<span>소단원</span>
+							<span>소단원</span>
 						</li>
-						<li>(2) 통일성 있게 글 쓰기</li>
-					</ul>
-					<ul>3. 언어랑 국어랑 놀자
-						<li>(1) 언어의 본질과 국어 생활</li>
-						<li>(2) 우리말의 아홉 품사</li>
-					</ul>
-					<ul>4. 더불어 살아가기
-						<li>(1) 문학과 갈등</li>
-						<li>(2) 토의하기</li>
-					</ul>
-					<ul>1. 새로운 시작
-						<li>(1)시의 아름다움</li>
-						<li>(2)산문의 향기</li>
+						<li>중단원
+							<span>소단원</span>
+							<span>소단원</span>
+						</li>
 					</ul>
 				</div>
 			</div>
@@ -285,6 +278,7 @@
 
 </div>
 <script th:inline="javascript">
+
 	//문항id 배열로 티셀파 문항 리스트 조회(img) 요청
 	const questionIds = [[${questionIds}]];
 	const API_BASE_URL = '/bridge/t-sherpa'; // 프록시 서버 경로
@@ -1206,14 +1200,18 @@
 	let popBtn = $(".pop-btn");
 	let closePop = $(".pop-close");
 
-	function popFunc(errorPop) {
-		let popData = errorPop.getAttribute("data-pop");
+	function popFunc(popButton) {
+		let popData = popButton.getAttribute("data-pop");
 		console.log("popData : "+popData);
 		_html.css("overflow", "hidden");
 		_dim.fadeIn();
-
 		$(".pop-wrap[data-pop='" + popData + "']").show();
-		document.querySelector("#reportItemId").value = errorPop.getAttribute("data-item-id");
+		if(popData === 'error-report-pop') {
+			document.querySelector("#reportItemId").value = popButton.getAttribute("data-item-id");
+		}
+		if(popData === 'que-scope-pop'){
+
+		}
 		console.log($(".pop-wrap[data-pop='" + popData + "']"));
 	}
 
@@ -1368,16 +1366,17 @@
 		//지문번호를 key로 하는 객체를 생성해서 같은 지문인 문제끼리 묶음 지문 없으면 그 문제 하나만 문제번호로 묶음
 		const grouped = questionArray.reduce((acc,cur)=>{
 			const key = cur.passageId || cur.itemId;
-			if(!acc[key]){
-				acc[key] = [];
+			console.log("key: ",key);
+			if(!acc.has(key)){
+				acc.set(key,[]);
 			}
-			acc[key].push(cur);
+			acc.get(key).push(cur);
 			return acc;
-		},{});
+		},new Map());
 		console.log("grouped : ");
 		console.log(grouped);
 		//grouped의 values 들만 배열로 만들고 itemNo를 1번부터 순서대로 재입력
-		const sorted = Object.values(grouped).flat(1).map((item, index) => {
+		const sorted = [...grouped.values()].flat(1).map((item, index) => {
 			item.itemNo = index + 1;
 			return item;
 		});
@@ -1401,19 +1400,23 @@
 		console.log("getDeletedQuestionHtml start");
 		let html = '';
 		if(deletedQuestions.length == 0){
-			return '<p>삭제 항목이 없습니다.</p>';
+			return `
+			<div class="no-data view-que-list">
+				<p>삭제 항목이 없습니다.</p>
+			</div>
+			`;
 		}
 		const grouped = deletedQuestions.reduce((acc,cur) => {
 			const key = cur.passageId || 'no' + cur.itemId;
-			if(!acc[key]) acc[key] = [];
-			acc[key].push(cur);
+			if(!acc.has(key)) acc.set(key,[]);
+			acc.get(key).push(cur);
 			return acc;
-		},{});
+		},new Map());
 		console.log("grouped : ");
 		console.log(grouped);
-		for(let [key, value] of Object.entries(grouped)){
+		for(let [key, value] of grouped.entries()){
 			console.log(`key : ${key}, value : ${value}`);
-			if(key.startsWith("no")){
+			if(String(key).startsWith("no")){
 				html += `
 				<div class="sort-group">
 					<div class="view-que-box">
@@ -1653,15 +1656,69 @@
 	//추가버튼 클릭시 복구 ~ 렌더링까지 수행하는 함수
 	function executeRestore(button){
 		console.log("executeResotre start");
+		//deletedQuestions 에서 questions로 이동
 		restoreQuestion(button);
-		console.log("questions : ",questions);
+		//console.log("before questions : ",questions);
 		questions = sortAndReorder(questions);
 		deletedQuestions = sortAndReorder(deletedQuestions);
-		console.log("questions : ",questions);
+		//console.log("after questions : ",questions);
 		renderDeletedQuestions();
 		renderQuestions(questions);
 		renderSummary(questions);
 	}
+	//questions에서 단원별로 그룹화해서 객체로 만들기
+	function groupChapters(questions) {
+		const group = questions.reduce((acc, cur) => {
+			const largeChapterKey = cur.largeChapterId;
+			const mediumChapterKey = cur.mediumChapterId;
+
+			// Large Chapter 초기화
+			if (!acc[largeChapterKey]) {
+				acc[largeChapterKey] = { largeChapterName: cur.largeChapterName, mediumChapters: {} };
+			}
+
+			// Medium Chapter 초기화
+			if (!acc[largeChapterKey].mediumChapters[mediumChapterKey]) {
+				acc[largeChapterKey].mediumChapters[mediumChapterKey] = {
+					mediumChapterName: cur.mediumChapterName,
+					smallChapters: []
+				};
+			}
+
+			// Small Chapters 추가 (중복 방지)
+			if (!acc[largeChapterKey].mediumChapters[mediumChapterKey].smallChapters.includes(cur.smallChapterName)) {
+				acc[largeChapterKey].mediumChapters[mediumChapterKey].smallChapters.push(cur.smallChapterName);
+			}
+
+			return acc;
+		}, {}); // 초기값 설정
+
+		console.log("group: ", group);
+		return group; // 결과 반환
+	}
+	const scopeContainer = document.getElementById("scopeContainer");
+	//출제범위 렌더링
+	function renderScope(group){
+		scopeContainer.innerHTML = '';
+		let html = '';
+		for(let [largeKey,largeValue] of Object.entries(group)){
+			html += `<ul>${largeValue.largeChapterName}`;
+			for(let [mediumKey,mediumValue] of Object.entries(largeValue.mediumChapters)){
+				html += `<li>${mediumValue.mediumChapterName}`;
+				for(let smallChapter of mediumValue.smallChapters){
+					html += `<span>${smallChapter}</span>`;
+				}
+				html += `</li>`;
+			}
+			html += `</ul>`;
+		}
+		scopeContainer.innerHTML = html;
+	}
+	const scopeBtn = document.getElementById("scopeBtn");
+	scopeBtn.addEventListener("click",(e)=>{
+		const group = groupChapters(questions);
+		renderScope(group);
+	});
 </script>
 </body>
 </html>
