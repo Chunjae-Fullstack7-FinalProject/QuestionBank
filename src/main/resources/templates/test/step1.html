@@ -28,6 +28,9 @@
         .cursorDefault_1 {
             cursor: default;
         }
+        .disappear {
+            display:none;
+        }
     </style>
 </head>
 
@@ -40,6 +43,7 @@
                 <li class="active">STEP 1 단원선택</li>
                 <li>STEP 2 문항 편집</li>
                 <li>STEP 3 시험지 저장</li>
+                <li id="test">test</li>
             </ul>
             <button type="button" class="del-btn" onclick="winClose()"></button>
             <script>
@@ -283,7 +287,7 @@
     </div>
 
     <!-- 문항 충족하지 않을 시 노출 팝업 -->
-    <div class="pop-wrap range-type02" data-pop="que-pop">
+    <div class="pop-wrap range-type02" data-pop="que-pop" id="quePop">
         <div class="pop-inner">
             <div class="pop-header">
                 <span>문항 구성 자동 변경</span>
@@ -291,23 +295,23 @@
             </div>
             <div class="pop-content">
                 <span class="txt">사용자가 원하는 문항 구성을 할 수 없어<br>문항 구성이 자동으로 변경되었습니다.</span>
-                <div class="range-wrap">
+                <div class="range-wrap" id="rangeWrap">
 <!--                    <div class="range">-->
 <!--                        <span class="color01">최하</span>-->
 <!--                        <span class="num">2</span>-->
 <!--                    </div>-->
 
-                    <div class="range">
+                    <div class="range"  data-step="2">
                         <span class="color02">하</span>
                         <span class="num" id="displayLow"></span>
                     </div>
-                    <div class="range">
+                    <div class="range" data-step="3">
                         <span class="color03">중</span>
-                        <span class="num" id="displayMiddle"></span>
+                        <span class="num" id="displayMiddle" ></span>
                     </div>
-                    <div class="range">
+                    <div class="range" data-step="4">
                         <span class="color04">상</span>
-                        <span class="num" id="displayHigh"></span>
+                        <span class="num" id="displayHigh" ></span>
                     </div>
 
 <!--                    <div class="range">-->
@@ -541,14 +545,18 @@
             let stepData = _this.data('step');
 
             _this.toggleClass('active');
-
+            inputCheck();
             if (_this.hasClass('active')) {
                 $(".range[data-step='" + stepData + "']").show();
+                $('#rangeWrap').find("div[data-step='" + stepData + "']").removeClass('disappear');
             } else {
                 $(".range[data-step='" + stepData + "']").hide();
-                $('#level-distribution-btn-group span').data('count', 0);
+                $('#level-distribution-btn-group').find("span[data-step='" + stepData + "']").attr('data-count', 0);
+                $('#rangeWrap').find("div[data-step='" + stepData + "']").addClass('disappear');
+                $('#rangeWrap').find("div[data-step='" + stepData + "']").find('span.num').text('');
+                $('#range-wrap').find(`input[type=number][data-step=${stepData}]`).val(0);
             }
-            inputCheck();
+
 
         }
         stepBtn.on('click', stepFunc);
@@ -860,27 +868,28 @@
     // 문제 수 input 에 따라서 난이도별 문제 수 계산하기. 최상최하 포함해도 동작됨.
     function inputCheck() {
         const _input = $('#txt-exam-num');
-        const levelBtnGroup = $('#level-btn-group');
-        const selectedCnt = levelBtnGroup.find('button.btn-line').filter('.active').length;
-        const selectedLevel = levelBtnGroup.find('button.btn-line').filter('.active');
+        const levelBtnGroup = $('#level-btn-group'); //최하 하 중 상 최상
+        const selectedCnt = levelBtnGroup.find('button.btn-line').filter('.active').length; // active 인 개수
+        const selectedLevel = levelBtnGroup.find('button.btn-line').filter('.active'); // active 인 각각의 요소들
 
         if(_input.val() % selectedCnt === 0){
-            selectedLevel.each(function() {
+            selectedLevel.each(function() { //active 인 요소들 forEach
                 const step = $(this).data('step');
                 const button = $('#level-distribution-btn-group').find(`span[data-step=${step}]`);
                 const stepLevel = button.data('level');
                 button.text(`${stepLevel}${Math.floor(_input.val()/selectedCnt)}`);
 
 
-                //팝업에도 추가
-                const popInput = $('#range-wrap').find(`input[type=number][data-step=${step}]`);
-                const stepValue = Math.floor(_input.val() / selectedCnt);
-                popInput.val(stepValue);
+
 
                 //data-count 에도 추가
                 button.data('count',Math.floor(_input.val() / selectedCnt));
                 button.attr('data-count', Math.floor(_input.val() / selectedCnt));
 
+                //팝업에도 추가 --> 만약 active가 없어진다면, popUp의 input을 0으로 초기화해줄 필요가 있음
+                const popInput = $('#range-wrap').find(`input[type=number][data-step=${step}]`);
+                const stepValue = Math.floor(_input.val() / selectedCnt);
+                popInput.val(stepValue);
 
             });
         } else if (_input.val() % selectedCnt > 0) {
@@ -932,6 +941,7 @@
         $('#savePop').removeClass('cursorDefault_1'); // 커서 default 로 바꿈
         $('#savePop').removeClass('disabled');
         popSum.closest('div#range-wrap').find('.range').removeClass('fail');
+
     }
 
     const popInput = $('#range-wrap').find(`input[type=number]`);
@@ -988,9 +998,27 @@
             const value = $(this).val();
             const button = $('#level-distribution-btn-group').find(`span[data-step=${step}]`);
             const level = button.data('level');
-            button.text(`${level}(${value})`);
-            button.data('count',`${value}`);
-            button.attr('data-count', `${value}`);
+            const buttonM = $('#level-btn-group').find(`button[data-step=${step}]`);
+
+            if(value > 0){
+                console.log("됨?");
+                buttonM.addClass('active');
+                $(".range[data-step='" + step + "']").show();
+                $('#rangeWrap').find("div[data-step='" + step + "']").removeClass('disappear');
+                button.text(`${level}(${value})`);
+                button.data('count',`${value}`);
+                button.attr('data-count', `${value}`);
+            } else {
+                buttonM.removeClass('active');
+                console.log("안된 것 같은데?");
+                $(".range[data-step='" + step + "']").hide();
+                $('#rangeWrap').find("div[data-step='" + step + "']").addClass('disappear');
+                $('#rangeWrap').find("div[data-step='" + step + "']").find('span.num').text('');
+                button.text(`${level}(${value})`);
+                button.data('count',`${value}`);
+                button.attr('data-count', `${value}`);
+            }
+            // inputCheck();
             if(!popSum.closest('div#range-wrap').find('.range').hasClass('fail')){
                 popClose();
             }
@@ -1028,7 +1056,7 @@
 
     //대망의 문제 수 확인
     $('#nextBtn').on('click', finalCheck); //여기 수정해야 함.
-
+    $('#test').on('click',finalCheck);
     async function finalCheck() {
         let txtExamNum = $("#txt-exam-num").val();
         console.log("문제 수 =============>" + txtExamNum);
@@ -1090,20 +1118,20 @@
             };
             minorClassification.push(topicId);
         });
-        console.log(minorClassification);
+        console.log("단원정보:",minorClassification);
 
         //난이도
         let levelCnt = [];
-        const levelContainer = $('#level-distribution-btn-group').find('span');
+        const levelContainer = $('#level-distribution-btn-group').find('span.range');
         levelContainer.each(function() {
-           const value = $(this).data('count');
+           const value = Number($(this).data('count'));
            if(value !== 0){
                levelCnt.push(30);
            } else {
                levelCnt.push(0);
            }
         });
-        console.log(levelCnt);
+        console.log("레벨카운트:",levelCnt);
         //평가 영역
         let activityCategoryList = [];
         const evaluationList = $('#evaluationList').find('button');
@@ -1112,7 +1140,7 @@
                activityCategoryList.push($(this).data('domainId'));
            }
         });
-        console.log(activityCategoryList);
+        console.log("평가영역:",activityCategoryList);
         //객관식, 주관식
         let questionForm = '';
         if ($('#type-btn-group').find('button[data-type="multiple"]').hasClass('active')) {
@@ -1125,7 +1153,7 @@
                 questionForm += ',subjective,descriptive';
             }
         }
-        console.log(questionForm);
+        console.log("단원정보:",questionForm);
 
 
         let requestBody = {};
@@ -1134,7 +1162,7 @@
         requestBody.questionForm = questionForm;
         requestBody.activityCategoryList = activityCategoryList;
 
-        console.log(requestBody);
+        console.log("요청:",requestBody);
         if(requestBody.minorClassification.length !== 0){
             try{
                 const response = await fetch('/bridge/t-sherpa/item-img/chapters/item-list', {
@@ -1167,30 +1195,29 @@
                             break;
                     }
                 });
-                console.log(data);
-                console.log(low); // response 중 하 난이도의 개수
-                console.log(middle); // response 중 중 난이도의 개수
-                console.log(high); // response 중 상 난이도의 개수
+                console.log("응답:",data);
+                console.log("하 난이도 개수:",low); // response 중 하 난이도의 개수
+                console.log("중 난이도 개수:",middle); // response 중 중 난이도의 개수
+                console.log("상 난이도 개수:",high); // response 중 상 난이도의 개수
 
                 const requestLow = $('#level-distribution-btn-group').find(`span[data-step=2]`);
                 const requestMiddle = $('#level-distribution-btn-group').find(`span[data-step=3]`);
                 const requestHigh = $('#level-distribution-btn-group').find(`span[data-step=4]`);
 
-                console.log(requestLow.data('count')); //내가 실제로 요청한 하 난이도의 개수
-                console.log(requestMiddle.data('count')); //내가 실제로 요청한 중 난이도의 개수
-                console.log(requestHigh.data('count')); //내가 실제로 요청한 상 난이도의 개수
+                console.log("요청 하 난이도 개수:",requestLow.data('count')); //내가 실제로 요청한 하 난이도의 개수
+                console.log("요청 중 난이도 개수:",requestMiddle.data('count')); //내가 실제로 요청한 중 난이도의 개수
+                console.log("요청 상 난이도 개수:",requestHigh.data('count')); //내가 실제로 요청한 상 난이도의 개수
 
                 const lowCheck = low >= requestLow.data('count');
                 const middleCheck = middle >= requestMiddle.data('count');
                 const highCheck = high >= requestHigh.data('count');
 
-                console.log(lowCheck); // 응답 >= 요청인지(하)
-                console.log(middleCheck); // 응답 >= 요청인지(하)
-                console.log(highCheck); // 응답 >= 요청인지(하)
+                console.log("하 난이도, 응답보다 요청이 많니?:",lowCheck); // 응답 >= 요청인지(하)
+                console.log("중 난이도, 응답보다 요청이 많니?:",middleCheck); // 응답 >= 요청인지(하)
+                console.log("상 난이도, 응답보다 요청이 많니?:",highCheck); // 응답 >= 요청인지(하)
 
                 // 상, 중, 하 모두 request 보다 response 가 더 크다면, response 중 request 개수만큼 가져와서, 넘기기
                 if(lowCheck && middleCheck && highCheck){
-                    console.log("여기는?");
                     let itemArr = [];
                     let lowCnt = 0;
                     let middleCnt = 0;
@@ -1209,16 +1236,15 @@
                             itemArr.push(item.itemId);
                         }
                     });
-                    console.log(itemArr);
+                    console.log("통과 시 넘기는 배열:",itemArr);
 
-
+                    //step2넘어가기
                     let url = '/customExam/step2';
                     let new_form = $('<form></form>');
                     new_form.attr("name", "new_form");
                     new_form.attr("method", "post");
                     new_form.attr("action", url);
                     let strRequestBody = JSON.stringify(requestBody);
-                    console.log(strRequestBody);
                     new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
                     new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
                     new_form.appendTo('body');
@@ -1238,10 +1264,7 @@
                         //팝업
                         let _dim = $(".dim");
                         let _html = $("html , body");
-
-                        let _this = $(this);
-                        let popData = _this.data("pop");
-
+                        let popData = $('#quePop').data("pop");
                         _html.css("overflow", "hidden");
                         _dim.fadeIn();
                         $(".pop-wrap[data-pop='" + popData + "']").show();
@@ -1249,9 +1272,9 @@
                         let lowDiff = low - requestLow.data('count');
                         let middleDiff = middle - requestMiddle.data('count');
                         let highDiff = high - requestHigh.data('count');
-                        console.log(lowDiff);
-                        console.log(middleDiff);
-                        console.log(highDiff);
+                        console.log("하, 응답 - 요청:",lowDiff);
+                        console.log("중, 응답 - 요청:",middleDiff);
+                        console.log("상, 응답 - 요청:",highDiff);
                         let minusTotal = 0;
                         if(lowDiff < 0) {
                             minusTotal += lowDiff;
@@ -1262,7 +1285,7 @@
                         if(highDiff < 0) {
                             minusTotal += highDiff;
                         }
-                        console.log(minusTotal);
+                        console.log("부족분 총합:",minusTotal);
                         // minusTotal 1씩 더해야됨
                         let itemArr = [];
                         let lowArr = [];
@@ -1306,9 +1329,9 @@
                                 itemArr.push(highArr[i].itemId);
                             }
                         }
-                        console.log(lowArr);
-                        console.log(middleArr);
-                        console.log(highArr);
+                        console.log("하 배열",lowArr);
+                        console.log("중 배열",middleArr);
+                        console.log("상 배열",highArr);
 
                         const difficulties = [
                             { name: 'low', diff: lowDiff, arr: lowArr, count: 0},
@@ -1361,19 +1384,19 @@
                         let finalMiddle = 0;
                         let finalHigh = 0;
                         if(difficulties[0].count === 0){
-                            finalLow = low; //실제로 온 값
+                            finalLow = Number(low); //실제로 온 값
                         } else {
-                            finalLow = requestLow.data('count') + difficulties[0].count;
+                            finalLow = Number(requestLow.data('count') + difficulties[0].count);
                         }
                         if(difficulties[1].count === 0){
-                            finalMiddle = middle;
+                            finalMiddle = Number(middle);
                         } else {
-                            finalMiddle = requestMiddle.data('count') + difficulties[1].count;
+                            finalMiddle = Number(requestMiddle.data('count') + difficulties[1].count);
                         }
                         if(difficulties[2].count === 0){
-                            finalHigh = high;
+                            finalHigh = Number(high);
                         } else {
-                            finalHigh = requestHigh.data('count') + difficulties[2].count;
+                            finalHigh = Number(requestHigh.data('count') + difficulties[2].count);
                         }
 
                         console.log("finalLow:", finalLow);
@@ -1383,8 +1406,14 @@
                         let displayLow = $('#displayLow').text(finalLow);
                         let displayMiddle = $('#displayMiddle').text(finalMiddle);
                         let displayHigh = $('#displayHigh').text(finalHigh);
-                        let displayTotal = $('#displayTotal').text(finalLow + finalMiddle + finalHigh);
+                        let displayTotal = $('#displayTotal').text(
+                            ($('#displayLow').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayLow').text())) +
+                            ($('#displayMiddle').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayMiddle').text())) +
+                            ($('#displayHigh').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayHigh').text()))
+                        );
+
                         //확인 버튼
+                        //step2넘어가기
                         $('#nextBtn2').on('click', function() {
                             let url = '/customExam/step2';
                             let new_form = $('<form></form>');
@@ -1392,7 +1421,6 @@
                             new_form.attr("method", "post");
                             new_form.attr("action", url);
                             let strRequestBody = JSON.stringify(requestBody);
-                            console.log(strRequestBody);
                             new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
                             new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
                             new_form.appendTo('body');
