@@ -14,4 +14,5 @@ public interface TestServiceIf {
     Mono<PresetExamApiResponse> getPresetExam(String subjectId);
     List<LargeChapterDTO> getPresetExamList(String subjectId);
     String[] getPresetExamQuestions(String[] examIds);
+    List<Long> getPresetExamItemList(String examId);
 }
