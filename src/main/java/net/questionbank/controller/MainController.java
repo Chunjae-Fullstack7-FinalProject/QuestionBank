@@ -49,10 +49,10 @@ public class MainController {
     public String archive(HttpSession session, RedirectAttributes redirectAttributes) {
         MemberLoginDTO loginDto = (MemberLoginDTO) session.getAttribute("loginDto");
 
-        if(loginDto == null) {
-            redirectAttributes.addFlashAttribute("loginDto", new MemberLoginDTO());
-            return "redirect:/main";
-        }
+//        if(loginDto == null) {
+//            redirectAttributes.addFlashAttribute("loginDto", new MemberLoginDTO());
+//            return "redirect:/main";
+//        }
 
         return "main/archive";
     }
