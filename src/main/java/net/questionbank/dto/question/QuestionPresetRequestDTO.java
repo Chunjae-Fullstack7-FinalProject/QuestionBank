@@ -11,7 +11,6 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuestionHtmlResponseDTO {
-    private String successYn;
-    private List<QuestionHtmlApiDTO> itemList;
+public class QuestionPresetRequestDTO {
+    private List<Long> examIdList;
 }

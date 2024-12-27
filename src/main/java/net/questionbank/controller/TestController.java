@@ -4,8 +4,9 @@ import jakarta.servlet.http.HttpSession;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import net.questionbank.annotation.Logging;
-
 import net.questionbank.annotation.RedirectWithError;
+import net.questionbank.dto.main.SubjectRequestDTO;
+import net.questionbank.dto.test.LargeDTO;
 import net.questionbank.dto.presetExam.LargeChapterDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.exception.CustomRuntimeException;
@@ -24,8 +25,8 @@ import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
-@Log4j2
 @Logging
+@Log4j2
 @RequestMapping("/customExam")
 public class TestController {
     private final Step3Service step3Service;
@@ -33,6 +34,8 @@ public class TestController {
     private final TestServiceIf testService;
     private final SpringTemplateEngine templateEngine;
 
+
+   
     @PostMapping("/step0")
     @RedirectWithError(redirectUri = "/error/error")
     public String step0(@RequestParam String subjectId, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
@@ -51,6 +54,16 @@ public class TestController {
         log.info("largeChapterList : {}", largeChapterList);
         return "test/step0";
     }
+  
+    @GetMapping("/step1")
+    public String step1(Model model, SubjectRequestDTO subjectRequestDTO) {
+        subjectRequestDTO.setSubjectId("1167");
+        List<LargeDTO> largeList = testService.step1(subjectRequestDTO);
+        model.addAttribute("largeList", largeList);
+        model.addAttribute("subjectId", "1167");
+        return "test/step1";
+    }
+
 
 
     /*
@@ -59,7 +72,8 @@ public class TestController {
     step2/sub03_01_01로 리턴
      */
     @GetMapping("/step2")
-    public String getItemIds(Model model, @RequestParam(required = false, defaultValue = "noEdit") String type) {
+    public String getItemIds(Model model, @RequestParam(required = false, name = "examId") String[] examIds,@RequestParam(required = false, defaultValue = "") String type) {
+
         String[] questionIds = {"494519", "494552"
                 , "487868"
                 , "494553"
@@ -78,6 +92,10 @@ public class TestController {
                 , "487866"
                 , "487867"
                 , "493179"};
+        if(examIds!=null){
+            questionIds = testService.getPresetExamQuestions(examIds);
+            model.addAttribute("type", "edit");
+        }
         model.addAttribute("questionIds", questionIds);
         model.addAttribute("type", type);
         return "test/step2";
@@ -166,3 +184,4 @@ public class TestController {
         return "test/test2";
     }
 }
+

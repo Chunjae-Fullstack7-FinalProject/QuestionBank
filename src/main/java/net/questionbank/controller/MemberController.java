@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.questionbank.annotation.Logging;
 import net.questionbank.annotation.RedirectWithError;
-import net.questionbank.domain.Member;
 import net.questionbank.dto.MemberLoginDTO;
 import net.questionbank.dto.MemberRegisterDTO;
 import net.questionbank.exception.CustomRuntimeException;

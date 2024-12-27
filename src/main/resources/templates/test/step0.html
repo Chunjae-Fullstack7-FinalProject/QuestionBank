@@ -15,6 +15,11 @@
     <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
     <script src="../inc/js/common.js"></script>
+    <!-- MathJax 라이브러리 -->
+    <script type="text/javascript" async
+            src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <script th:src="@{/assets/js/mathjax-config.js}"></script>
 </head>
 <body>
     <script th:src="@{/assets/apiBaseUrl.js}"></script>
@@ -86,7 +91,7 @@
                                                            th:id="${'chk'+presetExam.examId}"
                                                            th:value="${presetExam.examId}"
                                                            th:data-itemCnt="${presetExam.itemCnt}"
-                                                           name="presetExam"
+                                                           name="examId"
                                                            class="chk_paperId"
                                                     >
                                                     <label th:for="${'chk'+presetExam.examId}" class="item-label"></label>
@@ -167,9 +172,6 @@
     </div>
     <!-- 미리보기 모달 -->
 </div>
-<form id="formStep2">
-
-</form>
 </body>
 <script>
     const checkedExam = document.getElementById("chk_item_cnt");
@@ -526,6 +528,10 @@
                 } else {
                     const classifyHtml = getClassifyHtml(tempClassify);
                     renderPreview(classifyHtml);
+                    if (typeof MathJax !== "undefined") {
+                        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                        // console.log('MathJax rendered');
+                    }
                 }
             });
         }
@@ -539,6 +545,11 @@
             alert("시험지를 선택해주세요.\n최대 90문항까지 선택가능합니다.");
             return;
         }
+        form.querySelectorAll(".chk_paperId:checked").forEach(
+            (input) => {
+                console.log(input);
+            }
+        )
         form.action = "/customExam/step2";
         form.submit();
     }

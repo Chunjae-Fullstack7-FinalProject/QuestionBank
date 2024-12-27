@@ -3,6 +3,8 @@ package net.questionbank.service.textbook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.questionbank.dto.main.MainDTO;
+
+import net.questionbank.service.textbook.TextbookServiceIf;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.dto.textbook.TextbookApiResponse;
 import net.questionbank.dto.textbook.TextbookDTO;
@@ -60,4 +62,5 @@ public class TextbookServiceImpl implements TextbookServiceIf{
             throw new CustomRuntimeException("교과서정보 조회 중 에러 발생");
         }
     }
+
 }
