@@ -286,15 +286,15 @@
 <!--                    </div>-->
                     <div class="range">
                         <span class="color02">하</span>
-                        <span class="num">5</span>
+                        <span class="num" id="displayLow"></span>
                     </div>
                     <div class="range">
                         <span class="color03">중</span>
-                        <span class="num">6</span>
+                        <span class="num" id="displayMiddle"></span>
                     </div>
                     <div class="range">
                         <span class="color04">상</span>
-                        <span class="num">5</span>
+                        <span class="num" id="displayHigh"></span>
                     </div>
 <!--                    <div class="range">-->
 <!--                        <span class="color05">최상</span>-->
@@ -302,7 +302,7 @@
 <!--                    </div>-->
                     <div class="range total">
                         <span>합계</span>
-                        <span class="num">20</span>
+                        <span class="num" id="displayTotal">20</span>
                     </div>
                 </div>
                 <span class="txt">해당 문제 구성으로 출제하시겠습니까?</span>
@@ -1013,12 +1013,16 @@
         console.log(minorClassification);
 
         //난이도
-        let levelCnt = [0,30,30,30,0];
-        // const levelContainer = $('#level-distribution-btn-group').find('span');
-        // levelContainer.each(function() {
-        //    const value = $(this).data('count');
-        //    levelCnt.push(value);
-        // });
+        let levelCnt = [];
+        const levelContainer = $('#level-distribution-btn-group').find('span');
+        levelContainer.each(function() {
+           const value = $(this).data('count');
+           if(value !== 0){
+               levelCnt.push(30);
+           } else {
+               levelCnt.push(0);
+           }
+        });
         console.log(levelCnt);
         //평가 영역
         let activityCategoryList = [];
@@ -1262,6 +1266,10 @@
                     console.log("finalMiddle:", finalMiddle);
                     console.log("finalHigh:", finalHigh);
 
+                    let displayLow = $('#displayLow').text(finalLow);
+                    let displayMiddle = $('#displayMiddle').text(finalMiddle);
+                    let displayHigh = $('#displayHigh').text(finalHigh);
+                    let displayTotal = $('#displayTotal').text(finalLow + finalMiddle + finalHigh);
                 }
 
 
