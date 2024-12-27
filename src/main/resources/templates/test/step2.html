@@ -34,8 +34,8 @@
 			<div class="view-box">
 				<div class="view-top">
 					<div class="paper-info">
-						<span>수학 1</span>
-						이준열(2015)
+						<span class="subject" th:text="${session.textbookDetailDTO?.getSubjectName()}"></span>
+						<span th:text="${session.textbookDetailDTO?.getCurriculumName()}"></span>
 					</div>
 					<button class="btn-default btn-research"><i class="research"></i>재검색</button>
 					<button class="btn-default pop-btn" data-pop="que-scope-pop" id="scopeBtn" onclick="popFunc(this)">출제범위</button>
