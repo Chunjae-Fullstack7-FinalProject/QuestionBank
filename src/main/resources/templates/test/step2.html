@@ -704,15 +704,17 @@
 
 	//유사 문항 탭
 	function renderSimilar(similarQuestions, index, itemId){
-		const container = document.querySelector(".data");
+		const container = document.querySelector(".no-data");
 		if (!similarQuestions || similarQuestions.length === 0) {
 			console.error("유사 항목 없음");
 			container.style.display = "block";
-			container.innerHTML = "<p>유사 항목이 없습니다.</p>";
-			return;
+			return `<div class="no-data view-que-list">
+						<p>유사 항목이 없습니다.</p>
+					</div>`;
 		}
 		// UI 표시
 		document.querySelector(".no-data").style.display = "none";
+		document.querySelector(".data").style.display = "none";
 		container.style.display = "block";
 
 		container.innerHTML = "";
