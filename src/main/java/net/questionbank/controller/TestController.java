@@ -1,5 +1,6 @@
 package net.questionbank.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
@@ -8,6 +9,7 @@ import net.questionbank.annotation.RedirectWithError;
 import net.questionbank.dto.main.SubjectRequestDTO;
 import net.questionbank.dto.test.LargeDTO;
 import net.questionbank.dto.presetExam.LargeChapterDTO;
+import net.questionbank.dto.test.RequestBodyDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.exception.CustomRuntimeException;
 import net.questionbank.service.step3.Step3Service;
@@ -78,15 +80,30 @@ public class TestController {
     step1에서 받은 과목 id 값
     step2/sub03_01_01로 리턴
      */
-    @GetMapping("/step2")
-    public String getItemIds(Model model, @RequestParam(required = false, name = "examId") String[] examIds, String[] questionIds, @RequestParam(required = false, defaultValue = "") String type) {
+    @PostMapping("/step2")
+    public String getItemIds(Model model,
+                             @RequestParam(required = false, name = "examId") String[] examIds,
+                             String[] questionIds,
+                             @RequestParam(required = false, defaultValue = "") String type,
+                             @RequestParam String  strRequestBody) {
 
         if(examIds!=null){
             questionIds = testService.getPresetExamQuestions(examIds);
             model.addAttribute("type", "edit");
         }
+
+        //json 파싱
+        ObjectMapper objectMapper = new ObjectMapper();
+        try{
+            RequestBodyDTO requestBodyDTO = objectMapper.readValue(strRequestBody, RequestBodyDTO.class);
+            model.addAttribute("requestBody", requestBodyDTO); //재검색용 requestBody
+        } catch(Exception e){
+            log.error(e.getMessage());
+        }
+
         model.addAttribute("questionIds", questionIds);
         model.addAttribute("type", type);
+
         return "test/step2";
     }
 

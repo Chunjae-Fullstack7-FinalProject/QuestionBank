@@ -1210,8 +1210,19 @@
                         }
                     });
                     console.log(itemArr);
-                    const queryParams = itemArr.map(id => `questionIds=${encodeURIComponent(id)}`).join('&');
-                    location.href = `/customExam/step2?${queryParams}`;
+
+
+                    let url = '/customExam/step2';
+                    let new_form = $('<form></form>');
+                    new_form.attr("name", "new_form");
+                    new_form.attr("method", "post");
+                    new_form.attr("action", url);
+                    let strRequestBody = JSON.stringify(requestBody);
+                    console.log(strRequestBody);
+                    new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
+                    new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
+                    new_form.appendTo('body');
+                    new_form.submit();
 
                 } else {
 
@@ -1305,7 +1316,7 @@
                             { name: 'high', diff: highDiff, arr: highArr, count: 0}
                         ]
 
-                        //기합짜세 부족분 채우기
+                        //부족분 채우기
                         while(minusTotal < 0) {
                             let flag = false;
 
@@ -1375,15 +1386,22 @@
                         let displayTotal = $('#displayTotal').text(finalLow + finalMiddle + finalHigh);
                         //확인 버튼
                         $('#nextBtn2').on('click', function() {
-                            const queryParams = itemArr.map(id => `questionIds=${encodeURIComponent(id)}`).join('&');
-                            location.href = `/customExam/step2?${queryParams}`;
+                            let url = '/customExam/step2';
+                            let new_form = $('<form></form>');
+                            new_form.attr("name", "new_form");
+                            new_form.attr("method", "post");
+                            new_form.attr("action", url);
+                            let strRequestBody = JSON.stringify(requestBody);
+                            console.log(strRequestBody);
+                            new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
+                            new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
+                            new_form.appendTo('body');
+                            new_form.submit();
                         });
                     }
 
 
                 }
-
-
             } catch(e){
                 console.error('Error fetching data:', e);
             }
@@ -1392,7 +1410,7 @@
 
     }
     $('#step0').on('click', function(){
-        let url = 'http://localhost:8080/customExam/step0';
+        let url = 'http://localhost:8080/customExam/step0'; //수정해줘야 함
         let new_form = $('<form></form>');
         new_form.attr("name", "new_form");
         new_form.attr("charset", "UTF-8");
