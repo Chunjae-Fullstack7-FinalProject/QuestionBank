@@ -3,6 +3,7 @@ package net.questionbank.service.test;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
+import net.questionbank.annotation.Logging;
 import net.questionbank.dto.main.SubjectRequestDTO;
 import net.questionbank.dto.test.*;
 import org.springframework.http.HttpMethod;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Logging
 @Log4j2
 public class TestServiceImpl implements TestServiceIf {
 
@@ -35,7 +37,6 @@ public class TestServiceImpl implements TestServiceIf {
                 .bodyToMono(ApiResponseDTO.class)
                 .block();
 
-        log.info("Received response: {}", response);
 
         if (response.getChapterList() != null) {
             // TreeMap 사용하여 largeChapterId 기준으로 정렬
@@ -105,7 +106,6 @@ public class TestServiceImpl implements TestServiceIf {
                 }
             }
 
-            log.info("largeDTOList: {}", largeDTOList);
             return largeDTOList;
         } else {
             return null;

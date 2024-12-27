@@ -23,6 +23,9 @@
         label::before {
             cursor: pointer;
         }
+        .cursorDefault_1 {
+            cursor: default;
+        }
     </style>
 </head>
 
@@ -35,6 +38,7 @@
                 <li class="active">STEP 1 단원선택</li>
                 <li>STEP 2 문항 편집</li>
                 <li>STEP 3 시험지 저장</li>
+                <li id="test">test</li>
             </ul>
             <button type="button" class="del-btn"></button>
         </div>
@@ -171,8 +175,8 @@
                                         </div>
                                     </div>
                                     <div class="btn-wrap multi" id="type-btn-group">
-                                        <button type="button" class="btn-line" disabled>객관식</button>
-                                        <button type="button" class="btn-line" disabled>주관식</button>
+                                        <button type="button" class="btn-line" disabled data-type="multiple">객관식</button>
+                                        <button type="button" class="btn-line" disabled data-type="subjective">주관식</button>
                                     </div>
                                 </div>
                                 <div class="box">
@@ -194,17 +198,17 @@
 											</span>
                                     </div>
                                     <div class="range-wrap" id="level-distribution-btn-group">
-                                        <span class="range color01" data-step="1" data-level="최하">최하(n)</span>
-                                        <span class="range color02" data-step="2" data-level="하">하(n)</span>
-                                        <span class="range color03" data-step="3" data-level="중">중(n)</span>
-                                        <span class="range color04" data-step="4" data-level="상">상(n)</span>
-                                        <span class="range color05" data-step="5" data-level="최상">최상(n)</span>
+                                        <span class="range color01" data-step="1" data-level="최하" data-count="0" >최하(n)</span>
+                                        <span class="range color02" data-step="2" data-level="하" data-count="0">하(n)</span>
+                                        <span class="range color03" data-step="3" data-level="중" data-count="0">중(n)</span>
+                                        <span class="range color04" data-step="4" data-level="상" data-count="0">상(n)</span>
+                                        <span class="range color05" data-step="5" data-level="최상" data-count="0">최상(n)</span>
                                     </div>
                                 </div>
 
                             </div>
                             <div class="bottom-box">
-                                <p class="total-num" id="total-num" style="display: none;">총 <span id="total-num-val">30</span>문제</p>
+                                <p class="total-num" id="total-num" style="display: none;">총 <span id="total-num-val"></span>문제</p>
                             </div>
                         </div>
                     </div>
@@ -238,15 +242,15 @@
 <!--                    </div>-->
                     <div class="range color02">
                         <span class="color02">하</span>
-                        <input type="number" data-step="2">
+                        <input type="number" data-step="2" value="0">
                     </div>
                     <div class="range color03">
                         <span class="color03">중</span>
-                        <input type="number" data-step="3">
+                        <input type="number" data-step="3" value="0">
                     </div>
                     <div class="range color04">
                         <span class="color04">상</span>
-                        <input type="number" data-step="4">
+                        <input type="number" data-step="4" value="0">
                     </div>
 <!--                    <div class="range color05">-->
 <!--                        <span class="color05">최상</span>-->
@@ -254,14 +258,14 @@
 <!--                    </div>-->
                     <div class="range total">
                         <span>합계</span>
-                        <span class="num">20</span>
+                        <span class="num" id="range-total"></span>
                     </div>
                     <!-- E: 문제 수 맞지 않을 시 .fail 클래스 추가 -->
                 </div>
             </div>
             <div class="pop-footer">
-                <button>초기화</button>
-                <button class="disabled">저장</button>
+                <button id="resetBtn">초기화</button>
+                <button class="cursorDefault_1" id="savePop">저장</button>
             </div>
         </div>
     </div>
@@ -276,10 +280,10 @@
             <div class="pop-content">
                 <span class="txt">사용자가 원하는 문항 구성을 할 수 없어<br>문항 구성이 자동으로 변경되었습니다.</span>
                 <div class="range-wrap">
-                    <div class="range">
-                        <span class="color01">최하</span>
-                        <span class="num">2</span>
-                    </div>
+<!--                    <div class="range">-->
+<!--                        <span class="color01">최하</span>-->
+<!--                        <span class="num">2</span>-->
+<!--                    </div>-->
                     <div class="range">
                         <span class="color02">하</span>
                         <span class="num">5</span>
@@ -292,10 +296,10 @@
                         <span class="color04">상</span>
                         <span class="num">5</span>
                     </div>
-                    <div class="range">
-                        <span class="color05">최상</span>
-                        <span class="num">2</span>
-                    </div>
+<!--                    <div class="range">-->
+<!--                        <span class="color05">최상</span>-->
+<!--                        <span class="num">2</span>-->
+<!--                    </div>-->
                     <div class="range total">
                         <span>합계</span>
                         <span class="num">20</span>
@@ -511,8 +515,10 @@
                 $(".range[data-step='" + stepData + "']").show();
             } else {
                 $(".range[data-step='" + stepData + "']").hide();
+                $('#level-distribution-btn-group span').data('count', 0);
             }
             inputCheck();
+
         }
         stepBtn.on('click', stepFunc);
     });
@@ -589,7 +595,7 @@
                 const domainId = data.domainId;
                 const domainName = data.domainName;
                 evaluationList.innerHTML += `
-                     <button type="button" class="btn-line" data-domainId="${domainId}" disabled>${domainName}</button>
+                     <button type="button" class="btn-line" data-domain-id="${domainId}" disabled>${domainName}</button>
                 `;
             })
 
@@ -754,6 +760,17 @@
     // input 컨트롤
     const _input = $('#txt-exam-num');
     _input.on('keyup', questionCountCheck);
+    _input.on('keydown', numberCheck);
+    function numberCheck() {
+        let inputNum = parseInt($("#txt-exam-num").val());
+
+        // 음수이거나 숫자가 아닐 때,
+        if (inputNum <=0 || !Number.isInteger(Number($("#txt-exam-num").val()))) {
+            $("#txt-exam-num").css("border-color", "#ff3b00");
+            $("#txt-exam-num").val("");
+            return false;
+        }
+    }
     function questionCountCheck() {
         $("#btn-num-group button").removeClass("active");
         $("#questionCntMessage").text("");
@@ -763,12 +780,14 @@
         let maxNum = 30;
         let inputNum = parseInt($("#txt-exam-num").val());
 
-        // 음수이거나 소수점
-        if (inputNum <=0 || !Number.isInteger(Number($("#txt-exam-num").val()))) {
-            $("#txt-exam-num").css("border-color", "#ff3b00");
-            $("#txt-exam-num").val("");
-            return false;
-        }
+        // // 음수이거나 숫자가 아닐 때,
+        // if (inputNum <=0 || !Number.isInteger(Number($("#txt-exam-num").val()))) {
+        //     $("#txt-exam-num").css("border-color", "#ff3b00");
+        //     $("#txt-exam-num").val("");
+        //     return false;
+        // }
+
+
 
         if (inputNum > maxNum) {
             alert("문항은 최대 " + maxNum + "문제 까지만 출제 가능합니다.");
@@ -807,7 +826,6 @@
             inputCheck();
         }
     }
-
     // 문제 수 input 에 따라서 난이도별 문제 수 계산하기. 최상최하 포함해도 동작됨.
     function inputCheck() {
         const _input = $('#txt-exam-num');
@@ -822,10 +840,15 @@
                 const stepLevel = button.data('level');
                 button.text(`${stepLevel}${Math.floor(_input.val()/selectedCnt)}`);
 
+
                 //팝업에도 추가
                 const popInput = $('#range-wrap').find(`input[type=number][data-step=${step}]`);
                 const stepValue = Math.floor(_input.val() / selectedCnt);
                 popInput.val(stepValue);
+
+                //data-count 에도 추가
+                button.data('count',Math.floor(_input.val() / selectedCnt));
+                button.attr('data-count', Math.floor(_input.val() / selectedCnt));
 
 
             });
@@ -852,12 +875,405 @@
                 button.text(`${stepLevel}${baseValue + additionalValue}`);
                 // 팝업에도 반영
                 popInput.val(baseValue + additionalValue);
+                button.data('count',(baseValue + additionalValue));
+                button.attr('data-count', (baseValue + additionalValue));
             });
         }
 
     }
 
-    // 난이도별 문제 수 상세조정
+    // 난이도별 문제 수 팝업
+
+    //기존 문제 총합
+    let initTotal;
+    //계산될 총합
+    const popSum = $('#range-total');
+
+    const setBtn = $('i.setting');
+    setBtn.on('click', initiate);
+
+    // 시작, 초기화 함수
+    function initiate() {
+        //총합 초기화
+        initTotal = Number($('#total-num-val').text());
+        popSum.text(initTotal);
+        inputCheck();
+        $('#savePop').removeClass('cursorDefault_1'); // 커서 default 로 바꿈
+        $('#savePop').removeClass('disabled');
+        popSum.closest('div#range-wrap').find('.range').removeClass('fail');
+    }
+
+    const popInput = $('#range-wrap').find(`input[type=number]`);
+    popInput.on('keyup',popCheck);
+
+    function popCheck() {
+        const popInput = $('#range-wrap').find(`input[type=number]`);
+
+        //validation
+        popInput.each(function() {
+            let value = $(this).val();
+            value = value.replace(/\D/g, ''); // 숫자만 남기기
+            if (value > 30) {
+                value = 30;
+            }
+            if (value < 0) {
+                value = '';
+            }
+            $(this).val(value);
+        });
+
+
+        //합계 확인
+        let sum = 0;
+        popInput.each(function() {
+            sum += Number($(this).val());
+        })
+        popSum.text(sum);
+        if(Number(popSum.text()) !== initTotal) {
+            popSum.closest('div#range-wrap').find('.range').addClass('fail');
+        } else {
+            popSum.closest('div#range-wrap').find('.range').removeClass('fail');
+        }
+
+        //저장 버튼 UI
+        if(popSum.closest('div#range-wrap').find('.range').hasClass('fail')){ //fail 이 있을 때,
+            const savePop = $('#savePop').addClass('cursorDefault_1'); // 커서 default 로 바꿈
+            $('#savePop').addClass('disabled');
+        } else { // fail 클래스 없을 때
+            const savePop = $('#savePop').removeClass('cursorDefault_1'); // 커서 default 로 바꿈
+            $('#savePop').removeClass('disabled');
+        }
+
+    }
+    // 초기화 버튼
+    const resetBtn = $('#resetBtn');
+    resetBtn.on('click', initiate);
+    // 저장 버튼
+    const saveBtn = $('#savePop');
+    saveBtn.on('click', saveFunc);
+    function saveFunc() {
+        popInput.each(function(){
+            const step = $(this).data('step');
+            const value = $(this).val();
+            const button = $('#level-distribution-btn-group').find(`span[data-step=${step}]`);
+            const level = button.data('level');
+            button.text(`${level}(${value})`);
+            button.data('count',`${value}`);
+            button.attr('data-count', `${value}`);
+            if(!popSum.closest('div#range-wrap').find('.range').hasClass('fail')){
+                popClose();
+            }
+        });
+    }
+    //팝업닫기
+    function popClose() {
+        // this를 현재 호출된 요소로 참조
+        let _this = this;
+
+        // .pop-wrap 클래스를 가진 요소를 숨김
+        const popWrap = document.querySelector(".pop-wrap");
+        if (popWrap) {
+            popWrap.style.display = "none";
+        }
+
+        // <html> 요소의 overflow 속성을 auto로 설정
+        const htmlElement = document.documentElement; // <html> 요소를 가져옴
+        htmlElement.style.overflow = "auto";
+
+        // _dim 요소를 점점 사라지게 처리
+        const dim = document.querySelector(".dim"); // _dim은 가정된 클래스 이름
+        if (dim) {
+            dim.style.transition = "opacity 0.5s"; // 서서히 사라지는 효과 추가
+            dim.style.opacity = "0";
+            // opacity가 0이 되면 display: none 처리
+            setTimeout(() => {
+                dim.style.display = "none";
+            }, 500); // 애니메이션 지속 시간과 맞춤
+        }
+    }
+
+
+
+
+    //대망의 문제 수 확인
+    $('#test').on('click', finalCheck);
+
+    async function finalCheck() {
+
+        //모든 topic 가져오기
+        let minorClassification = [];
+        let topicId = {};
+        const topicCheckBoxes = $('#chapter-tree').find(`input[type=checkbox].depth04`).filter(':checked');
+        console.log(topicCheckBoxes);
+        topicCheckBoxes.each(function() {
+            const topicChapterId = $(this).prop('id');
+            topicId = { "topic" : topicChapterId};
+            minorClassification.push(topicId);
+        });
+        console.log(minorClassification);
+
+        //난이도
+        let levelCnt = [0,30,30,30,0];
+        // const levelContainer = $('#level-distribution-btn-group').find('span');
+        // levelContainer.each(function() {
+        //    const value = $(this).data('count');
+        //    levelCnt.push(value);
+        // });
+        console.log(levelCnt);
+        //평가 영역
+        let activityCategoryList = [];
+        const evaluationList = $('#evaluationList').find('button');
+        evaluationList.each(function() {
+           if($(this).hasClass('active')){
+               activityCategoryList.push($(this).data('domainId'));
+           }
+        });
+        console.log(activityCategoryList);
+        //객관식, 주관식
+        let questionForm = '';
+        if ($('#type-btn-group').find('button[data-type="multiple"]').hasClass('active')) {
+            questionForm = 'multiple';
+        }
+        if ($('#type-btn-group').find('button[data-type="subjective"]').hasClass('active')) {
+            if (questionForm === '') {
+                questionForm = 'subjective';
+            } else {
+                questionForm += ',subjective';
+            }
+        }
+        console.log(questionForm);
+
+
+        let requestBody = {};
+        requestBody.minorClassification = minorClassification;
+        requestBody.levelCnt = levelCnt;
+        requestBody.questionForm = questionForm;
+        requestBody.activityCategoryList = activityCategoryList;
+
+        console.log(requestBody);
+        if(requestBody.minorClassification.length !== 0){
+            try{
+                const response = await fetch('/bridge/t-sherpa/item-img/chapters/item-list', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if(!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                //이제 여기서 처리해줘야 함
+                const itemList = data.itemList;
+                let low = 0;
+                let middle = 0;
+                let high = 0;
+                itemList.forEach(element =>{
+                    switch (element.difficultyCode) {
+                        case '02':
+                            low += 1;
+                            break;
+                        case '03':
+                            middle += 1;
+                            break;
+                        case '04':
+                            high += 1;
+                            break;
+                    }
+                });
+                console.log(data);
+                console.log(low); // response 중 하 난이도의 개수
+                console.log(middle); // response 중 중 난이도의 개수
+                console.log(high); // response 중 상 난이도의 개수
+
+                const requestLow = $('#level-distribution-btn-group').find(`span[data-step=2]`);
+                const requestMiddle = $('#level-distribution-btn-group').find(`span[data-step=3]`);
+                const requestHigh = $('#level-distribution-btn-group').find(`span[data-step=4]`);
+
+                console.log(requestLow.data('count')); //내가 실제로 요청한 하 난이도의 개수
+                console.log(requestMiddle.data('count')); //내가 실제로 요청한 중 난이도의 개수
+                console.log(requestHigh.data('count')); //내가 실제로 요청한 상 난이도의 개수
+
+                const lowCheck = low >= requestLow.data('count');
+                const middleCheck = middle >= requestMiddle.data('count');
+                const highCheck = high >= requestHigh.data('count');
+
+                console.log(lowCheck); // 응답 >= 요청인지(하)
+                console.log(middleCheck); // 응답 >= 요청인지(하)
+                console.log(highCheck); // 응답 >= 요청인지(하)
+
+                // 상, 중, 하 모두 request 보다 response 가 더 크다면, response 중 request 개수만큼 가져와서, 넘기기
+                if(lowCheck && middleCheck && highCheck){
+                    console.log("여기는?");
+                    let itemArr = [];
+                    let lowCnt = 0;
+                    let middleCnt = 0;
+                    let highCnt = 0;
+                    itemList.forEach(item => {
+                       if(requestLow.data('count') > lowCnt && item.difficultyCode === '02'){
+                           lowCnt += 1;
+                           itemArr.push(item.itemId);
+                           console.log("여기는 탐?");
+                       }
+                        if(requestMiddle.data('count') > middleCnt && item.difficultyCode === '03'){
+                            middleCnt += 1;
+                            itemArr.push(item.itemId);
+                        }
+                        if(requestHigh.data('count') > highCnt && item.difficultyCode === '04'){
+                            highCnt += 1;
+                            itemArr.push(item.itemId);
+                        }
+                    });
+                    console.log(itemArr);
+                } else {
+                    let lowDiff = low - requestLow.data('count');
+                    let middleDiff = middle - requestMiddle.data('count');
+                    let highDiff = high - requestHigh.data('count');
+                    console.log(lowDiff);
+                    console.log(middleDiff);
+                    console.log(highDiff);
+                    let minusTotal = 0;
+                    if(lowDiff < 0) {
+                        minusTotal += lowDiff;
+                    }
+                    if(middleDiff < 0){
+                        minusTotal += middleDiff;
+                    }
+                    if(highDiff < 0) {
+                        minusTotal += highDiff;
+                    }
+                    console.log(minusTotal);
+                    // minusTotal 1씩 더해야됨
+                    let itemArr = [];
+                    let lowArr = [];
+                    let middleArr = [];
+                    let highArr = [];
+                    itemList.forEach(item =>{
+                       if(item.difficultyCode === '02'){
+                           lowArr.push(item);
+                       }
+                       if(item.difficultyCode === '03'){
+                            middleArr.push(item);
+                       }
+                       if(item.difficultyCode === '04'){
+                            highArr.push(item);
+                       }
+                    });
+                    if(lowDiff<0){
+                        lowArr.forEach(item =>{
+                            itemArr.push(item.itemId);
+                        });
+                    } else {
+                        for(let i=0 ; i<requestLow.data('count');i++){
+                            itemArr.push(lowArr[i].itemId);
+                        }
+                    }
+                    if(middleDiff<0){
+                        middleArr.forEach(item =>{
+                            itemArr.push(item.itemId);
+                        });
+                    } else {
+                        for(let i=0 ; i<requestMiddle.data('count');i++){
+                            itemArr.push(middleArr[i].itemId);
+                        }
+                    }
+                    if(highDiff<0){
+                        highArr.forEach(item=>{
+                            itemArr.push(item.itemId);
+                        });
+                    } else {
+                        for(let i=0 ; i<requestHigh.data('count');i++){
+                            itemArr.push(highArr[i].itemId);
+                        }
+                    }
+                    console.log(lowArr);
+                    console.log(middleArr);
+                    console.log(highArr);
+
+                    const difficulties = [
+                        { name: 'low', diff: lowDiff, arr: lowArr, count: 0},
+                        { name: 'middle', diff: middleDiff, arr: middleArr, count: 0},
+                        { name: 'high', diff: highDiff, arr: highArr, count: 0}
+                    ]
+
+                    //기합짜세 부족분 채우기
+                    while(minusTotal < 0) {
+                        let flag = false;
+
+                        for(let deficit of difficulties){
+                            while(deficit.diff < 0){ // low, middle, high 중 부족한 경우
+                                let filled = false;
+                                for(let surplus of difficulties){
+                                    if(surplus.diff > 0 && surplus.arr.length > 0){
+                                        const item = surplus.arr.pop();
+                                        if(item){
+                                            itemArr.push(item.itemId);
+
+                                            deficit.diff++; //해당 부족 부분 한 개 없어짐
+                                            minusTotal++; // 총합도 한 개 없어짐
+                                            surplus.count++;
+                                            surplus.diff--; // 채워준 부분은 잉여부분이 한 개 없어짐
+
+                                            filled = true;
+                                            flag = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if(!filled){ // 못 채우면 그만
+                                    break;
+                                }
+                            }
+                        }
+                        if(!flag){ // 모두 채웠거나 잉여 문항이 없을 때
+                            break;
+                        }
+                    }
+                    console.log("minusTotal:", minusTotal);
+                    console.log("lowDiff:", difficulties[0].diff);
+                    console.log("middleDiff:", difficulties[1].diff);
+                    console.log("highDiff:", difficulties[2].diff);
+                    console.log("itemArr:", itemArr);
+                    console.log("lowCount", difficulties[0].count);
+                    console.log("MiddleCount", difficulties[1].count);
+                    console.log("highCount", difficulties[2].count);
+                    let finalLow = 0;
+                    let finalMiddle = 0;
+                    let finalHigh = 0;
+                    if(difficulties[0].count === 0){
+                        finalLow = low; //실제로 온 값
+                    } else {
+                        finalLow = requestLow.data('count') + difficulties[0].count;
+                    }
+                    if(difficulties[1].count === 0){
+                        finalMiddle = middle;
+                    } else {
+                        finalMiddle = requestMiddle.data('count') + difficulties[1].count;
+                    }
+                    if(difficulties[2].count === 0){
+                        finalHigh = high;
+                    } else {
+                        finalHigh = requestHigh.data('count') + difficulties[2].count;
+                    }
+
+                    console.log("finalLow:", finalLow);
+                    console.log("finalMiddle:", finalMiddle);
+                    console.log("finalHigh:", finalHigh);
+
+                }
+
+
+            } catch(e){
+                console.error('Error fetching data:', e);
+            }
+        }
+
+
+    }
+
+
 
 </script>
 </body>
