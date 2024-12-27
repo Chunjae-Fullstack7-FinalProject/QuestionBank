@@ -56,7 +56,7 @@ $(function () {
 
   tabBtn.on("click", tabUI);
 
-  // table drag
+  // // table drag
   $("#table-1").sortable({
     handle: ".dragHandle",
   });
@@ -64,21 +64,21 @@ $(function () {
 
   $(function () {
     $(".depth-01")
-      .sortable({
-        items: ".col",
-        handle: ".drag-type01",
-        cancel: ".drag-type02",
-      })
-      .disableSelection();
+        .sortable({
+          items: ".col",
+          handle: ".drag-type01",
+          cancel: ".drag-type02",
+        })
+        .disableSelection();
 
     $(".drag-type01")
-      .sortable({
-        items: ".col",
-        handle: ".drag-type02",
-        connectWith: ".drag-type01",
-        cancel: "",
-      })
-      .disableSelection();
+        .sortable({
+          items: ".col",
+          handle: ".drag-type02",
+          connectWith: ".drag-type01",
+          cancel: "",
+        })
+        .disableSelection();
   });
 
   // paging
@@ -186,7 +186,7 @@ $(function () {
   let _dim = $(".dim");
   let _html = $("html , body");
   let popBtn = $(".pop-btn");
-  let closePop = $(".pop-close, .ui-close");
+  let closePop = $(".pop-close");
 
   function popFunc() {
     let _this = $(this);

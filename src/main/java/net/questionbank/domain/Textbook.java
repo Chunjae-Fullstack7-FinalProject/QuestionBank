@@ -1,13 +1,14 @@
 package net.questionbank.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
-@Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@ToString
 public class Textbook {
     @Id
     private int textbookId;

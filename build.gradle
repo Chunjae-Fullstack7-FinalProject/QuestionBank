@@ -84,6 +84,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     //reactor-netty
     implementation 'io.projectreactor.netty:reactor-netty'
+
+    // Apache Batik for SVG to PNG conversion
+    implementation 'org.apache.xmlgraphics:batik-transcoder:1.16'
+    implementation 'org.apache.xmlgraphics:batik-codec:1.16'
+
+    implementation 'com.itextpdf:itextpdf:5.5.13.3'
+    implementation 'com.itextpdf.tool:xmlworker:5.5.13.3'
+    implementation 'com.itextpdf:pdfa:7.2.3'
 }
 
 sourceSets {
