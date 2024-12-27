@@ -56,11 +56,18 @@ public class TestController {
     }
   
     @GetMapping("/step1")
-    public String step1(Model model, SubjectRequestDTO subjectRequestDTO) {
-        subjectRequestDTO.setSubjectId("1154");
+    public String step1(Model model, SubjectRequestDTO subjectRequestDTO, HttpSession session) {
+        //여기 치고 들어오면 팅궈야 함.
+        TextBookApiDTO textbookDetailDTO = (TextBookApiDTO)session.getAttribute("textbookDetailDTO");
+        if (textbookDetailDTO == null) {
+            throw new CustomRuntimeException("textbook not found");
+        }
+        String subjectId = textbookDetailDTO.getSubjectId().toString();
+        subjectRequestDTO.setSubjectId(subjectId);
         List<LargeDTO> largeList = testService.step1(subjectRequestDTO);
         model.addAttribute("largeList", largeList);
-        model.addAttribute("subjectId", "1154");
+        model.addAttribute("subjectId", subjectId);
+        model.addAttribute("textbookDetailDTO", textbookDetailDTO);
         return "test/step1";
     }
 
