@@ -40,8 +40,6 @@
                 <li class="active">STEP 1 단원선택</li>
                 <li>STEP 2 문항 편집</li>
                 <li>STEP 3 시험지 저장</li>
-                <li id="test">test</li>
-
             </ul>
             <button type="button" class="del-btn"></button>
         </div>
@@ -105,7 +103,7 @@
                                                                 <!-- 토픽 -->
                                                                 <div th:each="topic : ${small.topicList}">
                                                                     <div class="check-group">
-                                                                        <input type="checkbox" th:id="${topic.topicChapterId}" class="que-allCheck depth04" data-depth="4">
+                                                                        <input type="checkbox" th:data-large="${large.largeChapterId}" th:data-middle="${medium.mediumChapterId}" th:data-small="${small.smallChapterId}" th:id="${topic.topicChapterId}" class="que-allCheck depth04" data-depth="4">
                                                                         <label th:for="${topic.topicChapterId}">
                                                                             <button type="button" class="active" th:text="${topic.topicChapterName}">토픽 이름</button>
                                                                             <em th:id="${topic.topicChapterId}" style="color:#5670dc;">(0)</em>
@@ -225,7 +223,7 @@
         </div>
         <div class="step-btn-wrap">
             <button type="button" class="btn-step">출제 방법 선택</button>
-            <button type="button" class="btn-step next pop-btn" data-pop="que-pop">STEP2 문항 편집</button>
+            <button type="button" class="btn-step next" id="nextBtn" data-pop="que-pop">STEP2 문항 편집</button>
         </div>
 
 
@@ -319,8 +317,8 @@
                 <span class="txt">해당 문제 구성으로 출제하시겠습니까?</span>
             </div>
             <div class="pop-footer">
-                <button>취소</button>
-                <button class="pop-close">확인</button>
+                <button class="pop-close">취소</button>
+                <button class="pop-close" id="nextBtn2">확인</button>
             </div>
         </div>
     </div>
@@ -1007,18 +1005,30 @@
 
 
     //대망의 문제 수 확인
-    $('#test').on('click', finalCheck);
+    $('#nextBtn').on('click', finalCheck); //여기 수정해야 함.
 
     async function finalCheck() {
 
         //모든 topic 가져오기
         let minorClassification = [];
         let topicId = {};
+        let smallId = {};
+        let middleId = {};
+        let largeId = {};
         const topicCheckBoxes = $('#chapter-tree').find(`input[type=checkbox].depth04`).filter(':checked');
-        console.log(topicCheckBoxes);
         topicCheckBoxes.each(function() {
             const topicChapterId = $(this).prop('id');
-            topicId = { "topic" : topicChapterId};
+            const smallChapterId = $(this).data('small');
+            const middleChapterId = $(this).data('middle');
+            const largeChapterId = $(this).data('large');
+
+            topicId = {
+                "subject" : subjectId,
+                "large" : largeChapterId,
+                "medium" : middleChapterId,
+                "small" : smallChapterId,
+                "topic" : topicChapterId
+            };
             minorClassification.push(topicId);
         });
         console.log(minorClassification);
@@ -1051,9 +1061,9 @@
         }
         if ($('#type-btn-group').find('button[data-type="subjective"]').hasClass('active')) {
             if (questionForm === '') {
-                questionForm = 'subjective';
+                questionForm = 'subjective,descriptive';
             } else {
-                questionForm += ',subjective';
+                questionForm += ',subjective,descriptive';
             }
         }
         console.log(questionForm);
@@ -1130,7 +1140,6 @@
                        if(requestLow.data('count') > lowCnt && item.difficultyCode === '02'){
                            lowCnt += 1;
                            itemArr.push(item.itemId);
-                           console.log("여기는 탐?");
                        }
                         if(requestMiddle.data('count') > middleCnt && item.difficultyCode === '03'){
                             middleCnt += 1;
@@ -1142,7 +1151,24 @@
                         }
                     });
                     console.log(itemArr);
+                    const queryParams = itemArr.map(id => `questionIds=${encodeURIComponent(id)}`).join('&');
+                    location.href = `/customExam/step2?${queryParams}`;
+
                 } else {
+                    //팝업
+                    let _dim = $(".dim");
+                    let _html = $("html , body");
+
+                    let _this = $(this);
+                    let popData = _this.data("pop");
+
+                    _html.css("overflow", "hidden");
+                    _dim.fadeIn();
+
+                    $(".pop-wrap[data-pop='" + popData + "']").show();
+
+
+
                     let lowDiff = low - requestLow.data('count');
                     let middleDiff = middle - requestMiddle.data('count');
                     let highDiff = high - requestHigh.data('count');
@@ -1281,6 +1307,12 @@
                     let displayMiddle = $('#displayMiddle').text(finalMiddle);
                     let displayHigh = $('#displayHigh').text(finalHigh);
                     let displayTotal = $('#displayTotal').text(finalLow + finalMiddle + finalHigh);
+                    //확인 버튼
+                    $('#nextBtn2').on('click', function() {
+                        const queryParams = itemArr.map(id => `questionIds=${encodeURIComponent(id)}`).join('&');
+                        location.href = `/customExam/step2?${queryParams}`;
+                    });
+
                 }
 
 
