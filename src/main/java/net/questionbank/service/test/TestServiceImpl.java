@@ -133,6 +133,22 @@ public class TestServiceImpl implements TestServiceIf {
 
         return new String[0];
     }
+
+    @Override
+    public List<Long> getPresetExamItemList(String examId) {
+        try{
+            QuestionResponseDTO<QuestionPresetApiDTO> questionResponseDTO = getPresetExamQuestionsFromApi(new String[]{examId}).block();
+            if(questionResponseDTO == null) {
+                throw new CustomRuntimeException("세팅지 문제 조회 실패 : 조회된 문제가 없음");
+            }
+            List<QuestionPresetApiDTO> itemList = questionResponseDTO.getItemList();
+            return  itemList.stream().map(QuestionImageApiDTO::getItemId).toList();
+        }catch(Exception e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
     private Mono<QuestionResponseDTO<QuestionPresetApiDTO>> getPresetExamQuestionsFromApi(String [] examIds) {
         QuestionPresetRequestDTO requestDTO = QuestionPresetRequestDTO.builder()
                 .examIdList(stringArrayToLongList(examIds))
