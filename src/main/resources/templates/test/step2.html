@@ -148,6 +148,19 @@
 								</div>
 							</div>
 							<div class="contents">
+								<div class="cnt-top">
+									<span class="title" id="similarTitle"> </span>
+									<div class="right-area">
+										<div class="select-wrap">
+											<button type="button" class="similarSelect select-btn">난이도 전체</button>
+											<ul class="select-list">
+												<li><a href="javascript:;" >상</a></li>
+												<li><a href="javascript:;" >중</a></li>
+												<li><a href="javascript:;" >하</a></li>
+											</ul>
+										</div>
+									</div>
+								</div>
 								<div class="no-data view-que-list">
 									<p>
 										문제 목록에서 <i class="ic-no-data"></i> 유사문제 버튼을 선택해주세요.
@@ -278,7 +291,6 @@
 
 </div>
 <script th:inline="javascript">
-
 	//문항id 배열로 티셀파 문항 리스트 조회(img) 요청
 	const questionIds = [[${questionIds}]];
 	const API_BASE_URL = '/bridge/t-sherpa'; // 프록시 서버 경로
@@ -449,6 +461,42 @@
 			const status = e.target.textContent.trim();
 			if (["단원순", "난이도순", "문제 형태순"].includes(status)) {
 				sortQuestions(status);
+			}
+		})
+	})
+
+	//
+	function sortSimilarSelectBox(status){
+		console.log(status);
+		const itemData = document.getElementById("itemNum");
+		//console.log(itemData);
+		const itemId = itemData.textContent;
+		//console.log("data-item-id:", itemId);
+		let sortSimilarList = [...similarQuestions];
+		//console.log(sortSimilarList);
+		switch (status){
+			case "상":
+				sortSimilarList = Array.prototype.filter.call(sortSimilarList, (s) => s.difficultyName === "상");
+				console.log(sortSimilarList);
+				break;
+			case "중":
+				sortSimilarList = Array.prototype.filter.call(sortSimilarList, (s) => s.difficultyName === "중");
+				console.log(sortSimilarList);
+				break;
+			case "하":
+				sortSimilarList = Array.prototype.filter.call(sortSimilarList, (s) => s.difficultyName === "하");
+				console.log(sortSimilarList);
+				break;
+		}
+		renderSimilar(sortSimilarList, itemId);
+	}
+
+	//유사 문제(셀렉트박스) 이벤트 리스터
+	document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
+		button.addEventListener("click", (e) => {
+			const status = e.target.textContent.trim();
+			if (["상", "중", "하"].includes(status)) {
+				sortSimilarSelectBox(status);
 			}
 		})
 	})
@@ -700,39 +748,34 @@
 		});
 		container.insertAdjacentHTML("beforeend", questionHTML);
 		$(document).trigger("renderSummaryComplete");
+
 	}
 
 	//유사 문항 탭
 	function renderSimilar(similarQuestions, index, itemId){
-		const container = document.querySelector(".no-data");
-		if (!similarQuestions || similarQuestions.length === 0) {
-			console.error("유사 항목 없음");
-			container.style.display = "block";
-			return `<div class="no-data view-que-list">
-						<p>유사 항목이 없습니다.</p>
-					</div>`;
-		}
-		// UI 표시
-		document.querySelector(".no-data").style.display = "none";
-		document.querySelector(".data").style.display = "none";
+		const itemNum = index;
+		//유사 항목 없을 때
+		// if (!similarQuestions || similarQuestions.length === 0) {
+		// 	console.error("유사 항목 없음");
+		// 	return `<div class="no-data view-que-list">
+		// 				<p>유사 항목이 없습니다.</p>
+		// 			</div>`;
+		// }
+		const container = document.querySelector(".data");
 		container.style.display = "block";
+		document.querySelector(".no-data").style.display = "none";
+		document.querySelector(".select-list").style.display = "none";
 
+		//문제 번호 노출
+		const title = document.getElementById("similarTitle");
+		if (title) {
+			title.textContent = `${index}번 유사 문제`;
+		}
+
+		//유사 문항 노출
 		container.innerHTML = "";
 		let questionHTML = "";
 		questionHTML += `
-				<div class ="cnt-top">
-					<span class="title">`+index+`번 유사 문제</span>
-					<div class="right-area">
-						<div class="select-wrap">
-							<button type="button" class="select-btn">난이도 전체</button>
-							<ul class="select-list">
-								<li><a href="javascript:;">상</a></li>
-								<li><a href="javascript:;">중</a></li>
-								<li><a href="javascript:;">하</a></li>
-							</ul>
-						</div>
-					</div>
-				</div>
 				<div class="view-que-list scroll-inner">
 			`
 		let renderedPassageIds = new Set();
@@ -784,6 +827,7 @@
 
 			questionHTML += `
 				<div class="sort-group">
+					<span id="itemNum" hidden>${itemNum}</span>
 					<div class="view-que-box">
 						<div class="que-top">
 							<div class="title">
