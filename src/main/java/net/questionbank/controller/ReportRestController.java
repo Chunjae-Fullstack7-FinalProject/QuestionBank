@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import net.questionbank.domain.Report;
-import net.questionbank.dto.MemberLoginDTO;
 import net.questionbank.dto.report.ReportRegisterDTO;
 import net.questionbank.service.report.ReportServiceIf;
 import net.questionbank.util.ApiResponseUtil;

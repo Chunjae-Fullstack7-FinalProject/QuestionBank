@@ -85,12 +85,13 @@ dependencies {
     //reactor-netty
     implementation 'io.projectreactor.netty:reactor-netty'
 
-//    // https://mvnrepository.com/artifact/com.itextpdf/itextpdf
-//    implementation 'com.itextpdf:itextpdf:5.5.13.4'
+    // Apache Batik for SVG to PNG conversion
+    implementation 'org.apache.xmlgraphics:batik-transcoder:1.16'
+    implementation 'org.apache.xmlgraphics:batik-codec:1.16'
 
-//    // https://mvnrepository.com/artifact/com.aspose/aspose-pdf
-//    implementation 'com.aspose:aspose-pdf:24.11'
-
+    implementation 'com.itextpdf:itextpdf:5.5.13.3'
+    implementation 'com.itextpdf.tool:xmlworker:5.5.13.3'
+    implementation 'com.itextpdf:pdfa:7.2.3'
 }
 
 sourceSets {

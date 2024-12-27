@@ -1,12 +1,10 @@
 package net.questionbank.dto.test;
 
 import lombok.*;
-import net.questionbank.domain.Member;
-import net.questionbank.domain.Textbook;
-import net.questionbank.dto.question.QuestionApiDTO;
+import lombok.extern.log4j.Log4j2;
+import net.questionbank.dto.question.QuestionImageApiDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,10 +13,12 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TempTestDTO {
+@Log4j2
+public class TempTestImageDTO {
     private TextBookApiDTO textbookApiDTO;
-    private List<QuestionApiDTO> questions;
+    private List<QuestionImageApiDTO> questions;
     private Map<String, Integer> code;
+    private Map<String,List<String>> imageList;
 
     public Map<String, Integer> getCode() {
         if(code != null) { return code; }
@@ -31,9 +31,9 @@ public class TempTestDTO {
             }
 
 //            else if (question.getQuestionFormCode() >= '60' && question.getQuestionFormCode() <= '99') {
-//                formCode = "11";
+//                formCode = "";
 //            } else {
-//                formCode = "11";// 다른 형식이 있다면 여기에 추가
+//                formCode = "";// 다른 형식이 있다면 여기에 추가
 //            }
 
             this.code.put(formCode, this.code.getOrDefault(formCode, 0) + 1);
