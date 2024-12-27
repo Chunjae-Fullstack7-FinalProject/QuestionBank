@@ -45,16 +45,16 @@
   margin-bottom: 15px;
   padding: 0 55px 0 0;
 }
-#q-preview .pop-inner .scroll-inner .example-area:nth-child(2n)::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, 0%);
-  width: 1px;
-  height: 100%;
-  background-color: #ccc;
-}
+/*#q-preview .pop-inner .scroll-inner .example-area:nth-child(2n)::after {*/
+/*  content: "";*/
+/*  position: absolute;*/
+/*  top: 0;*/
+/*  left: 50%;*/
+/*  transform: translate(-50%, 0%);*/
+/*  width: 1px;*/
+/*  height: 100%;*/
+/*  background-color: #ccc;*/
+/*}*/
 #q-preview .numbering {
   font-size: 20px;
   color: black;
@@ -66,8 +66,17 @@
 }
 #q-preview .item-question {
   display: flex;
-  align-items: center;
+  /*align-items: center;*/
   margin-bottom: 15px;
+}
+#q-preview .passage-area.item-question {
+  display: flex;
+  flex-direction: column;
+  /*align-items: center;*/
+  margin-bottom: 15px;
+}
+#q-preview .passage-area.item-question span{
+  font-size: 20px;
 }
 #q-preview .choice-contanier .answer-input {
   margin-bottom: 10px;
@@ -686,6 +695,54 @@ l .btn-step.next.done {
     margin: 0 20px;
   }
 }
+.pop-wrap.prev-type .pop-inner .view-box .scroll-inner .layout-wrap::after {
+  content: "";
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  width: 1px;
+  height: 80%;
+  background-color: #ccc;
+}
+.pop-wrap.prev-type .pop-inner .view-box .layout-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.pop-wrap.prev-type .pop-inner .view-box .table-wrap .tbl-view table {
+  width: 100%;
+}
+.pop-wrap.prev-type .pop-inner .view-box .table-wrap .tbl-view table th, .pop-wrap.prev-type .pop-inner .view-box .table-wrap .tbl-view table td {
+  padding: 10px;
+  text-align: center;
+}
+.pop-wrap.prev-type .pop-inner .view-box .table-wrap .tbl-view table thead {
+  background-color: #939393;
+  height: 70px;
+  color: #fff;
+}
+.pop-wrap.prev-type .pop-inner .view-box .table-wrap .tbl-view table thead th {
+  border: 1px solid #fff;
+}
+.pop-wrap.prev-type .pop-inner .view-box .table-wrap .tbl-view table tbody {
+  height: 50px;
+}
+.pop-wrap.prev-type .pop-inner .view-box .table-wrap .tbl-view table tbody td {
+  border: 1px solid #e0e0e0;
+  font-family: "맑은 고딕", "Malgun Gothic", Dotum;
+  font-size: 10px;
+  font-weight: 600;
+}
+.pop-wrap.prev-type .pop-inner .view-box .table-wrap .tbl-view table tbody td:first-child {
+  border-left: 0;
+}
+.pop-wrap.prev-type .pop-inner .view-box .table-wrap .tbl-view table tbody .tit {
+  text-align: left;
+}
+.pop-wrap.prev-type .pop-inner .view-box .table-wrap .tbl-view table tbody td:last-child {
+  border-right: 0;
+}
 .pop-wrap.prev-type .pop-inner .view-box .scroll-inner {
   height: 665px;
 }
@@ -921,16 +978,19 @@ input[type=checkbox]:checked + label::before {
   box-sizing: border-box;
 }
 .tab-list-type01 .table span:nth-child(1) {
-  width: 55%;
+  width: 8%;
 }
 .tab-list-type01 .table span:nth-child(2) {
-  width: 10%;
+  width: 44%;
 }
 .tab-list-type01 .table span:nth-child(3) {
-  width: 10%;
+  width: 8%;
 }
 .tab-list-type01 .table span:nth-child(4) {
-  width: 25%;
+  width: 8%;
+}
+.tab-list-type01 .table span:nth-child(5) {
+  width: 32%;
 }
 .tab-list-type01 .table .fix-head {
   border-bottom: 1px solid #e0e0e0;
@@ -992,7 +1052,41 @@ input[type=checkbox]:checked + label::before {
   width: 100%;
   font-weight: 400;
 }
-
+.tab-menu-type02 {
+  padding: 20px 40px 0;
+  width: 100%;
+}
+.tab-menu-type02 li {
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-right: 0;
+  display: flex;
+  flex: 1;
+  border-radius: 8px;
+  height: 45px;
+}
+.tab-menu-type02 li:first-child {
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+.tab-menu-type02 li:nth-child(2) {
+  border-radius: 0;
+}
+.tab-menu-type02 li:nth-child(3) {
+  border-radius: 0;
+}
+.tab-menu-type02 li:last-child {
+  border-right: 1px solid #e0e0e0;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+.tab-menu-type02 li.active a {
+  color: #5670dc;
+}
+.tab-menu-type02 li a {
+  width: 100%;
+  font-weight: 500;
+}
 /* 단원 아코디언 */
 .unit-acc-wrap {
   border: 1px solid #e0e0e0;
@@ -1444,7 +1538,7 @@ input[type=checkbox]:checked + label::before {
   align-items: center;
   border-bottom: 1px solid #e0e0e0;
 }
-.full-pop-que .full-pop-wrap .view-box .view-top .paper-info span {
+.full-pop-que .full-pop-wrap .view-box .view-top .paper-info .subject{
   font-size: 22px;
   font-weight: 800;
   color: #5670dc;
