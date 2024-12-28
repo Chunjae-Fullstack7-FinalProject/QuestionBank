@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
+@Table(name="subject")
 public class Subject {
     @Id
     @Column(nullable = false, columnDefinition = "CHAR(2)")

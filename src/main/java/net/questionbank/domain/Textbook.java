@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @ToString
+@Table(name="textbook")
 public class Textbook {
     @Id
     private int textbookId;
