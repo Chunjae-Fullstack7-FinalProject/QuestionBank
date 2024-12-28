@@ -853,7 +853,7 @@
 							</div>
 							<div class="que-bottom">
 								<div class="btn-wrap">
-									<button type="button" class="btn-default" onclick="executeSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId})">
+									<button type="button" class="btn-default" onclick="executeSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId}, ${itemNum})">
 										<i class="add-type02"></i>추가
 									</button>
 								</div>
@@ -870,7 +870,7 @@
 		container.insertAdjacentHTML("beforeend", questionHTML);
 	}
 
-	function addQuestion(newItemData, targetItemId) {
+	function addQuestion(newItemData, targetItemId, index) {
 		const newItem = JSON.parse(decodeURIComponent(newItemData)); // JSON 파싱
 		console.log("추가할 데이터:", newItem);
 
@@ -921,6 +921,11 @@
 			questions.splice(targetIndex + 1, 0, newItem);
 			console.log("업데이트된 questions 배열 (단일 문항):", questions);
 		}
+		console.log(newItem.itemId);
+		console.log(newItem.passageId);
+		console.log(targetItemId);
+		console.log(index);
+		hideSimilarQuestions(newItem.itemId, newItem.passageId, targetItemId, index);
 	}
 
 	function addAllQuestion(passageId, targetItemId) {
@@ -1158,8 +1163,6 @@
 	}
 
 	function getLevelColor(difficultyName){
-		console.log(difficultyName);
-		//const color = document.getElementById("difficultyNameColor");
 		switch (difficultyName){
 			case "하":
 				return "purple";
@@ -1196,6 +1199,16 @@
 		document.getElementById("shortAnswer").textContent = count.shortAnswer;
 	}
 
+	function hideSimilarQuestions(itemId, passageId, targetItemId, index){
+		// console.log(itemId);
+		// console.log(passageId);
+		// console.log(targetItemId);
+		// console.log(index);
+		similarQuestions = similarQuestions.filter(q => q.itemId !== itemId);
+		renderSimilar(similarQuestions, index, targetItemId);
+
+	}
+
 	// 초기 화면
 	window.onload = async function(){
 		questions = await getQuestionInfo();
@@ -1215,8 +1228,8 @@
 	}
 
 	// 유사 문항 추가
-	function executeSimilarAdd(newItemData, targetItemId){
-		addQuestion(newItemData, targetItemId);
+	function executeSimilarAdd(newItemData, targetItemId, index){
+		addQuestion(newItemData, targetItemId, index);
 		renderQuestions(questions);
 		const count = calculateLevelCnt(questions);
 		renderLevelCnt(count);
