@@ -108,7 +108,7 @@
 								<li class="ui-tab-btn active">
 									<a href="javascript:;">문제지 요약</a>
 								</li>
-								<li class="ui-tab-btn">
+								<li class="ui-tab-btn" data-id="similar">
 									<a href="javascript:;">유사 문제</a>
 								</li>
 								<li class="ui-tab-btn" id="deleteTab">
@@ -147,8 +147,8 @@
 									</div>
 								</div>
 							</div>
-							<div class="contents">
-								<div class="cnt-top">
+							<div class="contents" data-id="similar">
+								<div class="levelCntTop cnt-top">
 									<span class="title" id="similarTitle"> </span>
 									<div class="right-area">
 										<div class="select-wrap">
@@ -538,7 +538,6 @@
 
 	//문제 데이터를 화면에 렌더링
 	function renderQuestions(questions) {
-		console.log("renderQuestions");
 		console.log(questions);
 		const container = document.querySelector(".view-que-list");
 		container.innerHTML = "";
@@ -584,7 +583,7 @@
 					`;
 			}
 			questionHTML +=`
-					<div class="view-que-box">
+					<div class="view-que-box " id="question-container">
 							<div class="que-top">
 								<div class="title">
 									<span class="num">${index+1}</span>
@@ -594,7 +593,7 @@
 									</div>
 								</div>
 								<div class="btn-wrap">
-									<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${q.itemId}" onclick="popFunc(this)"></button>
+									<button type="button" class="btn-error pop-btn"  data-pop="error-report-pop" data-item-id="${q.itemId}" onclick="popFunc(this)"></button>
 									<button type="button" class="btn-delete" data-item-id="${q.itemId}" onclick="executeDelete(event, this)"></button>
 								</div>
 							</div>
@@ -634,7 +633,7 @@
 											<!-- e: 정답 데이터 영역 -->
 										</div>
 									</div>
-									<button type="button" class="btn-similar-que btn-default" onclick="executeSimilarAPI(${q.itemId}, ${index+1})">
+									<button type="button" class="btn-similar-que btn-default" data-id="similar" onclick="executeSimilarAPI(${q.itemId}, ${index+1}, this)">
 										<i class="similar"></i> 유사 문제
 									</button>
 								</div>
@@ -647,6 +646,7 @@
 					`;
 			container.insertAdjacentHTML("beforeend", questionHTML);
 		});
+
 	}
 
 	// 페이지 로드 시 API 요청
@@ -921,11 +921,12 @@
 			questions.splice(targetIndex + 1, 0, newItem);
 			console.log("업데이트된 questions 배열 (단일 문항):", questions);
 		}
-		console.log(newItem.itemId);
-		console.log(newItem.passageId);
-		console.log(targetItemId);
-		console.log(index);
+		// console.log(newItem.itemId);
+		// console.log(newItem.passageId);
+		// console.log(targetItemId);
+		// console.log(index);
 		hideSimilarQuestions(newItem.itemId, newItem.passageId, targetItemId, index);
+		return newItem.itemId;
 	}
 
 	function addAllQuestion(passageId, targetItemId) {
@@ -1209,6 +1210,76 @@
 
 	}
 
+	// 문항 클릭 시 문항 active
+	function clickActive(button){
+		const parentItem = button.closest(".view-que-box");
+		if(parentItem){
+			//기존에 활성화 있음 지우기
+			document.querySelectorAll(".view-que-box.active").forEach(b => {
+				b.classList.remove("active");
+			})
+			parentItem.classList.add("active");
+		}
+	}
+
+	function similarActive(button){
+		const targetId = button.getAttribute("data-id");
+		if (!targetId) {
+			console.log("버튼에 data-id가 없음");
+			return;
+		}
+		// 이전에 활성화된 부분 지우기
+		document.querySelectorAll(".contents.on").forEach(content => {
+			content.classList.remove("on");
+		});
+
+		const targetContent = document.querySelector(`.contents[data-id="${targetId}"]`);
+		if (targetContent) {
+			targetContent.classList.add("on");
+		} else {
+			console.log("contents를 찾을 수 없음");
+		}
+
+		//tab 부분
+		const targetTab = button.getAttribute("data-id");
+		if (!targetId) {
+			console.log("버튼에 data-id가 없음");
+			return;
+		}
+		// 이전에 활성화된 부분 지우기
+		document.querySelectorAll(".ui-tab-btn.active").forEach(content => {
+			content.classList.remove("active");
+		});
+
+		const targetTabContent = document.querySelector(`.ui-tab-btn[data-id="${targetTab}"]`);
+		if (targetTabContent) {
+			targetTabContent.classList.add("active");
+		} else {
+			console.log("tab을 찾을 수 없음");
+		}
+
+	}
+
+	function scrollItem(itemId){
+		console.log(itemId);
+		const container = document.getElementById("question-container");
+		console.log(container);
+		//const targetItem = container.querySelector(`[data-item-id="${itemId}"]`);
+		const allItems = container.querySelectorAll("[data-item-id]");
+		console.log(allItems.length);
+		allItems.forEach(item => {
+			console.log(`data-item-id: "${item.dataset.itemId}", 찾는 값: "${itemId}"`);
+		});
+		// console.log(targetItem);
+		if(targetItem){
+			targetItem.scrollIntoView({
+				behavior: "smooth",
+				block: "center",
+			});
+
+		}
+	}
+
 	// 초기 화면
 	window.onload = async function(){
 		questions = await getQuestionInfo();
@@ -1222,15 +1293,19 @@
 	}
 
 	// 유사 문항 불러오기
-	async function executeSimilarAPI(itemId, index){
+	async function executeSimilarAPI(itemId, index, button){
 		similarQuestions = await getSimilarQuestionInfo(itemId, index);
 		renderSimilar(similarQuestions, index, itemId);
+		similarActive(button);
+		clickActive(button);
+
 	}
 
 	// 유사 문항 추가
 	function executeSimilarAdd(newItemData, targetItemId, index){
-		addQuestion(newItemData, targetItemId, index);
+		const itemId = addQuestion(newItemData, targetItemId, index);
 		renderQuestions(questions);
+		scrollItem(itemId);
 		const count = calculateLevelCnt(questions);
 		renderLevelCnt(count);
 		renderSummary(questions);
@@ -1248,11 +1323,6 @@
 		const typeCnt = calculateQuestionType(questions);
 		renderQuestionType(typeCnt)
 	}
-
-
-
-
-
 
 
 	$(function () {
