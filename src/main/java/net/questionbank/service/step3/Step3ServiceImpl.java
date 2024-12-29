@@ -12,8 +12,6 @@ import net.questionbank.dto.test.*;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.dto.textbook.TextBookRequestDTO;
 import net.questionbank.dto.textbook.TextbookApiResponse;
-import net.questionbank.mapper.QuestionMapper;
-import net.questionbank.mapper.TestMapper;
 import net.questionbank.repository.QuestionRepository;
 import net.questionbank.repository.TestRepository;
 import org.apache.batik.transcoder.TranscoderException;
@@ -36,8 +34,6 @@ public class Step3ServiceImpl implements Step3Service {
     private final QuestionRepository questionRepository;
     private final TestRepository testRepository;
     private final WebClient webClient;
-    private final QuestionMapper questionMapper;
-    private final TestMapper testMapper;
 
     @Value("${file.imageDir}")
     private String fileDir;
@@ -108,15 +104,15 @@ public class Step3ServiceImpl implements Step3Service {
 
     @Override
     @Transactional
-    public void saveTestInfo(TestDTO testDTO, List<Long> questionIdList) throws IllegalStateException, IllegalArgumentException {
+    public void saveTestInfo(TestSaveDTO testSaveDTO, List<Long> questionIdList) throws IllegalStateException, IllegalArgumentException {
         if (questionIdList == null || questionIdList.isEmpty()) throw new IllegalArgumentException("시험지 문항을 선택해주세요.");
 
         Test test = Test.builder()
-                .title(testDTO.getTitle())
+                .title(testSaveDTO.getTitle())
                 .createdAt(LocalDateTime.now())
-                .member(Member.builder().memberId(testDTO.getUserId()).name(testDTO.getUserName()).build())
-                .textbook(Textbook.builder().textbookId(testDTO.getSubjectId().intValue()).build())
-                .filePath(testDTO.getPdfFileId())
+                .member(Member.builder().memberId(testSaveDTO.getUserId()).name(testSaveDTO.getUserName()).build())
+                .textbook(Textbook.builder().textbookId(testSaveDTO.getSubjectId().intValue()).build())
+                .filePath(testSaveDTO.getPdfFileId())
                 .build();
         testRepository.save(test);
 

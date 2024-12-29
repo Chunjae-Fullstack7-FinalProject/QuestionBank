@@ -44,16 +44,4 @@ public class MainController {
         // 성공적으로 데이터를 반환
         return ResponseEntity.ok(new ResponseDTO("success", mainList));
     }
-
-    @GetMapping("/archive")
-    public String archive(HttpSession session, RedirectAttributes redirectAttributes) {
-        MemberLoginDTO loginDto = (MemberLoginDTO) session.getAttribute("loginDto");
-
-//        if(loginDto == null) {
-//            redirectAttributes.addFlashAttribute("loginDto", new MemberLoginDTO());
-//            return "redirect:/main";
-//        }
-
-        return "main/archive";
-    }
 }
