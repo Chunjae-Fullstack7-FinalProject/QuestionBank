@@ -126,6 +126,7 @@
 .pdf-img {
     box-sizing: border-box;
     max-width: 75mm;
+    /*width: 100%;*/
 }
 
 .pdf-item-table {

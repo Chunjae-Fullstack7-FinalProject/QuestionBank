@@ -234,7 +234,7 @@
 	<script src="/inc/js/pdf.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
     <script>
-		const itemclass = ['all', 'question','answer'];
+		const itemclass = ['all', 'question', 'answer'];
 
 		async function savePdf(title) {
 
@@ -250,7 +250,7 @@
 			};
 
 			for(item of itemclass) {
-				page(title, item);
+				await page(title, item);
 				let filename = `${item}-[[${pdfFileId}]].pdf`; // 파일 이름 설정
 				options.filename = filename;
 
