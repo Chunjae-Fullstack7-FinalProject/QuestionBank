@@ -1247,6 +1247,9 @@
                     let strRequestBody = JSON.stringify(requestBody);
                     new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
                     new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
+                    new_form.append($('<input/>', {type: 'hidden', name: 'requestLow', value: requestLow.data('count')}));
+                    new_form.append($('<input/>', {type: 'hidden', name: 'requestMiddle', value: requestMiddle.data('count')}));
+                    new_form.append($('<input/>', {type: 'hidden', name: 'requestHigh', value: requestHigh.data('count')}));
                     new_form.appendTo('body');
                     new_form.submit();
 
@@ -1423,6 +1426,9 @@
                             let strRequestBody = JSON.stringify(requestBody);
                             new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
                             new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
+                            new_form.append($('<input/>', {type: 'hidden', name: 'requestLow', value: requestLow.data('count')}));
+                            new_form.append($('<input/>', {type: 'hidden', name: 'requestMiddle', value: requestMiddle.data('count')}));
+                            new_form.append($('<input/>', {type: 'hidden', name: 'requestHigh', value: requestHigh.data('count')}));
                             new_form.appendTo('body');
                             new_form.submit();
                         });

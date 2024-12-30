@@ -18,6 +18,13 @@
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
 	<script src="../../inc/js/common.js"></script>
+	<!-- 인규 추가 -->
+	<style>
+		/* 인규 추가 */
+		.disappear {
+			display:none;
+		}
+	</style>
 </head>
 <body>
 <div id="wrap" class="full-pop-que">
@@ -37,9 +44,305 @@
 						<span class="subject" th:text="${session.textbookDetailDTO?.getSubjectName()}"></span>
 						<span th:text="${session.textbookDetailDTO?.getCurriculumName()}"></span>
 					</div>
-					<button class="btn-default btn-research"><i class="research"></i>재검색</button>
+					<button class="btn-default btn-research" id="re-search"><i class="research"></i>재검색</button>
 					<button class="btn-default pop-btn" data-pop="que-scope-pop" id="scopeBtn" onclick="popFunc(this)">출제범위</button>
 				</div>
+				<!-- 인규 추가(재검색 js) -->
+				<script th:inline="javascript">
+					let requestBodyDTO = [[${requestBodyDTO}]];
+					let requestBody = {};
+					requestBody.minorClassification = requestBodyDTO.minorClassification;
+					requestBody.levelCnt = requestBodyDTO.levelCnt;
+					requestBody.questionForm = requestBodyDTO.questionForm;
+					requestBody.activityCategoryList = requestBodyDTO.activityCategoryList;
+					console.log(requestBody);
+					let requestLow = Number([[${requestLow}]]);
+					let requestMiddle = Number([[${requestMiddle}]]);
+					let requestHigh = Number([[${requestHigh}]]);
+					console.log(requestLow);
+					console.log(requestMiddle);
+					console.log(requestHigh);
+					$('#re-search').on('click', async function () {
+						if(requestLow === 0){
+							$('#displayLow').closest('div.range').addClass('disappear');
+						} else {
+							$('#displayLow').closest('div.range').removeClass('disappear');
+						}
+						if(requestMiddle === 0){
+							$('#displayMiddle').closest('div.range').addClass('disappear');
+						} else {
+							$('#displayMiddle').closest('div.range').removeClass('disappear');
+						}
+						if(requestHigh === 0){
+							$('#displayHigh').closest('div.range').addClass('disappear');
+						} else {
+							$('#displayHigh').closest('div.range').removeClass('disappear');
+						}
+						try{
+							const response = await fetch('/bridge/t-sherpa/item-img/chapters/item-list', {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json'
+								},
+								body: JSON.stringify(requestBody)
+							});
+
+							if(!response.ok) {
+								throw new Error(`HTTP error! status: ${response.status}`);
+							}
+							const data = await response.json();
+							//이제 여기서 처리해줘야 함
+							const itemList = data.itemList;
+							let low = 0;
+							let middle = 0;
+							let high = 0;
+							itemList.forEach(element =>{
+								switch (element.difficultyCode) {
+									case '02':
+										low += 1;
+										break;
+									case '03':
+										middle += 1;
+										break;
+									case '04':
+										high += 1;
+										break;
+								}
+							});
+							console.log("응답:",data);
+							console.log("하 난이도 개수:",low); // response 중 하 난이도의 개수
+							console.log("중 난이도 개수:",middle); // response 중 중 난이도의 개수
+							console.log("상 난이도 개수:",high); // response 중 상 난이도의 개수
+
+
+
+							console.log("요청 하 난이도 개수:",requestLow); //내가 실제로 요청한 하 난이도의 개수
+							console.log("요청 중 난이도 개수:",requestMiddle); //내가 실제로 요청한 중 난이도의 개수
+							console.log("요청 상 난이도 개수:",requestHigh); //내가 실제로 요청한 상 난이도의 개수
+
+							const lowCheck = low >= requestLow;
+							const middleCheck = middle >= requestMiddle;
+							const highCheck = high >= requestHigh;
+
+							console.log("하 난이도, 응답보다 요청이 많니?:",lowCheck); // 응답 >= 요청인지(하)
+							console.log("중 난이도, 응답보다 요청이 많니?:",middleCheck); // 응답 >= 요청인지(하)
+							console.log("상 난이도, 응답보다 요청이 많니?:",highCheck); // 응답 >= 요청인지(하)
+
+							// 상, 중, 하 모두 request 보다 response 가 더 크다면, response 중 request 개수만큼 가져와서, 넘기기
+							if(lowCheck && middleCheck && highCheck){
+								let itemArr = [];
+								let lowCnt = 0;
+								let middleCnt = 0;
+								let highCnt = 0;
+								itemList.forEach(item => {
+									if(requestLow > lowCnt && item.difficultyCode === '02'){
+										lowCnt += 1;
+										itemArr.push(item.itemId);
+									}
+									if(requestMiddle > middleCnt && item.difficultyCode === '03'){
+										middleCnt += 1;
+										itemArr.push(item.itemId);
+									}
+									if(requestHigh > highCnt && item.difficultyCode === '04'){
+										highCnt += 1;
+										itemArr.push(item.itemId);
+									}
+								});
+								console.log("통과 시 넘기는 배열:",itemArr);
+
+								//재검색하면 깜빡 해야함....
+								let url = '/customExam/step2';
+								let new_form = $('<form></form>');
+								new_form.attr("name", "new_form");
+								new_form.attr("method", "post");
+								new_form.attr("action", url);
+								let strRequestBody = JSON.stringify(requestBody);
+								new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
+								new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
+								new_form.append($('<input/>', {type: 'hidden', name: 'requestLow', value: requestLow}));
+								new_form.append($('<input/>', {type: 'hidden', name: 'requestMiddle', value: requestMiddle}));
+								new_form.append($('<input/>', {type: 'hidden', name: 'requestHigh', value: requestHigh}));
+								new_form.appendTo('body');
+								new_form.submit();
+
+							} else {
+
+								// 팝업
+								let _dim = $(".dim");
+								let _html = $("html , body");
+								let popData = $('#quePop').data("pop");
+								_html.css("overflow", "hidden");
+								_dim.fadeIn();
+								$(".pop-wrap[data-pop='" + popData + "']").show();
+
+								let lowDiff = low - requestLow;
+								let middleDiff = middle - requestMiddle;
+								let highDiff = high - requestHigh;
+								console.log("하, 응답 - 요청:",lowDiff);
+								console.log("중, 응답 - 요청:",middleDiff);
+								console.log("상, 응답 - 요청:",highDiff);
+								let minusTotal = 0;
+								if(lowDiff < 0) {
+									minusTotal += lowDiff;
+								}
+								if(middleDiff < 0){
+									minusTotal += middleDiff;
+								}
+								if(highDiff < 0) {
+									minusTotal += highDiff;
+								}
+								console.log("부족분 총합:",minusTotal);
+								// minusTotal 1씩 더해야됨
+								let itemArr = [];
+								let lowArr = [];
+								let middleArr = [];
+								let highArr = [];
+								itemList.forEach(item =>{
+									if(item.difficultyCode === '02'){
+										lowArr.push(item);
+									}
+									if(item.difficultyCode === '03'){
+										middleArr.push(item);
+									}
+									if(item.difficultyCode === '04'){
+										highArr.push(item);
+									}
+								});
+								if(lowDiff<0){
+									lowArr.forEach(item =>{
+										itemArr.push(item.itemId);
+									});
+								} else {
+									for(let i=0 ; i<requestLow;i++){
+										itemArr.push(lowArr[i].itemId);
+									}
+								}
+								if(middleDiff<0){
+									middleArr.forEach(item =>{
+										itemArr.push(item.itemId);
+									});
+								} else {
+									for(let i=0 ; i<requestMiddle;i++){
+										itemArr.push(middleArr[i].itemId);
+									}
+								}
+								if(highDiff<0){
+									highArr.forEach(item=>{
+										itemArr.push(item.itemId);
+									});
+								} else {
+									for(let i=0 ; i<requestHigh;i++){
+										itemArr.push(highArr[i].itemId);
+									}
+								}
+								console.log("하 배열",lowArr);
+								console.log("중 배열",middleArr);
+								console.log("상 배열",highArr);
+
+								const difficulties = [
+									{ name: 'low', diff: lowDiff, arr: lowArr, count: 0},
+									{ name: 'middle', diff: middleDiff, arr: middleArr, count: 0},
+									{ name: 'high', diff: highDiff, arr: highArr, count: 0}
+								]
+
+								//부족분 채우기
+								while(minusTotal < 0) {
+									let flag = false;
+
+									for(let deficit of difficulties){
+										while(deficit.diff < 0){ // low, middle, high 중 부족한 경우
+											let filled = false;
+											for(let surplus of difficulties){
+												if(surplus.diff > 0 && surplus.arr.length > 0){
+													const item = surplus.arr.pop();
+													if(item){
+														itemArr.push(item.itemId);
+
+														deficit.diff++; //해당 부족 부분 한 개 없어짐
+														minusTotal++; // 총합도 한 개 없어짐
+														surplus.count++;
+														surplus.diff--; // 채워준 부분은 잉여부분이 한 개 없어짐
+
+														filled = true;
+														flag = true;
+														break;
+													}
+												}
+											}
+											if(!filled){ // 못 채우면 그만
+												break;
+											}
+										}
+									}
+									if(!flag){ // 모두 채웠거나 잉여 문항이 없을 때
+										break;
+									}
+								}
+								console.log("minusTotal:", minusTotal);
+								console.log("lowDiff:", difficulties[0].diff);
+								console.log("middleDiff:", difficulties[1].diff);
+								console.log("highDiff:", difficulties[2].diff);
+								console.log("itemArr:", itemArr);
+								console.log("lowCount", difficulties[0].count);
+								console.log("MiddleCount", difficulties[1].count);
+								console.log("highCount", difficulties[2].count);
+								let finalLow = 0;
+								let finalMiddle = 0;
+								let finalHigh = 0;
+								if(difficulties[0].count === 0){
+									finalLow = Number(low); //실제로 온 값
+								} else {
+									finalLow = Number(requestLow + difficulties[0].count);
+								}
+								if(difficulties[1].count === 0){
+									finalMiddle = Number(middle);
+								} else {
+									finalMiddle = Number(requestMiddle + difficulties[1].count);
+								}
+								if(difficulties[2].count === 0){
+									finalHigh = Number(high);
+								} else {
+									finalHigh = Number(requestHigh + difficulties[2].count);
+								}
+
+								console.log("finalLow:", finalLow);
+								console.log("finalMiddle:", finalMiddle);
+								console.log("finalHigh:", finalHigh);
+
+								let displayLow = $('#displayLow').text(finalLow);
+								let displayMiddle = $('#displayMiddle').text(finalMiddle);
+								let displayHigh = $('#displayHigh').text(finalHigh);
+								let displayTotal = $('#displayTotal').text(
+										($('#displayLow').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayLow').text())) +
+										($('#displayMiddle').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayMiddle').text())) +
+										($('#displayHigh').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayHigh').text()))
+								);
+
+								//확인 버튼
+								//재검색 후 깜빡
+								$('#nextBtn2').on('click', function() {
+									let url = '/customExam/step2';
+									let new_form = $('<form></form>');
+									new_form.attr("name", "new_form");
+									new_form.attr("method", "post");
+									new_form.attr("action", url);
+									let strRequestBody = JSON.stringify(requestBody);
+									new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
+									new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
+									new_form.append($('<input/>', {type: 'hidden', name: 'requestLow', value: requestLow}));
+									new_form.append($('<input/>', {type: 'hidden', name: 'requestMiddle', value: requestMiddle}));
+									new_form.append($('<input/>', {type: 'hidden', name: 'requestHigh', value: requestHigh}));
+									new_form.appendTo('body');
+									new_form.submit();
+								});
+							}
+						} catch(e){
+							console.error('Error fetching data:', e);
+						}
+					});
+
+				</script>
+				<!-- 인규 추가(재검색 js) -->
 				<div class="view-bottom type01">
 					<div class="cnt-box">
 						<div class="cnt-top">
@@ -290,6 +593,53 @@
 	</div>
 
 </div>
+<!-- 인규 추가 (재검색 팝업)-->
+<div class="pop-wrap range-type02" data-pop="que-pop" id="quePop">
+	<div class="pop-inner">
+		<div class="pop-header">
+			<span>문항 구성 자동 변경</span>
+			<button type="button" class="pop-close"></button>
+		</div>
+		<div class="pop-content">
+			<span class="txt">사용자가 원하는 문항 구성을 할 수 없어<br>문항 구성이 자동으로 변경되었습니다.</span>
+			<div class="range-wrap" id="rangeWrap">
+				<!--                    <div class="range">-->
+				<!--                        <span class="color01">최하</span>-->
+				<!--                        <span class="num">2</span>-->
+				<!--                    </div>-->
+
+				<div class="range"  data-step="2">
+					<span class="color02">하</span>
+					<span class="num" id="displayLow"></span>
+				</div>
+				<div class="range" data-step="3">
+					<span class="color03">중</span>
+					<span class="num" id="displayMiddle" ></span>
+				</div>
+				<div class="range" data-step="4">
+					<span class="color04">상</span>
+					<span class="num" id="displayHigh" ></span>
+				</div>
+
+				<!--                    <div class="range">-->
+				<!--                        <span class="color05">최상</span>-->
+				<!--                        <span class="num">2</span>-->
+				<!--                    </div>-->
+
+				<div class="range total">
+					<span>합계</span>
+					<span class="num" id="displayTotal">20</span>
+				</div>
+			</div>
+			<span class="txt">해당 문제 구성으로 출제하시겠습니까?</span>
+		</div>
+		<div class="pop-footer">
+			<button class="pop-close">취소</button>
+			<button class="pop-close" id="nextBtn2">확인</button>
+		</div>
+	</div>
+</div>
+<!-- 인규 추가 (재검색 팝업)-->
 <script th:inline="javascript">
 	//문항id 배열로 티셀파 문항 리스트 조회(img) 요청
 	const questionIds = [[${questionIds}]];
