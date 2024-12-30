@@ -1,5 +1,6 @@
 package net.questionbank.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import net.questionbank.dto.MemberRegisterDTO;
 import net.questionbank.exception.CustomRuntimeException;
 import net.questionbank.service.MemberServiceIf;
 import net.questionbank.util.ApiResponseUtil;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -24,20 +26,29 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Log4j2
 public class MemberController {
     private final MemberServiceIf memberService;
+    @RedirectWithError(redirectUri = "/error/error")
     @GetMapping("/login")
-    public String loginGet() {
+    public String loginGet(HttpSession session, RedirectAttributes redirectAttributes) {
         return "member/login";
     }
 
     @RedirectWithError(redirectUri = "/member/login")
     @PostMapping("/login")
-    public String loginPost(@Valid MemberLoginDTO memberLoginDTO, BindingResult bindingResult, RedirectAttributes redirectAttributes, HttpSession session) {
+    public String loginPost(@Valid MemberLoginDTO memberLoginDTO, BindingResult bindingResult, RedirectAttributes redirectAttributes, HttpServletRequest req, HttpSession session) {
         if(bindingResult.hasErrors()) {
             throw new CustomRuntimeException(getBindingResultErrorMessage(bindingResult));
         }
         try {
             MemberLoginDTO loginDTO = memberService.login(memberLoginDTO);
-            session.setAttribute("loginDTO", loginDTO);
+            session.setAttribute("loginDto", loginDTO);
+            Boolean goCustomExam = (Boolean)session.getAttribute("goCustomExam");
+            if(goCustomExam!=null && goCustomExam) {
+                log.info("goCustomExam234234");
+                session.removeAttribute("goCustomExam");
+                req.setAttribute("subjectId", session.getAttribute("subjectId"));
+                session.removeAttribute("subjectId");
+                return "forward:/customExam/step0";
+            }
         }catch(CustomRuntimeException e){
             throw e;
         }
@@ -49,7 +60,7 @@ public class MemberController {
 
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.removeAttribute("loginDTO");
+        session.removeAttribute("loginDto");
         return "redirect:/main";
     }
 

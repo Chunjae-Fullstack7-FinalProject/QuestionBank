@@ -48,7 +48,11 @@ public class MemberServiceImpl implements MemberServiceIf{
                     .memberId(member.getMemberId())
                     .name(member.getName())
                     .build();
-        }catch(Exception e){
+        }catch(CustomRuntimeException e){
+            log.error("customRuntimeException : {}",e.getMessage());
+            throw e;
+        }
+        catch(Exception e){
             log.error(e.getMessage());
             throw new CustomRuntimeException("오류가 발생했습니다. 다시시도하세요");
         }
