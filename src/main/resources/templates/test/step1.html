@@ -43,7 +43,6 @@
                 <li class="active">STEP 1 단원선택</li>
                 <li>STEP 2 문항 편집</li>
                 <li>STEP 3 시험지 저장</li>
-                <li id="test">test</li>
             </ul>
             <button type="button" class="del-btn" onclick="winClose()"></button>
             <script>
@@ -922,12 +921,42 @@
 
     }
 
+
     // 난이도별 문제 수 팝업
 
     //기존 문제 총합
     let initTotal;
     //계산될 총합
     const popSum = $('#range-total');
+
+
+
+    // popup
+    let _dim = $(".dim");
+    let _html = $("html , body");
+    let popBtn = $(".pop-btn");
+    let closePop = $(".pop-close");
+
+    function popFunc() {
+        let _this = $(this);
+        let popData = _this.data("pop");
+
+        _html.css("overflow", "hidden");
+        _dim.fadeIn();
+
+        $(".pop-wrap[data-pop='" + popData + "']").show();
+
+        console.log($(".pop-wrap[data-pop='" + popData + "']"));
+    }
+    function popClose() {
+        let _this = $(this);
+        $(".pop-wrap").hide();
+        _html.css("overflow", "auto");
+        _dim.fadeOut();
+    }
+
+    popBtn.on('click',popFunc);
+    closePop.on('click',popClose);
 
     const setBtn = $('i.setting');
     setBtn.on('click', initiate);
@@ -1024,39 +1053,13 @@
             }
         });
     }
-    //팝업닫기
-    function popClose() {
-        // this를 현재 호출된 요소로 참조
-        let _this = this;
 
-        // .pop-wrap 클래스를 가진 요소를 숨김
-        const popWrap = document.querySelector(".pop-wrap");
-        if (popWrap) {
-            popWrap.style.display = "none";
-        }
-
-        // <html> 요소의 overflow 속성을 auto로 설정
-        const htmlElement = document.documentElement; // <html> 요소를 가져옴
-        htmlElement.style.overflow = "auto";
-
-        // _dim 요소를 점점 사라지게 처리
-        const dim = document.querySelector(".dim"); // _dim은 가정된 클래스 이름
-        if (dim) {
-            dim.style.transition = "opacity 0.5s"; // 서서히 사라지는 효과 추가
-            dim.style.opacity = "0";
-            // opacity가 0이 되면 display: none 처리
-            setTimeout(() => {
-                dim.style.display = "none";
-            }, 500); // 애니메이션 지속 시간과 맞춤
-        }
-    }
 
 
 
 
     //대망의 문제 수 확인
-    $('#nextBtn').on('click', finalCheck); //여기 수정해야 함.
-    $('#test').on('click',finalCheck);
+    $('#nextBtn').on('click', finalCheck);
     async function finalCheck() {
         let txtExamNum = $("#txt-exam-num").val();
         console.log("문제 수 =============>" + txtExamNum);
