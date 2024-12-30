@@ -933,7 +933,7 @@
 					`;
 			}
 			questionHTML +=`
-					<div class="view-que-box " id="question-container">
+					<div class="view-que-box question-container">
 							<div class="que-top">
 								<div class="title">
 									<span class="num">${index+1}</span>
@@ -1103,23 +1103,35 @@
 
 	//유사 문항 탭
 	function renderSimilar(similarQuestions, index, itemId){
+		console.log("similarQuestions");
+		console.log(similarQuestions);
 		const itemNum = index;
-		//유사 항목 없을 때
-		// if (!similarQuestions || similarQuestions.length === 0) {
-		// 	console.error("유사 항목 없음");
-		// 	return `<div class="no-data view-que-list">
-		// 				<p>유사 항목이 없습니다.</p>
-		// 			</div>`;
-		// }
+
 		const container = document.querySelector(".data");
 		container.style.display = "block";
 		document.querySelector(".no-data").style.display = "none";
 		document.querySelector(".select-list").style.display = "none";
 
+
 		//문제 번호 노출
 		const title = document.getElementById("similarTitle");
 		if (title) {
 			title.textContent = `${index}번 유사 문제`;
+		}
+
+		//유사 항목 없을 때
+		if (!similarQuestions || similarQuestions.length === 0) {
+			console.log("유사 항목 없음");
+			container.innerHTML = "";
+			container.insertAdjacentHTML("beforeend",
+			 `
+			<div class="data view-que-list">
+				<p>유사 항목이 없습니다.</p>
+			</div>
+			`
+			);
+			return;
+
 		}
 
 		//유사 문항 노출
@@ -1183,7 +1195,7 @@
 							<div class="title">
 								<span class="num">${index+1}</span>
 								<div class="que-badge-group">
-									<span class="que-badge yellow">${q.difficultyName}</span>
+									<span class="que-badge  ${getLevelColor(q.difficultyName)}">${q.difficultyName}</span>
 									<span class="que-badge gray">${getQuestionType(q.questionFormCode)}</span>
 								</div>
 							</div>
@@ -1221,6 +1233,10 @@
 	}
 
 	function addQuestion(newItemData, targetItemId, index) {
+		if(questions.length > 99){
+			alert("최대 문항 수는 100");
+			return;
+		}
 		const newItem = JSON.parse(decodeURIComponent(newItemData)); // JSON 파싱
 		console.log("추가할 데이터:", newItem);
 
@@ -1612,22 +1628,45 @@
 
 	function scrollItem(itemId){
 		console.log(itemId);
-		const container = document.getElementById("question-container");
+		const container = document.querySelectorAll(".question-container");
 		console.log(container);
-		//const targetItem = container.querySelector(`[data-item-id="${itemId}"]`);
-		const allItems = container.querySelectorAll("[data-item-id]");
-		console.log(allItems.length);
-		allItems.forEach(item => {
-			console.log(`data-item-id: "${item.dataset.itemId}", 찾는 값: "${itemId}"`);
+
+		// 모든 .question-container 요소를 가져옴
+		const containers = document.querySelectorAll(".question-container");
+		console.log(containers);
+
+		let targetItem = null;
+
+		// 각 container를 순회하며 targetItem 검색
+		containers.forEach(container => {
+			const allItems = container.querySelectorAll("[data-item-id]");
+			console.log(`Container: ${container}, Items found: ${allItems.length}`);
+			allItems.forEach(item => {
+				console.log(`data-item-id: "${item.dataset.itemId}", 찾는 값: "${itemId}"`);
+				if (item.dataset.itemId === String(itemId)) {
+					targetItem = item;
+				}
+			});
 		});
+
 		// console.log(targetItem);
 		if(targetItem){
 			targetItem.scrollIntoView({
 				behavior: "smooth",
-				block: "center",
+				block: "start",
 			});
 
 		}
+	}
+
+
+	function filterSimilarQuestions(){
+		// questions 배열에서 모든 itemId를 Set에 저장
+		const questionIds = new Set(questions.map(q => q.itemId));
+		// similarQuestions 배열에서 questions에 포함되지 않은 항목만 필터링
+		similarQuestions = similarQuestions.filter(n => !questionIds.has(n.itemId));
+		console.log("filterSimilarQuestions");
+		console.log(similarQuestions);
 	}
 
 	// 초기 화면
@@ -1645,6 +1684,7 @@
 	// 유사 문항 불러오기
 	async function executeSimilarAPI(itemId, index, button){
 		similarQuestions = await getSimilarQuestionInfo(itemId, index);
+		filterSimilarQuestions();
 		renderSimilar(similarQuestions, index, itemId);
 		similarActive(button);
 		clickActive(button);
