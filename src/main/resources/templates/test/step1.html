@@ -1389,30 +1389,30 @@
                         if(difficulties[0].count === 0){
                             finalLow = Number(low); //실제로 온 값
                         } else {
-                            finalLow = Number(requestLow.data('count') + difficulties[0].count);
+                            finalLow = Number(requestLow.data('count')) + Number(difficulties[0].count);
                         }
                         if(difficulties[1].count === 0){
                             finalMiddle = Number(middle);
                         } else {
-                            finalMiddle = Number(requestMiddle.data('count') + difficulties[1].count);
+                            finalMiddle = Number(requestMiddle.data('count')) + Number(difficulties[1].count);
                         }
                         if(difficulties[2].count === 0){
                             finalHigh = Number(high);
                         } else {
-                            finalHigh = Number(requestHigh.data('count') + difficulties[2].count);
+                            finalHigh = Number(requestHigh.data('count')) + Number(difficulties[2].count);
                         }
 
                         console.log("finalLow:", finalLow);
                         console.log("finalMiddle:", finalMiddle);
                         console.log("finalHigh:", finalHigh);
 
-                        let displayLow = $('#displayLow').text(finalLow);
-                        let displayMiddle = $('#displayMiddle').text(finalMiddle);
-                        let displayHigh = $('#displayHigh').text(finalHigh);
+                        let displayLow = $('#displayLow').text(Number(finalLow));
+                        let displayMiddle = $('#displayMiddle').text(Number(finalMiddle));
+                        let displayHigh = $('#displayHigh').text(Number(finalHigh));
                         let displayTotal = $('#displayTotal').text(
-                            ($('#displayLow').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayLow').text())) +
-                            ($('#displayMiddle').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayMiddle').text())) +
-                            ($('#displayHigh').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayHigh').text()))
+                            ($('#displayLow').closest('div.range').hasClass('disappear') ? 0 : finalLow) +
+                            ($('#displayMiddle').closest('div.range').hasClass('disappear') ? 0 : finalMiddle) +
+                            ($('#displayHigh').closest('div.range').hasClass('disappear') ? 0 : finalHigh)
                         );
 
                         //확인 버튼
