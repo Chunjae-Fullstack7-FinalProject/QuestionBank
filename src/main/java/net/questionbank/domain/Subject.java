@@ -1,12 +1,13 @@
 package net.questionbank.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
-@Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Subject {
     @Id
     @Column(nullable = false, columnDefinition = "CHAR(2)")

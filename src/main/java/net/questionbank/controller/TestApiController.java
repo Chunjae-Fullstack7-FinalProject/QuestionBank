@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.questionbank.dto.MemberLoginDTO;
-import net.questionbank.dto.test.TestDTO;
+import net.questionbank.dto.test.TestSaveDTO;
 import net.questionbank.service.step3.Step3Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -27,10 +27,10 @@ public class TestApiController {
     private String pdfDir;
 
     @PostMapping("/save")
-    public ResponseEntity<String> saveTest(@RequestBody TestDTO testDTO, HttpSession session) {
+    public ResponseEntity<String> saveTest(@RequestBody TestSaveDTO testSaveDTO, HttpSession session) {
 //        log.info("saveTest: {}", testDTO);
         try {
-            if(testDTO.getTitle().length()>20) {
+            if(testSaveDTO.getTitle().length()>20) {
                 throw new Exception("시험지명은 20자 이하로 입력해주세요.");
             }
             MemberLoginDTO loginDto = (MemberLoginDTO) session.getAttribute("loginDto");
@@ -38,9 +38,9 @@ public class TestApiController {
             if(loginDto == null) {
                 loginDto = MemberLoginDTO.builder().memberId("test1").name("이름").build();
             }
-            testDTO.setUserId(loginDto.getMemberId());
-            testDTO.setUserName(loginDto.getName());
-            step3Service.saveTestInfo(testDTO, testDTO.getItemIdList());
+            testSaveDTO.setUserId(loginDto.getMemberId());
+            testSaveDTO.setUserName(loginDto.getName());
+            step3Service.saveTestInfo(testSaveDTO, testSaveDTO.getItemIdList());
 
             return ResponseEntity.ok("save");
         } catch (Exception e) {
