@@ -75,6 +75,10 @@
     height: 255mm;
 }
 
+.pdf-item-container table {
+    border-color: dimgray;
+}
+
 .pdf-item-container-left {
     box-sizing: border-box;
     border-right: 1px solid darkgray;
@@ -126,7 +130,13 @@
 .pdf-img {
     box-sizing: border-box;
     max-width: 75mm;
+    padding: 1mm;
     /*width: 100%;*/
+}
+
+.img-box {
+    padding-top: 1mm;
+    padding-bottom: 1mm;
 }
 
 .pdf-item-table {

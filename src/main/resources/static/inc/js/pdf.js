@@ -124,16 +124,24 @@ async function page(title, classname) {
         value.removeAttribute("style");
         const height = value.offsetHeight;
 
-        if(value.innerHTML.includes("<table")) {
-            value.querySelectorAll("table").forEach(table => {
-                table.removeAttribute("style");
-                table.classList.add("pdf-item-table");
-            })
-        }
+        // if(value.innerHTML.includes("<table")) {
+        //     value.querySelectorAll("table").forEach(table => {
+        //         table.removeAttribute("style");
+        //         table.classList.add("pdf-item-table");
+        //     })
+        // }
 
         if(value.innerHTML.includes("<table") && height > maxHeight-currentHeight && maxHeight-currentHeight > 30*toPx) {
+            value.querySelectorAll("table").forEach(table => {
+                        table.removeAttribute("style");
+                        table.classList.add("pdf-item-table");
+                    });
+
+
             let divElement = document.createElement("div");
             divElement.classList.add("pdf-item");
+
+            value.querySelectorAll("td").forEach(td => {td.removeAttribute("style");});
 
             const passageNo = value.querySelector(".pdf-passage-no");
             const question_main = value.querySelector(".pdf-item-question-main");
@@ -163,6 +171,7 @@ async function page(title, classname) {
             gridArea.appendChild(divElement);
 
             value.querySelectorAll(".pdf-line").forEach(value1 => {
+                value1.removeAttribute("style");
                 if(value1.innerHTML.includes("<table")){
                     return;
                 }
