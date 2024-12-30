@@ -31,6 +31,9 @@
         .disappear {
             display:none;
         }
+        .check-group em {
+            word-break: break-all;
+        }
     </style>
 </head>
 
@@ -82,7 +85,7 @@
                                                 <div class="title-chk">
                                                     <input type="checkbox" th:id="${large.largeChapterId}" class="que-allCheck depth01" data-depth="1">
                                                     <label th:for="${large.largeChapterId}">
-                                                        <button type="button" class="dep-btn active" th:text="${large.largeChapterName}">대단원 이름</button>
+                                                        <button type="button" class="dep-btn active" th:text="${large.largeChapterName}" style="font-size:95%;">대단원 이름</button>
                                                     </label>
                                                 </div>
                                             </div>
@@ -94,7 +97,7 @@
                                                     <div class="check-group">
                                                         <input type="checkbox" th:id="${medium.mediumChapterId}" class="que-allCheck depth02" data-depth="2">
                                                         <label th:for="${medium.mediumChapterId}">
-                                                            <button type="button" class="dep-btn active" th:text="${medium.mediumChapterName}">중단원 이름</button>
+                                                            <button type="button" class="dep-btn active" th:text="${medium.mediumChapterName}" style="font-size:95%;">중단원 이름</button>
                                                         </label>
                                                     </div>
 
@@ -104,8 +107,8 @@
                                                             <div class="check-group">
                                                                 <input type="checkbox" th:id="${small.smallChapterId}" class="que-allCheck depth03" data-depth="3">
                                                                 <label th:for="${small.smallChapterId}">
-                                                                    <button type="button" class="dep-btn active" th:text="${small.smallChapterName}">소단원 이름</button>
-                                                                    <em th:id="${small.smallChapterId}" style="color:#5670dc;">(0)</em>
+                                                                    <button type="button" class="dep-btn active" th:text="${small.smallChapterName}" style="font-size:85%;">소단원 이름</button>
+                                                                    <em th:id="${small.smallChapterId}" style="color:#5670dc; font-size: 85%;">(0)</em>
                                                                 </label>
                                                             </div>
 
@@ -115,8 +118,8 @@
                                                                     <div class="check-group">
                                                                         <input type="checkbox" th:data-large="${large.largeChapterId}" th:data-middle="${medium.mediumChapterId}" th:data-small="${small.smallChapterId}" th:id="${topic.topicChapterId}" class="que-allCheck depth04" data-depth="4">
                                                                         <label th:for="${topic.topicChapterId}">
-                                                                            <button type="button" class="active" th:text="${topic.topicChapterName}">토픽 이름</button>
-                                                                            <em th:id="${topic.topicChapterId}" style="color:#5670dc;">(0)</em>
+                                                                            <button type="button" class="active" th:text="${topic.topicChapterName}" style="font-size:85%;">토픽 이름</button>
+                                                                            <em th:id="${topic.topicChapterId}" style="color:#5670dc; font-size: 85%;">(0)</em>
                                                                         </label>
                                                                     </div>
                                                                 </div>
