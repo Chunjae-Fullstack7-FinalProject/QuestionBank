@@ -85,7 +85,10 @@ public class TestController {
                              @RequestParam(required = false, name = "examId") String[] examIds,
                              String[] questionIds,
                              @RequestParam(required = false, defaultValue = "") String type,
-                             @RequestParam String  strRequestBody) {
+                             @RequestParam String strRequestBody,
+                             @RequestParam String requestLow,
+                             @RequestParam String requestMiddle,
+                             @RequestParam String requestHigh) {
 
         if(examIds!=null){
             questionIds = testService.getPresetExamQuestions(examIds);
@@ -96,11 +99,13 @@ public class TestController {
         ObjectMapper objectMapper = new ObjectMapper();
         try{
             RequestBodyDTO requestBodyDTO = objectMapper.readValue(strRequestBody, RequestBodyDTO.class);
-            model.addAttribute("requestBody", requestBodyDTO); //재검색용 requestBody
+            model.addAttribute("requestBodyDTO", requestBodyDTO); //재검색용 requestBody
         } catch(Exception e){
             log.error(e.getMessage());
         }
-
+        model.addAttribute("requestLow", requestLow);
+        model.addAttribute("requestMiddle", requestMiddle);
+        model.addAttribute("requestHigh", requestHigh);
         model.addAttribute("questionIds", questionIds);
         model.addAttribute("type", type);
 

@@ -18,6 +18,13 @@
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
 	<script src="../../inc/js/common.js"></script>
+	<!-- 인규 추가 -->
+	<style>
+		/* 인규 추가 */
+		.disappear {
+			display:none;
+		}
+	</style>
 </head>
 <body>
 <div id="wrap" class="full-pop-que">
@@ -37,9 +44,305 @@
 						<span class="subject" th:text="${session.textbookDetailDTO?.getSubjectName()}"></span>
 						<span th:text="${session.textbookDetailDTO?.getCurriculumName()}"></span>
 					</div>
-					<button class="btn-default btn-research"><i class="research"></i>재검색</button>
+					<button class="btn-default btn-research" id="re-search"><i class="research"></i>재검색</button>
 					<button class="btn-default pop-btn" data-pop="que-scope-pop" id="scopeBtn" onclick="popFunc(this)">출제범위</button>
 				</div>
+				<!-- 인규 추가(재검색 js) -->
+				<script th:inline="javascript">
+					let requestBodyDTO = [[${requestBodyDTO}]];
+					let requestBody = {};
+					requestBody.minorClassification = requestBodyDTO.minorClassification;
+					requestBody.levelCnt = requestBodyDTO.levelCnt;
+					requestBody.questionForm = requestBodyDTO.questionForm;
+					requestBody.activityCategoryList = requestBodyDTO.activityCategoryList;
+					console.log(requestBody);
+					let requestLow = Number([[${requestLow}]]);
+					let requestMiddle = Number([[${requestMiddle}]]);
+					let requestHigh = Number([[${requestHigh}]]);
+					console.log(requestLow);
+					console.log(requestMiddle);
+					console.log(requestHigh);
+					$('#re-search').on('click', async function () {
+						if(requestLow === 0){
+							$('#displayLow').closest('div.range').addClass('disappear');
+						} else {
+							$('#displayLow').closest('div.range').removeClass('disappear');
+						}
+						if(requestMiddle === 0){
+							$('#displayMiddle').closest('div.range').addClass('disappear');
+						} else {
+							$('#displayMiddle').closest('div.range').removeClass('disappear');
+						}
+						if(requestHigh === 0){
+							$('#displayHigh').closest('div.range').addClass('disappear');
+						} else {
+							$('#displayHigh').closest('div.range').removeClass('disappear');
+						}
+						try{
+							const response = await fetch('/bridge/t-sherpa/item-img/chapters/item-list', {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json'
+								},
+								body: JSON.stringify(requestBody)
+							});
+
+							if(!response.ok) {
+								throw new Error(`HTTP error! status: ${response.status}`);
+							}
+							const data = await response.json();
+							//이제 여기서 처리해줘야 함
+							const itemList = data.itemList;
+							let low = 0;
+							let middle = 0;
+							let high = 0;
+							itemList.forEach(element =>{
+								switch (element.difficultyCode) {
+									case '02':
+										low += 1;
+										break;
+									case '03':
+										middle += 1;
+										break;
+									case '04':
+										high += 1;
+										break;
+								}
+							});
+							console.log("응답:",data);
+							console.log("하 난이도 개수:",low); // response 중 하 난이도의 개수
+							console.log("중 난이도 개수:",middle); // response 중 중 난이도의 개수
+							console.log("상 난이도 개수:",high); // response 중 상 난이도의 개수
+
+
+
+							console.log("요청 하 난이도 개수:",requestLow); //내가 실제로 요청한 하 난이도의 개수
+							console.log("요청 중 난이도 개수:",requestMiddle); //내가 실제로 요청한 중 난이도의 개수
+							console.log("요청 상 난이도 개수:",requestHigh); //내가 실제로 요청한 상 난이도의 개수
+
+							const lowCheck = low >= requestLow;
+							const middleCheck = middle >= requestMiddle;
+							const highCheck = high >= requestHigh;
+
+							console.log("하 난이도, 응답보다 요청이 많니?:",lowCheck); // 응답 >= 요청인지(하)
+							console.log("중 난이도, 응답보다 요청이 많니?:",middleCheck); // 응답 >= 요청인지(하)
+							console.log("상 난이도, 응답보다 요청이 많니?:",highCheck); // 응답 >= 요청인지(하)
+
+							// 상, 중, 하 모두 request 보다 response 가 더 크다면, response 중 request 개수만큼 가져와서, 넘기기
+							if(lowCheck && middleCheck && highCheck){
+								let itemArr = [];
+								let lowCnt = 0;
+								let middleCnt = 0;
+								let highCnt = 0;
+								itemList.forEach(item => {
+									if(requestLow > lowCnt && item.difficultyCode === '02'){
+										lowCnt += 1;
+										itemArr.push(item.itemId);
+									}
+									if(requestMiddle > middleCnt && item.difficultyCode === '03'){
+										middleCnt += 1;
+										itemArr.push(item.itemId);
+									}
+									if(requestHigh > highCnt && item.difficultyCode === '04'){
+										highCnt += 1;
+										itemArr.push(item.itemId);
+									}
+								});
+								console.log("통과 시 넘기는 배열:",itemArr);
+
+								//재검색하면 깜빡 해야함....
+								let url = '/customExam/step2';
+								let new_form = $('<form></form>');
+								new_form.attr("name", "new_form");
+								new_form.attr("method", "post");
+								new_form.attr("action", url);
+								let strRequestBody = JSON.stringify(requestBody);
+								new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
+								new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
+								new_form.append($('<input/>', {type: 'hidden', name: 'requestLow', value: requestLow}));
+								new_form.append($('<input/>', {type: 'hidden', name: 'requestMiddle', value: requestMiddle}));
+								new_form.append($('<input/>', {type: 'hidden', name: 'requestHigh', value: requestHigh}));
+								new_form.appendTo('body');
+								new_form.submit();
+
+							} else {
+
+								// 팝업
+								let _dim = $(".dim");
+								let _html = $("html , body");
+								let popData = $('#quePop').data("pop");
+								_html.css("overflow", "hidden");
+								_dim.fadeIn();
+								$(".pop-wrap[data-pop='" + popData + "']").show();
+
+								let lowDiff = low - requestLow;
+								let middleDiff = middle - requestMiddle;
+								let highDiff = high - requestHigh;
+								console.log("하, 응답 - 요청:",lowDiff);
+								console.log("중, 응답 - 요청:",middleDiff);
+								console.log("상, 응답 - 요청:",highDiff);
+								let minusTotal = 0;
+								if(lowDiff < 0) {
+									minusTotal += lowDiff;
+								}
+								if(middleDiff < 0){
+									minusTotal += middleDiff;
+								}
+								if(highDiff < 0) {
+									minusTotal += highDiff;
+								}
+								console.log("부족분 총합:",minusTotal);
+								// minusTotal 1씩 더해야됨
+								let itemArr = [];
+								let lowArr = [];
+								let middleArr = [];
+								let highArr = [];
+								itemList.forEach(item =>{
+									if(item.difficultyCode === '02'){
+										lowArr.push(item);
+									}
+									if(item.difficultyCode === '03'){
+										middleArr.push(item);
+									}
+									if(item.difficultyCode === '04'){
+										highArr.push(item);
+									}
+								});
+								if(lowDiff<0){
+									lowArr.forEach(item =>{
+										itemArr.push(item.itemId);
+									});
+								} else {
+									for(let i=0 ; i<requestLow;i++){
+										itemArr.push(lowArr[i].itemId);
+									}
+								}
+								if(middleDiff<0){
+									middleArr.forEach(item =>{
+										itemArr.push(item.itemId);
+									});
+								} else {
+									for(let i=0 ; i<requestMiddle;i++){
+										itemArr.push(middleArr[i].itemId);
+									}
+								}
+								if(highDiff<0){
+									highArr.forEach(item=>{
+										itemArr.push(item.itemId);
+									});
+								} else {
+									for(let i=0 ; i<requestHigh;i++){
+										itemArr.push(highArr[i].itemId);
+									}
+								}
+								console.log("하 배열",lowArr);
+								console.log("중 배열",middleArr);
+								console.log("상 배열",highArr);
+
+								const difficulties = [
+									{ name: 'low', diff: lowDiff, arr: lowArr, count: 0},
+									{ name: 'middle', diff: middleDiff, arr: middleArr, count: 0},
+									{ name: 'high', diff: highDiff, arr: highArr, count: 0}
+								]
+
+								//부족분 채우기
+								while(minusTotal < 0) {
+									let flag = false;
+
+									for(let deficit of difficulties){
+										while(deficit.diff < 0){ // low, middle, high 중 부족한 경우
+											let filled = false;
+											for(let surplus of difficulties){
+												if(surplus.diff > 0 && surplus.arr.length > 0){
+													const item = surplus.arr.pop();
+													if(item){
+														itemArr.push(item.itemId);
+
+														deficit.diff++; //해당 부족 부분 한 개 없어짐
+														minusTotal++; // 총합도 한 개 없어짐
+														surplus.count++;
+														surplus.diff--; // 채워준 부분은 잉여부분이 한 개 없어짐
+
+														filled = true;
+														flag = true;
+														break;
+													}
+												}
+											}
+											if(!filled){ // 못 채우면 그만
+												break;
+											}
+										}
+									}
+									if(!flag){ // 모두 채웠거나 잉여 문항이 없을 때
+										break;
+									}
+								}
+								console.log("minusTotal:", minusTotal);
+								console.log("lowDiff:", difficulties[0].diff);
+								console.log("middleDiff:", difficulties[1].diff);
+								console.log("highDiff:", difficulties[2].diff);
+								console.log("itemArr:", itemArr);
+								console.log("lowCount", difficulties[0].count);
+								console.log("MiddleCount", difficulties[1].count);
+								console.log("highCount", difficulties[2].count);
+								let finalLow = 0;
+								let finalMiddle = 0;
+								let finalHigh = 0;
+								if(difficulties[0].count === 0){
+									finalLow = Number(low); //실제로 온 값
+								} else {
+									finalLow = Number(requestLow + difficulties[0].count);
+								}
+								if(difficulties[1].count === 0){
+									finalMiddle = Number(middle);
+								} else {
+									finalMiddle = Number(requestMiddle + difficulties[1].count);
+								}
+								if(difficulties[2].count === 0){
+									finalHigh = Number(high);
+								} else {
+									finalHigh = Number(requestHigh + difficulties[2].count);
+								}
+
+								console.log("finalLow:", finalLow);
+								console.log("finalMiddle:", finalMiddle);
+								console.log("finalHigh:", finalHigh);
+
+								let displayLow = $('#displayLow').text(finalLow);
+								let displayMiddle = $('#displayMiddle').text(finalMiddle);
+								let displayHigh = $('#displayHigh').text(finalHigh);
+								let displayTotal = $('#displayTotal').text(
+										($('#displayLow').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayLow').text())) +
+										($('#displayMiddle').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayMiddle').text())) +
+										($('#displayHigh').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayHigh').text()))
+								);
+
+								//확인 버튼
+								//재검색 후 깜빡
+								$('#nextBtn2').on('click', function() {
+									let url = '/customExam/step2';
+									let new_form = $('<form></form>');
+									new_form.attr("name", "new_form");
+									new_form.attr("method", "post");
+									new_form.attr("action", url);
+									let strRequestBody = JSON.stringify(requestBody);
+									new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
+									new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
+									new_form.append($('<input/>', {type: 'hidden', name: 'requestLow', value: requestLow}));
+									new_form.append($('<input/>', {type: 'hidden', name: 'requestMiddle', value: requestMiddle}));
+									new_form.append($('<input/>', {type: 'hidden', name: 'requestHigh', value: requestHigh}));
+									new_form.appendTo('body');
+									new_form.submit();
+								});
+							}
+						} catch(e){
+							console.error('Error fetching data:', e);
+						}
+					});
+
+				</script>
+				<!-- 인규 추가(재검색 js) -->
 				<div class="view-bottom type01">
 					<div class="cnt-box">
 						<div class="cnt-top">
@@ -88,18 +391,18 @@
 							<div class="que-badge-group type01">
 								<div class="que-badge-wrap">
 									<span class="que-badge purple">하</span>
-									<span class="num">5</span>
+									<span class="num" id="low"> </span>
 								</div>
 								<div class="que-badge-wrap">
 									<span class="que-badge green">중</span>
-									<span class="num">15</span>
+									<span class="num" id="middle"> </span>
 								</div>
 								<div class="que-badge-wrap">
 									<span class="que-badge yellow">상</span>
-									<span class="num">25</span>
+									<span class="num" id="high"> </span>
 								</div>
 							</div>
-							<p class="total-num">총 <span>30</span>문제</p>
+							<p class="total-num">총 <span id="total"> </span>문제</p>
 						</div>
 					</div>
 					<div class="cnt-box type01">
@@ -108,7 +411,7 @@
 								<li class="ui-tab-btn active">
 									<a href="javascript:;">문제지 요약</a>
 								</li>
-								<li class="ui-tab-btn">
+								<li class="ui-tab-btn" data-id="similar">
 									<a href="javascript:;">유사 문제</a>
 								</li>
 								<li class="ui-tab-btn" id="deleteTab">
@@ -138,17 +441,17 @@
 									<div class="que-badge-group">
 										<div class="que-badge-wrap">
 											<span class="que-badge gray">객관식</span>
-											<span class="num">35</span>
+											<span class="num" id="multipleChoice"> </span>
 										</div>
 										<div class="que-badge-wrap">
 											<span class="que-badge gray">주관식</span>
-											<span class="num">15</span>
+											<span class="num" id="shortAnswer"> </span>
 										</div>
 									</div>
 								</div>
 							</div>
-							<div class="contents">
-								<div class="cnt-top">
+							<div class="contents" data-id="similar">
+								<div class="levelCntTop cnt-top">
 									<span class="title" id="similarTitle"> </span>
 									<div class="right-area">
 										<div class="select-wrap">
@@ -290,6 +593,53 @@
 	</div>
 
 </div>
+<!-- 인규 추가 (재검색 팝업)-->
+<div class="pop-wrap range-type02" data-pop="que-pop" id="quePop">
+	<div class="pop-inner">
+		<div class="pop-header">
+			<span>문항 구성 자동 변경</span>
+			<button type="button" class="pop-close"></button>
+		</div>
+		<div class="pop-content">
+			<span class="txt">사용자가 원하는 문항 구성을 할 수 없어<br>문항 구성이 자동으로 변경되었습니다.</span>
+			<div class="range-wrap" id="rangeWrap">
+				<!--                    <div class="range">-->
+				<!--                        <span class="color01">최하</span>-->
+				<!--                        <span class="num">2</span>-->
+				<!--                    </div>-->
+
+				<div class="range"  data-step="2">
+					<span class="color02">하</span>
+					<span class="num" id="displayLow"></span>
+				</div>
+				<div class="range" data-step="3">
+					<span class="color03">중</span>
+					<span class="num" id="displayMiddle" ></span>
+				</div>
+				<div class="range" data-step="4">
+					<span class="color04">상</span>
+					<span class="num" id="displayHigh" ></span>
+				</div>
+
+				<!--                    <div class="range">-->
+				<!--                        <span class="color05">최상</span>-->
+				<!--                        <span class="num">2</span>-->
+				<!--                    </div>-->
+
+				<div class="range total">
+					<span>합계</span>
+					<span class="num" id="displayTotal">20</span>
+				</div>
+			</div>
+			<span class="txt">해당 문제 구성으로 출제하시겠습니까?</span>
+		</div>
+		<div class="pop-footer">
+			<button class="pop-close">취소</button>
+			<button class="pop-close" id="nextBtn2">확인</button>
+		</div>
+	</div>
+</div>
+<!-- 인규 추가 (재검색 팝업)-->
 <script th:inline="javascript">
 	//문항id 배열로 티셀파 문항 리스트 조회(img) 요청
 	const questionIds = [[${questionIds}]];
@@ -538,7 +888,6 @@
 
 	//문제 데이터를 화면에 렌더링
 	function renderQuestions(questions) {
-		console.log("renderQuestions");
 		console.log(questions);
 		const container = document.querySelector(".view-que-list");
 		container.innerHTML = "";
@@ -584,17 +933,17 @@
 					`;
 			}
 			questionHTML +=`
-					<div class="view-que-box">
+					<div class="view-que-box " id="question-container">
 							<div class="que-top">
 								<div class="title">
-									<span class="num">${index+1}</span> <!--문제 순서 -->
+									<span class="num">${index+1}</span>
 									<div class="que-badge-group">
-										<span class="que-badge yellow">${q.difficultyName}</span> <!--문제 난이도 -->
-										<span class="que-badge gray">${q.questionFormName}</span> <!--문제 형태 -->
+										<span class="que-badge  ${getLevelColor(q.difficultyName)}">${q.difficultyName}</span>
+										<span class="que-badge gray">${getQuestionType(q.questionFormCode)}</span>
 									</div>
 								</div>
 								<div class="btn-wrap">
-									<button type="button" class="btn-error pop-btn" data-pop="error-report-pop" data-item-id="${q.itemId}" onclick="popFunc(this)"></button>
+									<button type="button" class="btn-error pop-btn"  data-pop="error-report-pop" data-item-id="${q.itemId}" onclick="popFunc(this)"></button>
 									<button type="button" class="btn-delete" data-item-id="${q.itemId}" onclick="executeDelete(event, this)"></button>
 								</div>
 							</div>
@@ -634,7 +983,7 @@
 											<!-- e: 정답 데이터 영역 -->
 										</div>
 									</div>
-									<button type="button" class="btn-similar-que btn-default" onclick="excuteSimilarAPI(${q.itemId}, ${index+1})">
+									<button type="button" class="btn-similar-que btn-default" data-id="similar" onclick="executeSimilarAPI(${q.itemId}, ${index+1}, this)">
 										<i class="similar"></i> 유사 문제
 									</button>
 								</div>
@@ -647,6 +996,7 @@
 					`;
 			container.insertAdjacentHTML("beforeend", questionHTML);
 		});
+
 	}
 
 	// 페이지 로드 시 API 요청
@@ -702,7 +1052,7 @@
 				questionHTML += `
 											</span>
 											<!-- E 230808 tooltip-wrap 추가-->
-											<span>${q.questionFormName}</span>
+											<span>${getQuestionType(q.questionFormCode)}</span>
 											<span>
 												<span class="que-badge">${q.difficultyName}</span>
 											</span>
@@ -736,7 +1086,7 @@
 				questionHTML += `
 									</span>
 									<!-- E 230808 tooltip-wrap 추가-->
-									<span>${q.questionFormName}</span>
+									<span>${getQuestionType(q.questionFormCode)}</span>
 									<span>
 										<span class="que-badge">${q.difficultyName}</span>
 									</span>
@@ -834,7 +1184,7 @@
 								<span class="num">${index+1}</span>
 								<div class="que-badge-group">
 									<span class="que-badge yellow">${q.difficultyName}</span>
-									<span class="que-badge gray">${q.questionFormName}</span>
+									<span class="que-badge gray">${getQuestionType(q.questionFormCode)}</span>
 								</div>
 							</div>
 							<div class="btn-wrap">
@@ -853,7 +1203,7 @@
 							</div>
 							<div class="que-bottom">
 								<div class="btn-wrap">
-									<button type="button" class="btn-default" onclick="excuteSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId})">
+									<button type="button" class="btn-default" onclick="executeSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId}, ${itemNum})">
 										<i class="add-type02"></i>추가
 									</button>
 								</div>
@@ -870,7 +1220,7 @@
 		container.insertAdjacentHTML("beforeend", questionHTML);
 	}
 
-	function addQuestion(newItemData, targetItemId) {
+	function addQuestion(newItemData, targetItemId, index) {
 		const newItem = JSON.parse(decodeURIComponent(newItemData)); // JSON 파싱
 		console.log("추가할 데이터:", newItem);
 
@@ -921,6 +1271,12 @@
 			questions.splice(targetIndex + 1, 0, newItem);
 			console.log("업데이트된 questions 배열 (단일 문항):", questions);
 		}
+		// console.log(newItem.itemId);
+		// console.log(newItem.passageId);
+		// console.log(targetItemId);
+		// console.log(index);
+		hideSimilarQuestions(newItem.itemId, newItem.passageId, targetItemId, index);
+		return newItem.itemId;
 	}
 
 	function addAllQuestion(passageId, targetItemId) {
@@ -1123,78 +1479,200 @@
 		});
 	});
 
+	//문제 별 문항 수, 합계 계산
+	function calculateLevelCnt(questions){
+		//console.log(difficultyName);
+		const count = {
+			lowCnt : 0,
+			middleCnt : 0,
+			highCnt : 0,
+			totalCnt : 0,
+		}
+		questions.forEach(q => {
+			switch (q.difficultyCode) {
+				case '02': // 하
+					count.lowCnt++;
+					break;
+				case '03': // 중
+					count.middleCnt++;
+					break;
+				default: // 상
+					count.highCnt++;
+			}
+		})
+		count.totalCnt = count.lowCnt + count.middleCnt + count.highCnt;
+		return count;
+	}
+
+	function renderLevelCnt(count){
+		console.log(count);
+		document.getElementById("low").textContent = count.lowCnt;
+		document.getElementById("middle").textContent = count.middleCnt;
+		document.getElementById("high").textContent = count.highCnt;
+		document.getElementById("total").textContent = count.totalCnt;
+
+	}
+
+	function getLevelColor(difficultyName){
+		switch (difficultyName){
+			case "하":
+				return "purple";
+			case "중":
+				return "green";
+			case "상":
+				return "yellow";
+		}
+	}
+
+	function calculateQuestionType(questions){
+		const count = {
+			multipleChoice : 0,
+			shortAnswer : 0
+		}
+
+		questions.forEach(q => {
+			switch (true){
+				case q.questionFormCode >= '10' && q.questionFormCode <= '50':
+					console.log(q.questionFormCode);
+					count.multipleChoice++;
+					break;
+				case q.questionFormCode >= '60' && q.questionFormCode <= '99':
+					count.shortAnswer++;
+					break;
+			}
+
+		})
+		return count;
+	}
+
+	function renderQuestionType(count){
+		document.getElementById("multipleChoice").textContent = count.multipleChoice;
+		document.getElementById("shortAnswer").textContent = count.shortAnswer;
+	}
+
+	function hideSimilarQuestions(itemId, passageId, targetItemId, index){
+		// console.log(itemId);
+		// console.log(passageId);
+		// console.log(targetItemId);
+		// console.log(index);
+		similarQuestions = similarQuestions.filter(q => q.itemId !== itemId);
+		renderSimilar(similarQuestions, index, targetItemId);
+
+	}
+
+	// 문항 클릭 시 문항 active
+	function clickActive(button){
+		const parentItem = button.closest(".view-que-box");
+		if(parentItem){
+			//기존에 활성화 있음 지우기
+			document.querySelectorAll(".view-que-box.active").forEach(b => {
+				b.classList.remove("active");
+			})
+			parentItem.classList.add("active");
+		}
+	}
+
+	function similarActive(button){
+		const targetId = button.getAttribute("data-id");
+		if (!targetId) {
+			console.log("버튼에 data-id가 없음");
+			return;
+		}
+		// 이전에 활성화된 부분 지우기
+		document.querySelectorAll(".contents.on").forEach(content => {
+			content.classList.remove("on");
+		});
+
+		const targetContent = document.querySelector(`.contents[data-id="${targetId}"]`);
+		if (targetContent) {
+			targetContent.classList.add("on");
+		} else {
+			console.log("contents를 찾을 수 없음");
+		}
+
+		//tab 부분
+		const targetTab = button.getAttribute("data-id");
+		if (!targetId) {
+			console.log("버튼에 data-id가 없음");
+			return;
+		}
+		// 이전에 활성화된 부분 지우기
+		document.querySelectorAll(".ui-tab-btn.active").forEach(content => {
+			content.classList.remove("active");
+		});
+
+		const targetTabContent = document.querySelector(`.ui-tab-btn[data-id="${targetTab}"]`);
+		if (targetTabContent) {
+			targetTabContent.classList.add("active");
+		} else {
+			console.log("tab을 찾을 수 없음");
+		}
+
+	}
+
+	function scrollItem(itemId){
+		console.log(itemId);
+		const container = document.getElementById("question-container");
+		console.log(container);
+		//const targetItem = container.querySelector(`[data-item-id="${itemId}"]`);
+		const allItems = container.querySelectorAll("[data-item-id]");
+		console.log(allItems.length);
+		allItems.forEach(item => {
+			console.log(`data-item-id: "${item.dataset.itemId}", 찾는 값: "${itemId}"`);
+		});
+		// console.log(targetItem);
+		if(targetItem){
+			targetItem.scrollIntoView({
+				behavior: "smooth",
+				block: "center",
+			});
+
+		}
+	}
+
 	// 초기 화면
 	window.onload = async function(){
-		console.log("======api 호출======");
 		questions = await getQuestionInfo();
-		console.log(questions);
-		console.log("======api 호출 완료======");
-
-		console.log("======sortByPassageId 호출======");
 		sortByPassageId(questions);
-		console.log(questions);
-		console.log("======sortByPassageId 호출 완료=====");
-
-		console.log("======renderQuestions 호출======");
 		renderQuestions(questions);
-		console.log("======renderQuestions 호출 완료=====");
-
-		console.log("======renderSummary 호출======");
+		const levelCnt = calculateLevelCnt(questions);
+		renderLevelCnt(levelCnt);
 		renderSummary(questions);
-		console.log("======renderSummary 호출 완료=====");
+		const typeCnt = calculateQuestionType(questions);
+		renderQuestionType(typeCnt)
 	}
 
 	// 유사 문항 불러오기
-	async function excuteSimilarAPI(itemId, index){
-		console.log("======getSimilarQuestionInfo 호출======");
+	async function executeSimilarAPI(itemId, index, button){
 		similarQuestions = await getSimilarQuestionInfo(itemId, index);
-		console.log(similarQuestions);
-		console.log("======getSimilarQuestionInfo 호출 완료=====");
-
-		console.log("======renderSimilar 호출======");
 		renderSimilar(similarQuestions, index, itemId);
-		console.log("======renderSimilar 호출 완료=====");
+		similarActive(button);
+		clickActive(button);
+
 	}
 
 	// 유사 문항 추가
-
-	function excuteSimilarAdd(newItemData, targetItemId){
-		console.log("======addQuestion 호출======");
-		addQuestion(newItemData, targetItemId);
-		console.log("======addQuestion 호출 완료=====");
-
-		// console.log("======updateAllOrder 호출======");
-		// updateAllOrder(newItem);
-		// console.log("======updateAllOrder 호출 완료=====");
-
-		console.log("======renderQuestions 호출======");
+	function executeSimilarAdd(newItemData, targetItemId, index){
+		const itemId = addQuestion(newItemData, targetItemId, index);
 		renderQuestions(questions);
-		console.log("======renderQuestions 호출 완료=====");
-
-		console.log("======renderSummary 호출======");
+		scrollItem(itemId);
+		const count = calculateLevelCnt(questions);
+		renderLevelCnt(count);
 		renderSummary(questions);
-		console.log("======renderSummary 호출 완료=====");
+		const typeCnt = calculateQuestionType(questions);
+		renderQuestionType(typeCnt)
 	}
 
+	//전체 추가
 	function executeAllQuestion(passageId, targetItemId){
-		console.log("======addAllQuestion 호출======");
 		addAllQuestion(passageId, targetItemId);
-		console.log(questions);
-		console.log("======addAllQuestion 호출 완료=====");
-
-		console.log("======renderQuestions 호출======");
 		renderQuestions(questions);
-		console.log("======renderQuestions 호출 완료=====");
-
-		console.log("======renderSummary 호출======");
+		const count = calculateLevelCnt(questions);
+		renderLevelCnt(count);
 		renderSummary(questions);
-		console.log("======renderSummary 호출 완료=====");
+		const typeCnt = calculateQuestionType(questions);
+		renderQuestionType(typeCnt)
 	}
-
-
-
-
-
 
 
 	$(function () {
