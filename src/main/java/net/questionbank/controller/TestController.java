@@ -1,5 +1,6 @@
 package net.questionbank.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
@@ -8,6 +9,7 @@ import net.questionbank.annotation.RedirectWithError;
 import net.questionbank.dto.main.SubjectRequestDTO;
 import net.questionbank.dto.test.LargeDTO;
 import net.questionbank.dto.presetExam.LargeChapterDTO;
+import net.questionbank.dto.test.RequestBodyDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.exception.CustomRuntimeException;
 import net.questionbank.service.step3.Step3Service;
@@ -56,11 +58,18 @@ public class TestController {
     }
   
     @GetMapping("/step1")
-    public String step1(Model model, SubjectRequestDTO subjectRequestDTO) {
-        subjectRequestDTO.setSubjectId("1167");
+    public String step1(Model model, SubjectRequestDTO subjectRequestDTO, HttpSession session) {
+        //여기 치고 들어오면 팅궈야 함.
+        TextBookApiDTO textbookDetailDTO = (TextBookApiDTO)session.getAttribute("textbookDetailDTO");
+        if (textbookDetailDTO == null) {
+            throw new CustomRuntimeException("textbook not found");
+        }
+        String subjectId = textbookDetailDTO.getSubjectId().toString();
+        subjectRequestDTO.setSubjectId(subjectId);
         List<LargeDTO> largeList = testService.step1(subjectRequestDTO);
         model.addAttribute("largeList", largeList);
-        model.addAttribute("subjectId", "1167");
+        model.addAttribute("subjectId", subjectId);
+        model.addAttribute("textbookDetailDTO", textbookDetailDTO);
         return "test/step1";
     }
 
@@ -71,33 +80,30 @@ public class TestController {
     step1에서 받은 과목 id 값
     step2/sub03_01_01로 리턴
      */
-    @GetMapping("/step2")
-    public String getItemIds(Model model, @RequestParam(required = false, name = "examId") String[] examIds,@RequestParam(required = false, defaultValue = "") String type) {
+    @PostMapping("/step2")
+    public String getItemIds(Model model,
+                             @RequestParam(required = false, name = "examId") String[] examIds,
+                             String[] questionIds,
+                             @RequestParam(required = false, defaultValue = "") String type,
+                             @RequestParam String  strRequestBody) {
 
-        String[] questionIds = {"494519", "494552"
-                , "487868"
-                , "494553"
-                , "493140"
-                , "493137"
-                , "493139"
-                , "493141"
-                , "487792"
-                , "494581"
-                , "494582"
-                , "493122"
-                , "493123"
-                , "487816"
-                , "494528"
-                , "493138"
-                , "487866"
-                , "487867"
-                , "493179"};
         if(examIds!=null){
             questionIds = testService.getPresetExamQuestions(examIds);
             model.addAttribute("type", "edit");
         }
+
+        //json 파싱
+        ObjectMapper objectMapper = new ObjectMapper();
+        try{
+            RequestBodyDTO requestBodyDTO = objectMapper.readValue(strRequestBody, RequestBodyDTO.class);
+            model.addAttribute("requestBody", requestBodyDTO); //재검색용 requestBody
+        } catch(Exception e){
+            log.error(e.getMessage());
+        }
+
         model.addAttribute("questionIds", questionIds);
         model.addAttribute("type", type);
+
         return "test/step2";
     }
 

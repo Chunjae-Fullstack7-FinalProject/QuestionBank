@@ -27,6 +27,7 @@ public class BridgeRestController {
             @RequestBody(required = false) String body,
             @RequestHeader HttpHeaders headers
     ) {
+//        log.info("requestBody:{}",body); //리퀘스트바디 로그. 필요하면 쓰셈
         // 프록시할 실제 경로 추출
         String path = request.getRequestURI().replace("/bridge/t-sherpa", "");
 

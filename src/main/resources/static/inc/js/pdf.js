@@ -38,9 +38,23 @@ async function replaceSvgWithPng(imageClassName) {
 
 }
 
-async function savePdf1(title, itemclass) {
+async function replaceSvgWithPng2(element) {
+    const svgImages = element.querySelectorAll("img");
 
-    await replaceSvgWithPng('.pdf-img');
+    for (const svgImg of svgImages) {
+        const ext = svgImg.src.substring(svgImg.src.lastIndexOf(".") + 1);
+        const svgUrl = `/api/customExam/proxy/${ext}?url=` + svgImg.src; // cors 문제 피하기 위해 서버 우회
+        try {
+            svgImg.src = await convertSvgToPng(svgUrl); // png로 교체
+        } catch (error) {
+            console.error(`SVG 변환 실패: ${svgUrl}`, error);
+        }
+    }
+}
+
+async function savePdf1(title, item) {
+
+    // await replaceSvgWithPng('.pdf-img');
 
     const element = document.getElementById('pdf-content'); // 변환할 요소
     const options = {
@@ -51,9 +65,8 @@ async function savePdf1(title, itemclass) {
         pagebreak: { mode: ['css'] },
     };
 
-    for (const item of itemclass) {
-        pagenation(item, title);
-        const filename = `${item}-[[${pdfFileId}]].pdf`; // 파일 이름 설정
+    // for (const item of itemclass) {
+        const filename = `${title}-${item}.pdf`; // 파일 이름 설정
         options.filename = filename;
 
         console.log(`Generating PDF for: ${item}`);
@@ -61,7 +74,7 @@ async function savePdf1(title, itemclass) {
         // PDF 생성 후 저장
         html2pdf().set(options).from(element).save();
 
-    }
+    // }
 
 }
 
@@ -71,7 +84,9 @@ function page(title, item) {
     const items = include.querySelectorAll(".pdf-item");
     const content = document.getElementById("pdf-content");
 
-    content.innerHTML = `
+
+    replaceSvgWithPng2(include).then(element => {
+        content.innerHTML = `
 			<div class="page">
                 <table class="pdf-title-table">
                     <tr>
@@ -90,118 +105,76 @@ function page(title, item) {
             </div>
 			`;
 
-    const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
+        const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
 
-    console.log(toPx);
+        console.log(toPx);
 
-    let currentHeight = 5*toPx;
-    let gridArea = document.getElementById("left-1");
-    let pageNo = 1;
-    let maxHeight = 235 * toPx;
-    let currentArea = 0;
+        let currentHeight = 5*toPx;
+        let gridArea = document.getElementById("left-1");
+        let pageNo = 1;
+        let maxHeight = 235 * toPx;
+        let currentArea = 0;
 
-    items.forEach(value => {
-        value.removeAttribute("style");
-        const height = value.offsetHeight;
+        items.forEach(value => {
+            value.removeAttribute("style");
+            const height = value.offsetHeight;
 
-        if(value.innerHTML.includes("<table")) {
-            value.querySelectorAll("table").forEach(table => {
-                table.removeAttribute("style");
-                table.classList.add("pdf-item-table");
-            })
-        }
-
-        if(value.innerHTML.includes("<table") && height > maxHeight-currentHeight && maxHeight-currentHeight > 30*toPx) {
-            let divElement = document.createElement("div");
-            divElement.classList.add("pdf-item");
-
-            const passageNo = value.querySelector(".pdf-passage-no");
-            const question_main = value.querySelector(".pdf-item-question-main");
-
-            if(passageNo != null && passageNo.offsetHeight <= maxHeight-currentHeight) {
-                divElement.appendChild(passageNo);
-            }
-            if(question_main != null && question_main.offsetHeight <= maxHeight-currentHeight) {
-                divElement.appendChild(question_main);
-            }
-
-            gridArea.appendChild(divElement);
-
-            currentHeight += divElement.offsetHeight;
-
-            divElement = document.createElement("div");
-            divElement.classList.add("pdf-item");
-
-            let table = document.createElement("table");
-            table.classList.add("pdf-item-table");
-            divElement.appendChild(table);
-            let tr = document.createElement("tr");
-            let td = document.createElement("td");
-            table.appendChild(tr);
-            tr.appendChild(td);
-
-            gridArea.appendChild(divElement);
-
-            value.querySelectorAll(".pdf-line").forEach(value1 => {
-                if(value1.innerHTML.includes("<table")){
-                    return;
-                }
-                if (value1.offsetHeight + currentHeight + divElement.offsetHeight < maxHeight) {
-                    td.appendChild(value1);
-                }
-                else {
-                    if(td.childNodes.length === 0) {
-                        gridArea.removeChild(divElement);
-                    }
-                    currentHeight = 5*toPx;
-                    if (currentArea === 1) {
-                        maxHeight = 255 * toPx;
-                        pageNo = pageNo + 1;
-                        currentArea = 0;
-                        content.innerHTML += `
-                            <div class="page">
-                                <div class="pdf-container">
-                                    <div class="pdf-item-container pdf-item-container-left" id="left-${pageNo}"></div>
-                                    <div class="pdf-item-container pdf-item-container-right" id="right-${pageNo}"></div>
-                                </div>
-                                <div class="page-no">${pageNo}</div>
-                            </div>
-                    `;
-
-                        gridArea = document.getElementById("left-" + pageNo);
-                    } else {
-                        currentArea = 1;
-                        gridArea = document.getElementById("right-" + pageNo);
-                    }
-
-                    currentHeight = 5*toPx;
-                    divElement = document.createElement("div");
-                    divElement.classList.add("pdf-item");
-                    table = document.createElement("table");
+            if(value.innerHTML.includes("<table")) {
+                value.querySelectorAll("table").forEach(table => {
+                    table.removeAttribute("style");
                     table.classList.add("pdf-item-table");
-                    divElement.appendChild(table);
-                    tr = document.createElement("tr");
-                    td = document.createElement("td");
-                    table.appendChild(tr);
-                    tr.appendChild(td);
+                })
+            }
 
-                    gridArea.appendChild(divElement);
+            if(value.innerHTML.includes("<table") && height > maxHeight-currentHeight && maxHeight-currentHeight > 30*toPx) {
+                let divElement = document.createElement("div");
+                divElement.classList.add("pdf-item");
 
-                    td.appendChild(value1);
+                const passageNo = value.querySelector(".pdf-passage-no");
+                const question_main = value.querySelector(".pdf-item-question-main");
+
+                if(passageNo != null && passageNo.offsetHeight <= maxHeight-currentHeight) {
+                    divElement.appendChild(passageNo);
                 }
-            });
-            currentHeight += divElement.offsetHeight + 5 * toPx;
-            value.remove();
-            return;
-        }
+                if(question_main != null && question_main.offsetHeight <= maxHeight-currentHeight) {
+                    divElement.appendChild(question_main);
+                }
 
-        if (maxHeight-currentHeight < height) {
-            currentHeight = 5 * toPx;
-            if (currentArea === 1) {
-                maxHeight = 255 * toPx;
-                pageNo = pageNo + 1;
-                currentArea = 0;
-                content.innerHTML += `
+                gridArea.appendChild(divElement);
+
+                currentHeight += divElement.offsetHeight;
+
+                divElement = document.createElement("div");
+                divElement.classList.add("pdf-item");
+
+                let table = document.createElement("table");
+                table.classList.add("pdf-item-table");
+                divElement.appendChild(table);
+                let tr = document.createElement("tr");
+                let td = document.createElement("td");
+                table.appendChild(tr);
+                tr.appendChild(td);
+
+                gridArea.appendChild(divElement);
+
+                value.querySelectorAll(".pdf-line").forEach(value1 => {
+                    if(value1.innerHTML.includes("<table")){
+                        return;
+                    }
+                    if (value1.offsetHeight + (5*toPx) + currentHeight + divElement.offsetHeight < maxHeight) {
+
+                        td.appendChild(value1);
+                    }
+                    else {
+                        if(td.childNodes.length === 0) {
+                            gridArea.removeChild(divElement);
+                        }
+                        currentHeight = 5*toPx;
+                        if (currentArea === 1) {
+                            maxHeight = 255 * toPx;
+                            pageNo = pageNo + 1;
+                            currentArea = 0;
+                            content.innerHTML += `
                             <div class="page">
                                 <div class="pdf-container">
                                     <div class="pdf-item-container pdf-item-container-left" id="left-${pageNo}"></div>
@@ -211,15 +184,61 @@ function page(title, item) {
                             </div>
                     `;
 
-                gridArea = document.getElementById("left-" + pageNo);
-            } else {
-                currentArea = 1;
-                gridArea = document.getElementById("right-" + pageNo);
+                            gridArea = document.getElementById("left-" + pageNo);
+                        } else {
+                            currentArea = 1;
+                            gridArea = document.getElementById("right-" + pageNo);
+                        }
+
+                        currentHeight = 5*toPx;
+                        divElement = document.createElement("div");
+                        divElement.classList.add("pdf-item");
+                        table = document.createElement("table");
+                        table.classList.add("pdf-item-table");
+                        divElement.appendChild(table);
+                        tr = document.createElement("tr");
+                        td = document.createElement("td");
+                        table.appendChild(tr);
+                        tr.appendChild(td);
+
+                        gridArea.appendChild(divElement);
+
+                        td.appendChild(value1);
+                    }
+                });
+                currentHeight += divElement.offsetHeight + 5 * toPx;
+                value.remove();
+                return;
             }
-        }
-        currentHeight = currentHeight + height + 5*toPx ;
-        gridArea.appendChild(value);
+
+            if (maxHeight-currentHeight < height) {
+                currentHeight = 5 * toPx;
+                if (currentArea === 1) {
+                    maxHeight = 255 * toPx;
+                    pageNo = pageNo + 1;
+                    currentArea = 0;
+                    content.innerHTML += `
+                            <div class="page">
+                                <div class="pdf-container">
+                                    <div class="pdf-item-container pdf-item-container-left" id="left-${pageNo}"></div>
+                                    <div class="pdf-item-container pdf-item-container-right" id="right-${pageNo}"></div>
+                                </div>
+                                <div class="page-no">${pageNo}</div>
+                            </div>
+                    `;
+
+                    gridArea = document.getElementById("left-" + pageNo);
+                } else {
+                    currentArea = 1;
+                    gridArea = document.getElementById("right-" + pageNo);
+                }
+            }
+            currentHeight = currentHeight + height + 5*toPx ;
+            gridArea.appendChild(value);
+        });
     });
+
+
 }
 
 //이미지 시험지 레이아웃

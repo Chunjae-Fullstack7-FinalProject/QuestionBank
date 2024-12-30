@@ -74,4 +74,12 @@ public class TestApiController {
                 .contentType(MediaType.valueOf("image/svg+xml"))
                 .body(svgData);
     }
+    @GetMapping("/proxy/{ext}")
+    public ResponseEntity<byte[]> proxyPng(@PathVariable String ext, @RequestParam String url) {
+        RestTemplate restTemplate = new RestTemplate();
+        byte[] svgData = restTemplate.getForObject(url, byte[].class);
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf("image/"+ext))
+                .body(svgData);
+    }
 }
