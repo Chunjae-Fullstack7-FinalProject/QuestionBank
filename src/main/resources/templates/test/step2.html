@@ -1178,7 +1178,7 @@
 								</div>
 							</div>
 							<div class="btn-wrap etc-btn-wrap" style="margin-top: 10px;">
-									<button type="button" class="btn-default btn-add" data-type="all"  onclick="executeAllQuestion(${q.passageId}, ${itemId})">
+									<button type="button" class="btn-default btn-add" data-type="all"  onclick="executeAllQuestion(${q.passageId}, ${itemId}, ${itemNum})">
 										<i class="add-type02"></i>전체 추가
 									</button>
 							</div>
@@ -1295,7 +1295,7 @@
 		return newItem.itemId;
 	}
 
-	function addAllQuestion(passageId, targetItemId) {
+	function addAllQuestion(passageId, targetItemId, index) {
 		console.log(passageId);
 		console.log(targetItemId);
 		//기존 passageId 가진 문항 찾기
@@ -1334,6 +1334,11 @@
 				if (!isAdd) {
 					questions.splice(targetIndex + 1, 0, n);
 					console.log("단일 문항으로 추가됨:", n);
+					console.log(n.itemId);
+					console.log(n.passageId);
+					console.log(targetItemId);
+					console.log(index);
+					hideSimilarQuestions(n.itemId, n.passageId, targetItemId, index);
 				} else {
 					console.log("이미 추가되어 있음");
 					alert("이미 추가된 문항입니다.");
@@ -1354,6 +1359,11 @@
 			const isAdd = questions.some(q => q.itemId === n.itemId);
 			if(!isAdd){
 				questions.splice(lastIndex+1, 0, n);
+				console.log(n.itemId);
+				console.log(n.passageId);
+				console.log(targetItemId);
+				console.log(index);
+				hideSimilarQuestions(n.itemId, n.passageId, targetItemId, index);
 			}else{
 				console.log("이미 추가되어 있음");
 				alert("이미 추가된 문항입니다.");
@@ -1361,6 +1371,7 @@
 			}
 		})
 		console.log("업데이트 된 questions: " + questions);
+
 
 	}
 
@@ -1567,14 +1578,16 @@
 	}
 
 	function hideSimilarQuestions(itemId, passageId, targetItemId, index){
-		// console.log(itemId);
-		// console.log(passageId);
-		// console.log(targetItemId);
-		// console.log(index);
+		console.log(itemId);
+		console.log(passageId);
+		console.log(targetItemId);
+		console.log(index);
 		similarQuestions = similarQuestions.filter(q => q.itemId !== itemId);
 		renderSimilar(similarQuestions, index, targetItemId);
 
 	}
+
+
 
 	// 문항 클릭 시 문항 active
 	function clickActive(button){
@@ -1704,8 +1717,8 @@
 	}
 
 	//전체 추가
-	function executeAllQuestion(passageId, targetItemId){
-		addAllQuestion(passageId, targetItemId);
+	function executeAllQuestion(passageId, targetItemId, index){
+		addAllQuestion(passageId, targetItemId, index);
 		renderQuestions(questions);
 		const count = calculateLevelCnt(questions);
 		renderLevelCnt(count);
