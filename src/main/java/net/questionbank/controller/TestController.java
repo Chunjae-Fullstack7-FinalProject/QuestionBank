@@ -61,15 +61,17 @@ public class TestController {
         return "test/step0";
     }
     @RedirectWithError(redirectUri = "/error/error")
-    @GetMapping("/step1")
-    public String step1(Model model, SubjectRequestDTO subjectRequestDTO, HttpSession session) {
+    @PostMapping("/step1")
+    public String step1(Model model, HttpSession session) {
         //여기 치고 들어오면 팅궈야 함.
         TextBookApiDTO textbookDetailDTO = (TextBookApiDTO)session.getAttribute("textbookDetailDTO");
         if (textbookDetailDTO == null) {
             throw new CustomRuntimeException("textbook not found");
         }
         String subjectId = textbookDetailDTO.getSubjectId().toString();
-        subjectRequestDTO.setSubjectId(subjectId);
+        SubjectRequestDTO subjectRequestDTO = SubjectRequestDTO.builder()
+                .subjectId(subjectId)
+                .build();
         List<LargeDTO> largeList = testService.step1(subjectRequestDTO);
         model.addAttribute("largeList", largeList);
         model.addAttribute("subjectId", subjectId);
@@ -88,15 +90,14 @@ public class TestController {
     public String getItemIds(Model model,
                              @RequestParam(required = false, name = "examId") String[] examIds,
                              String[] questionIds,
-                             @RequestParam(required = false, defaultValue = "") String type,
                              @RequestParam(required = false) String strRequestBody,
                              @RequestParam(required = false) String requestLow,
                              @RequestParam(required = false) String requestMiddle,
                              @RequestParam(required = false) String requestHigh) {
-
+        String type = "";
         if(examIds!=null){
             questionIds = testService.getPresetExamQuestions(examIds);
-            model.addAttribute("type", "edit");
+            type = "edit";
         }
 
         //json 파싱

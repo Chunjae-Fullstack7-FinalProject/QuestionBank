@@ -720,7 +720,11 @@
         }
     );
     function goStep_1(){
-        location.href = "/customExam/step1";
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/customExam/step1";
+        document.body.appendChild(form);
+        form.submit();
     }
     function goStep_2(){
         const form = document.querySelector("#formStep2");
@@ -728,11 +732,10 @@
             alert("시험지를 선택해주세요.\n최대 90문항까지 선택가능합니다.");
             return;
         }
-        form.querySelectorAll(".chk_paperId:checked").forEach(
-            (input) => {
-                console.log(input);
-            }
-        )
+        if(sumOfItemCount > 90){
+            alert("선택한 문항수가 90문항을 초과하였습니다. \n최대 90문항까지 선택가능합니다.");
+            return;
+        }
         form.method="post";
         form.action = "/customExam/step2";
         form.submit();
