@@ -26,7 +26,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Log4j2
 public class MemberController {
     private final MemberServiceIf memberService;
-    @RedirectWithError(redirectUri = "/error/error")
     @GetMapping("/login")
     public String loginGet(HttpSession session, RedirectAttributes redirectAttributes) {
         return "member/login";
