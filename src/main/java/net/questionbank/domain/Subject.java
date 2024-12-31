@@ -8,6 +8,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name="subject")
 public class Subject {
     @Id
     @Column(nullable = false, columnDefinition = "CHAR(2)")
