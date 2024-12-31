@@ -3,16 +3,16 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="net.questionbank.mapper.TestMapper">
     <update id="updateTitle">
-        update Test
+        update test
         set title=#{title}
         where testId = #{testId}
     </update>
     <select id="findTestList" resultType="net.questionbank.dto.test.TestDTO">
         select T.testId, T.title as 'testTitle', T.createdAt, T.filePath, TB.title as 'textbookTitle', TB.author,
         count(Q.questionId) as count
-        from Test T
-        inner join Textbook TB on T.textbookId = TB.textbookId
-        inner join Question Q on T.testId = Q.testId
+        from test T
+        inner join textbook TB on T.textbookId = TB.textbookId
+        inner join question Q on T.testId = Q.testId
         where T.memberId = #{userId}
         <if test="keyword != null and keyword != ''">
             and T.title like concat('%', #{keyword}, '%')
