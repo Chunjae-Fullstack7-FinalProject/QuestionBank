@@ -16,8 +16,8 @@ public class FilterConfig {
                 ,"/reports/*"
                 ,"/customExam/*"
                 ,"/bridge/*"
-//                ,"/api/storage/*"
-//                ,"/storage/*"
+                ,"/api/storage/*"
+                ,"/storage/*"
                 ,"/api/customExam/*"
                 ,"/tests/*"
         );
