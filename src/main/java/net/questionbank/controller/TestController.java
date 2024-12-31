@@ -74,7 +74,7 @@ public class TestController {
         model.addAttribute("largeList", largeList);
         model.addAttribute("subjectId", subjectId);
         model.addAttribute("textbookDetailDTO", textbookDetailDTO);
-        return "test/step1";
+        return "test/step1_1";
     }
 
 
