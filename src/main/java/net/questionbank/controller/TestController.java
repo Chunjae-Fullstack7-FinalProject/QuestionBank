@@ -89,14 +89,13 @@ public class TestController {
                              @RequestParam(required = false, name = "examId") String[] examIds,
                              String[] questionIds,
                              @RequestParam(required = false, defaultValue = "") String type,
-                             @RequestParam String strRequestBody,
-                             @RequestParam String requestLow,
-                             @RequestParam String requestMiddle,
-                             @RequestParam String requestHigh) {
+                             @RequestParam(required = false) String strRequestBody,
+                             @RequestParam(required = false) String requestLow,
+                             @RequestParam(required = false) String requestMiddle,
+                             @RequestParam(required = false) String requestHigh) {
 
         if(examIds!=null){
             questionIds = testService.getPresetExamQuestions(examIds);
-            model.addAttribute("questionIds", questionIds);
             model.addAttribute("type", "edit");
         }
 
@@ -108,6 +107,7 @@ public class TestController {
         } catch(Exception e){
             log.error(e.getMessage());
         }
+        model.addAttribute("questionIds", questionIds);
         model.addAttribute("requestLow", requestLow);
         model.addAttribute("requestMiddle", requestMiddle);
         model.addAttribute("requestHigh", requestHigh);
