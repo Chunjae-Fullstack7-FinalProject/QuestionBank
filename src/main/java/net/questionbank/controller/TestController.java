@@ -1,6 +1,7 @@
 package net.questionbank.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
@@ -40,7 +41,10 @@ public class TestController {
    
     @PostMapping("/step0")
     @RedirectWithError(redirectUri = "/error/error")
-    public String step0(@RequestParam String subjectId, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
+    public String step0(@RequestParam(required = false) String subjectId, HttpServletRequest req, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
+        if(subjectId == null) {
+            subjectId = (String)req.getAttribute("subjectId");
+        }
         log.info(subjectId);
         TextBookApiDTO textbookDetailDTO = textbookService.getTextbookDetails(subjectId);
         if (textbookDetailDTO == null) {
@@ -56,7 +60,7 @@ public class TestController {
         log.info("largeChapterList : {}", largeChapterList);
         return "test/step0";
     }
-  
+    @RedirectWithError(redirectUri = "/error/error")
     @GetMapping("/step1")
     public String step1(Model model, SubjectRequestDTO subjectRequestDTO, HttpSession session) {
         //여기 치고 들어오면 팅궈야 함.

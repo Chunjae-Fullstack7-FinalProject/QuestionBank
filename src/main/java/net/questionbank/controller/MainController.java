@@ -2,6 +2,7 @@ package net.questionbank.controller;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import net.questionbank.annotation.Logging;
 import net.questionbank.dto.MemberLoginDTO;
 import net.questionbank.dto.main.MainDTO;
@@ -19,12 +20,18 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 @Logging
+@Log4j2
 @RequestMapping("/")
 public class MainController {
     private final TextbookServiceIf textbookService;
+    @RequestMapping
+    public String index(){
+        return "redirect:/main";
+    }
 
     @GetMapping("/main")
-    public String mainPage(){
+    public String mainPage(HttpSession session){
+        MemberLoginDTO loginDTO = (MemberLoginDTO) session.getAttribute("loginDto");
         return "main/main";
     }
 
