@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T셀파 문제은행</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="../inc/css/font.css">
+    <link rel="stylesheet" href="../inc/css/reset.css">
+    <link rel="stylesheet" href="../inc/css/common.css">
+    <link rel="stylesheet" href="/inc/css/pdf.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"
+            integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+    <script src="../inc/js/common.js"></script>
+    <!-- MathJax 라이브러리 -->
+    <script type="text/javascript" async
+            src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <script th:src="@{/assets/js/mathjax-config.js}"></script>
+</head>
+<body>
+    <script th:src="@{/assets/apiBaseUrl.js}"></script>
+    <div id="wrap" class="full-pop-que">
+    <div class="full-pop-wrap">
+        <div class="pop-header">
+            <ul class="title">
+                <li class="active"><img src="../images/common/ico_step_active.png" alt="">출제 방법 선택</li>
+            </ul>
+            <button type="button" class="del-btn"></button>
+        </div>
+        <div class="pop-content">
+            <div class="view-box">
+                <div class="view-top">
+                    <!--교과서 정보-->
+                    <div class="paper-info">
+                        <span class="subject" th:text="${textbookDetailDTO.getSubjectName()}"></span>
+                        <span th:text="${textbookDetailDTO.getCurriculumName()}"></span>
+                        <span class="number">
+								    <span class="tooltip-wrap">
+									<button class="tip-btn blue" id="chk_item_cnt">0</button>
+<!--									<span class="tooltip type02">-->
+<!--										<div class="tool-type01">선택한 문항수</div>-->
+<!--									</span>-->
+								</span>
+								<span>/</span>
+								<span class="tooltip-wrap">
+									<button class="tip-btn">90</button>
+<!--									<span class="tooltip type02">-->
+<!--										<div class="tool-type01">최대 문항수</div>-->
+<!--									</span>-->
+								</span>
+							</span>
+                    </div>
+                    <!--교과서 정보-->
+                    <div class="btn-wrap">
+                        <!--step2로-->
+                        <button class="btn-icon" onclick="goStep_2()"><i class="edit"></i>선택한 시험지 편집하기</button>
+                        <!--step2로-->
+                        <!--step1으로-->
+                        <button class="btn-icon" onclick="goStep_1()"><i class="newpaper"></i>신규 시험지 만들기</button>
+                        <!--step1으로-->
+                    </div>
+                </div>
+                <div class="view-bottom">
+                    <div class="tab-list-type01 unit-acc-wrap">
+                        <div class="scroll-inner">
+                            <form id="formStep2">
+                            <th:block th:each="largeChapter, status : ${largeChapterList}">
+                                <button type="button" class="acc-btn" th:text="${largeChapter.largeChapterName}"></button>
+                                <div class="cnt">
+                                    <div class="table">
+                                        <!--컬럼명(고정값)-->
+                                        <!-- s 230706 선택 삭제, 편집하기 추가 -->
+                                        <div class="fix-head">
+                                            <span>선택</span>
+                                            <span>시험지명</span>
+                                            <span>문항수</span>
+                                            <span>미리보기</span>
+                                            <span>다운로드</span>
+                                        </div>
+                                        <!-- e 230706 선택 삭제, 편집하기 추가 -->
+                                        <!--컬럼명-->
+                                        <!-- 중단원 mediumChapterName > 소단원smallChapterName > 토픽단원topicChapterName  -->
+                                        <div class="tbody">
+                                            <div class="col" th:each="presetExam, satus : ${largeChapter.presetExams}" th:id="${presetExam.examId}">
+                                                <span>
+                                                    <input type="checkbox"
+                                                           th:id="${'chk'+presetExam.examId}"
+                                                           th:value="${presetExam.examId}"
+                                                           th:data-itemCnt="${presetExam.itemCnt}"
+                                                           name="examId"
+                                                           class="chk_paperId"
+                                                    >
+                                                    <label th:for="${'chk'+presetExam.examId}" class="item-label"></label>
+                                                </span>
+                                                <!--1. 소인수분해(중단원) > (1) 소인수분해(소단원) > 1회-->
+                                                <span class="tit" th:text="${presetExam.examName}">시험지제목</span>
+                                                <span th:text="${presetExam.itemCnt}"></span>
+                                                <span>
+                                                    <button type="button"
+                                                            class="pop-btn btn-icon2"
+                                                            data-pop="prev-pop"
+                                                            th:data-exam-id="${presetExam.examId}"
+                                                            th:data-exam-name="${presetExam.examName}"
+                                                            th:onclick="'getPreviewContent(this)'"
+                                                    >
+                                                        <i class="preview"></i>
+                                                    </button>
+                                                </span>
+                                                <span>
+                                                    <div class="btn-wrap">
+                                                        <button type="button"
+                                                                th:id="${presetExam.examId + '_all'}"
+                                                                class="btn-default"
+                                                                th:data-exam-id="${presetExam.examId}"
+                                                                th:data-exam-name="${presetExam.examName}"
+                                                                data-type="all"
+                                                                onclick="pdf(this)"
+                                                        >전체</button>
+                                                        <button type="button"
+                                                                th:id="${presetExam.examId + '_questions'}"
+                                                                class="btn-default"
+                                                                th:data-exam-id="${presetExam.examId}"
+                                                                th:data-exam-name="${presetExam.examName}"
+                                                                data-type="questions"
+                                                                onclick="pdf(this)"
+                                                        >문제</button>
+                                                        <button type="button"
+                                                                th:id="${presetExam.examId + '_answers'}"
+                                                                class="btn-default"
+                                                                th:data-exam-id="${presetExam.examId}"
+                                                                th:data-exam-name="${presetExam.examName}"
+                                                                data-type="answers"
+                                                                onclick="pdf(this)"
+                                                        >정답 + 해설</button>
+                                                        <button type="button"
+                                                                th:id="${presetExam.examId + '_classify'}"
+                                                                class="btn-default"
+                                                                th:data-exam-id="${presetExam.examId}"
+                                                                th:data-exam-name="${presetExam.examName}"
+                                                                data-type="classify"
+                                                                onclick="pdf(this)"
+                                                        >문항정보표</button>
+                                                    </div>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th:block>
+                            </form>
+                            <!--대단원 largeChapterName-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dim"></div>
+    <!-- 미리보기 모달 -->
+    <div id="q-preview" class="pop-wrap prev-type " data-pop="prev-pop">
+        <div class="pop-inner" id="preview-content">
+            <div class="pop-header">
+                <div class="tit-top">
+                    <span id="preview_tit"></span><em id="preview_cnt"></em>
+                    <input type="hidden" id="preview_paperId" value="">
+                </div>
+                <button type="button" class="pop-close" onclick="popClose()"></button>
+            </div>
+            <div class="pop-content">
+                <div class="tab-wrap">
+                    <ul class="tab-menu-type02" id="preview-tab">
+                        <li class="active">
+                            <a href="javascript:;" data-type="2">문제 + 정답 + 해설</a>
+                        </li>
+                        <li class="">
+                            <a href="javascript:;" data-type="1">문제</a>
+                        </li>
+                        <li class="">
+                            <a href="javascript:;" data-type="3">정답+해설</a>
+                        </li>
+                        <li class="">
+                            <a href="javascript:;" data-type="0">문항 정보표</a>
+                        </li>
+                    </ul>
+                    <div id="preview-data">
+                    </div>
+                </div>
+            </div>
+            <!--<div class="pop-footer">
+                <div class="page-num">
+                    <span>1 / 2</span>
+                </div>
+            </div> -->
+        </div>
+    </div>
+    <!-- 미리보기 모달 -->
+</div>
+    <div id="pdfArea">
+        <div id="pdf-content" class="pdf-content">
+
+        </div>
+        <div id="all">
+
+        </div>
+        <div id="questions">
+
+        </div>
+        <div id="answers">
+
+        </div>
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<script src="/inc/js/pdf.js"></script>
+<script>
+    async function getPdfHtml(examId){
+        console.log("getPdfHtml start");
+        try{
+            const response = await fetch(`/tests/preset-tests/${examId}/pdf-html`,{
+                method: "GET",
+            });
+            if(!response.ok){
+                const message = await response.message;
+                console.log(message);
+                alert(message);
+                return;
+            }
+            const data = await response.json();
+            console.log("data : ",data);
+            return data;
+        }catch(error){
+            console.error(error);
+            alert("오류발생");
+        }
+    }
+    async function pdf(button) {
+        const examId = button.getAttribute("data-exam-id");
+        const examName = button.getAttribute("data-exam-name");
+        const type = button.getAttribute("data-type");
+        if(type==='classify'){
+            const classifyList = await getPreviewClassify(button);
+            const classifyHtml = getPdfClassifyHtml(classifyList,examName);
+            const container = document.getElementById("pdf-content");
+            container.innerHTML = '';
+            container.innerHTML += classifyHtml;
+            console.log("pdf examName : " + examName + ", type : " + type);
+            savePdf1(examName, type);
+            return;
+        }
+        const container = document.getElementById(type);
+        const pdfHtmlMap = await getPdfHtml(examId);
+        const itemList = pdfHtmlMap[type];
+        itemList.forEach((item,index)=>{
+            if(type==='answers' && index%2==0) container.innerHTML += `<div class="pdf-item">${index/2+1}.</div>`;
+            container.innerHTML += item;
+        });
+        page(examName, type);
+        console.log("pdf examName : " + examName + ", type : " + type);
+        await savePdf1(examName, type);
+    }
+
+    const checkedExam = document.getElementById("chk_item_cnt");
+    const checkboxes = document.querySelectorAll(".chk_paperId");
+    let sumOfItemCount = 0;
+    for (let checkbox of checkboxes) {
+        checkbox.addEventListener("input", (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const itemCount = parseInt(checkbox.getAttribute("data-itemCnt"));
+            console.log("checkbox : " + checkbox.checked);
+            if (checkbox.checked) {
+                const tempSum = sumOfItemCount + itemCount;
+                if (tempSum > 90) {
+                    alert("최대 90문항까지 선택 가능합니다.");
+                    checkbox.checked = false;
+                    return;
+                }
+                sumOfItemCount = tempSum;
+                checkedExam.textContent = "";
+                checkedExam.textContent = sumOfItemCount;
+                checkbox.checked = true;
+            } else {
+                sumOfItemCount = sumOfItemCount - itemCount;
+                checkedExam.textContent = "";
+                checkedExam.textContent = sumOfItemCount;
+                checkbox.checked = false;
+            }
+        })
+    }
+
+    async function getPreviewContent(previewButton) {
+        console.log("getPreviewContent start");
+        const examId = previewButton.getAttribute("data-exam-id");
+        console.log(examId);
+        try {
+            const response = await fetch(`${API_BASE_URL}/item-img/exam/item-list`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    examId: examId
+                })
+            });
+            const data = await response.json();
+            if (data.successYn === 'Y') {
+                console.log(data.itemList);
+                return data.itemList;
+            } else {
+                console.error('Failed to fetch questions:', data);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async function getPreviewClassify(previewButton) {
+        console.log("getPreviewClassify start");
+        const examId = previewButton.getAttribute("data-exam-id");
+        console.log(examId);
+        try {
+            const response = await fetch(`${API_BASE_URL}/exam/preview/classify`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    examId: examId
+                })
+            });
+            const data = await response.json();
+            if (data.successYn === 'Y') {
+                console.log("classify : "+data.itemList);
+                return data.itemList;
+            } else {
+                console.error('Failed to fetch questions:', data);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    let passageId = 0;
+    let passageCount = 0;
+    let passageMap = {};
+    function typeToString(type){
+        if(type === 2) return 'all';
+        if(type === 1) return 'questions';
+        if(type === 3) return 'answers';
+    }
+    function getPreviewHtml(itemList, type, examId) {
+        console.log("getPreviewHtml start");
+        console.log(itemList);
+        let typeToInt = parseInt(type);
+        let itemHtmlLeft = '';
+        let itemHtmlRight = '';
+        const totalItemCount = itemList.length;
+        console.log("totalItemCount : " + totalItemCount);
+        for (let item of itemList) {
+            console.log("itemNo : " + item.itemNo);
+            let itemQuestion = '';
+            if (item.passageId != null) {
+                console.log("passage exists");
+                if (item.passageId !== passageId) {
+                    console.log("new passage");
+                    passageCount++;
+                    passageId = item.passageId;
+                    passageMap[passageCount] = [];
+                    passageMap[passageCount].push(item.itemNo);
+                    console.log("passageMap[passageCount] : " + passageMap[passageCount]);
+                    itemQuestion = `
+                    <div class="passage-area item-question">
+                        <span class="numbering numbering-numbers passage-no" data-passageNo="${passageCount}"></span>
+                        <img src="${item.passageUrl}" alt="${item.passageId}" width="453px">
+                    </div>
+                    <div class="item-question">
+                        <span class="numbering question-num" data-passageNo="${passageCount}">${item.itemNo}.</span>
+                        <img class="item-img" src="${item.questionUrl}" alt="${item.itemNo}">
+                    </div>
+                    `;
+                } else {
+                    passageMap[passageCount].push(item.itemNo);
+                    itemQuestion = `
+                    <div class="item-question">
+                        <span class="numbering question-num" data-passageNo="${passageCount}">${item.itemNo}.</span>
+                        <img class="item-img" src="${item.questionUrl}" alt="${item.itemNo}">
+                    </div>
+                    `;
+                    console.log("passageMap[passageCount] : " + passageMap[passageCount]);
+                }
+            } else {
+                itemQuestion = `
+                    <div class="item-question">
+                        <span class="numbering question-num">${item.itemNo}.</span>
+                        <img class="item-img" src="${item.questionUrl}" alt="${item.itemNo}">
+                    </div>
+                    `;
+            }
+            let answerContainer = `
+            ${typeToInt == 3 ?'<div class="item-question"><span className="numbering question-num">'+item.itemNo+'.</span></div>' : ''}
+            <div class="answer-container">
+                <span class="answer-tit">(정답)</span>
+                <div class="answer-img" style="height:25px; background:lightgray"><img src="${item.answerUrl}" alt=""></div>
+            </div>
+            `;
+            let explainAnswer = `
+            <div class="explain-answer">
+                <span class="explain-tit">(해설)</span>
+                <div class="explain-img"><img src="${item.explainUrl}" alt=""></div>
+            </div>
+            `;
+            if (item.itemNo <= Math.ceil(totalItemCount / 2)) {
+                itemHtmlLeft += `
+                <div class="example-area">
+                    <div class="example-box">
+                        ${1 <= typeToInt && typeToInt <= 2 ? itemQuestion : ''}
+                        ${typeToInt >= 2 ? answerContainer : ''}
+                        ${typeToInt >= 2 ? explainAnswer : ''}
+                    </div>
+                </div>
+                `;
+            } else {
+                itemHtmlRight += `
+                <div class="example-area">
+                    <div class="example-box">
+                        ${1 <= typeToInt && typeToInt <= 2 ? itemQuestion : ''}
+                        ${typeToInt >= 2 ? answerContainer : ''}
+                        ${typeToInt >= 2 ? explainAnswer : ''}
+                    </div>
+                </div>
+                `;
+            }
+        }
+        return `
+            <div class="btn-wrap">
+                <button type="button"
+                class="btn-icon"
+                data-exam-id="${examId}"
+                data-type="${typeToString(typeToInt)}"
+                onclick="popPdf(this)"
+                id="btnPopDownlaod"><i class="download"></i>다운로드</button>
+            </div>
+            <div class="view-box">
+                <div class="scroll-inner">
+                    <!-- <img src="../images/common/sample_prev.jpg" alt="">
+                    <img src="../images/common/sample_prev.jpg" alt=""> -->
+                    <!--230824 림 추가-->
+                    <div class="layout-wrap">
+                        <div class="view-data">
+                            ${itemHtmlLeft}
+                        </div>
+                        <div class="view-data">
+                            ${itemHtmlRight}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    async function popPdf(button){
+        const examId = button.getAttribute("data-exam-id");
+        const type = button.getAttribute("data-type");
+        const pdfButton = document.getElementById(examId + '_' + type);
+        console.log(examId + type);
+        pdf(pdfButton);
+    }
+    function popClose() {
+        // this를 현재 호출된 요소로 참조
+        let _this = this;
+
+        // .pop-wrap 클래스를 가진 요소를 숨김
+        const popWrap = document.querySelector(".pop-wrap");
+        if (popWrap) {
+            popWrap.style.display = "none";
+        }
+
+        // <html> 요소의 overflow 속성을 auto로 설정
+        const htmlElement = document.documentElement; // <html> 요소를 가져옴
+        htmlElement.style.overflow = "auto";
+
+        // _dim 요소를 점점 사라지게 처리
+        const dim = document.querySelector(".dim"); // _dim은 가정된 클래스 이름
+        if (dim) {
+            dim.style.transition = "opacity 0.5s"; // 서서히 사라지는 효과 추가
+            dim.style.opacity = "0";
+            // opacity가 0이 되면 display: none 처리
+            setTimeout(() => {
+                dim.style.display = "none";
+            }, 500); // 애니메이션 지속 시간과 맞춤
+        }
+    }
+
+    function renderPassage() {
+        const passageNoElements = document.querySelectorAll(".passage-no");
+        passageNoElements.forEach((ele) => {
+            let passageNo = ele.getAttribute("data-passageNo");
+            if (passageMap[passageNo] && passageMap[passageNo].length > 1) {
+                let itemArray = passageMap[passageNo];
+                ele.textContent = `[ ${itemArray[0]} ~ ${itemArray[itemArray.length - 1]} ]`;
+            }
+        });
+        passageId = 0;
+        passageCount = 0;
+        passageMap = {};
+    }
+
+    function renderPreview(previewHtml) {
+        const previewDataElement = document.getElementById("preview-data");
+        previewDataElement.innerHTML = '';
+        previewDataElement.innerHTML = previewHtml;
+
+    }
+
+    function renderPopHeader(itemList, examName, examId) {
+        const totalItemCount = itemList.length;
+        document.querySelector("#preview_tit").textContent = `[시험지명] ${examName}`;
+        document.querySelector("#preview_cnt").textContent = ` [문항수] ${totalItemCount}`;
+        document.querySelector("#preview_paperId").value = examId;
+    }
+
+    let tempItemList;
+    let tempClassify;
+    let tempExamId;
+    document.querySelectorAll(".pop-btn").forEach(
+        (btn) => {
+            btn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const examName = btn.getAttribute("data-exam-name");
+                const examId = btn.getAttribute("data-exam-id");
+                tempItemList = null;
+                tempClassify = null;
+                tempExamId = null;
+                try {
+                    tempItemList = await getPreviewContent(btn);
+                    tempClassify = await getPreviewClassify(btn);
+                    tempExamId = examId;
+                    renderPopHeader(tempItemList, examName, examId);
+                    document.querySelectorAll("li a").forEach(ele => ele.parentElement.classList = null);
+                    document.querySelector("li a[data-type='2']").parentElement.classList.add("active");
+                    const previewHtml = getPreviewHtml(tempItemList, 2, examId);
+                    renderPreview(previewHtml);
+                    renderPassage();
+                } catch (error) {
+                    console.error(error);
+                }
+            })
+        }
+    );
+
+    function getClassifyHtml(classifyList, examId) {
+        console.log("classifyList : "+classifyList);
+        let information = '';
+        for (inform of classifyList) {
+            information += `
+            <tr>
+                <td>${inform.itemNo}</td>
+                <td><span class="latex_equation">${inform.answer}</span></td>
+                <td class="tit">${inform.largeChapterName}</td>
+                <td class="tit">${inform.topicChapterName}</td>
+                <td>${inform.achievementCode}</td>
+                <td>${inform.contentAreaName}</td>
+                <td>${inform.activityAreaName != null ? inform.activityAreaName : ''}</td>
+                <td>${inform.curriculumCompetencyName}</td>
+                <td>${inform.difficultyName}</td>
+            </tr>
+            `;
+        }
+        return `
+        <div class="btn-wrap">
+            <button type="button" class="btn-icon" data-exam-id="${examId}" data-type="classify" onclick="popPdf(this)"><i class="download"></i>다운로드</button>
+        </div>
+        <div class="view-box">
+            <div class="scroll-inner">
+                <div class="table-wrap" id="preview-itemInfo-table" style="">
+                    <div class="tbl-view">
+                        <table>
+                            <colgroup>
+                                <col width="5%">
+                                <col width="12%">
+                                <col width="15%">
+                                <col width="*">
+                                <col width="9.5%">
+                                <col width="9.5%">
+                                <col width="9.5%">
+                                <col width="9.5%">
+                                <col width="5%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">번호</th>
+                                    <th rowspan="2">정답</th>
+                                    <th colspan="2">단원</th>
+                                    <th rowspan="2">성취기준</th>
+                                    <th rowspan="2">내용 영역</th>
+                                    <th rowspan="2">평가 영역</th>
+                                    <th rowspan="2">교과 역량</th>
+                                    <th rowspan="2">난이도</th>
+                                </tr>
+                                <tr>
+                                    <th>대단원</th>
+                                    <th>평가 내용</th>
+                                </tr>
+                            </thead>
+                            <tbody id="preview-itemInfo-data">
+                                ${information}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `
+    }
+    function getPdfClassifyHtml(classifyList,examName) {
+        console.log("classifyList : "+classifyList);
+        let information = '';
+        for (inform of classifyList) {
+            information += `
+            <tr>
+                <td>${inform.itemNo}</td>
+                <td><span class="latex_equation">${inform.answer}</span></td>
+                <td class="tit">${inform.largeChapterName}</td>
+                <td class="tit">${inform.topicChapterName}</td>
+                <td>${inform.achievementCode}</td>
+                <td>${inform.contentAreaName}</td>
+                <td>${inform.activityAreaName != null ? inform.activityAreaName : ''}</td>
+                <td>${inform.curriculumCompetencyName}</td>
+                <td>${inform.difficultyName}</td>
+            </tr>
+            `;
+        }
+        return `
+        <div class="view-box">
+            <div class="scroll-inner">
+                <div class="table-wrap" id="preview-itemInfo-table">
+                    <div class="tbl-view">
+                        <div class="pdf-title-table">문항정보표 : ${examName}</div>
+                        <table>
+                            <colgroup>
+                                <col width="5%">
+                                <col width="12%">
+                                <col width="15%">
+                                <col width="*">
+                                <col width="9.5%">
+                                <col width="9.5%">
+                                <col width="9.5%">
+                                <col width="9.5%">
+                                <col width="5%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">번호</th>
+                                    <th rowspan="2">정답</th>
+                                    <th colspan="2">단원</th>
+                                    <th rowspan="2">성취기준</th>
+                                    <th rowspan="2">내용 영역</th>
+                                    <th rowspan="2">평가 영역</th>
+                                    <th rowspan="2">교과 역량</th>
+                                    <th rowspan="2">난이도</th>
+                                </tr>
+                                <tr>
+                                    <th>대단원</th>
+                                    <th>평가 내용</th>
+                                </tr>
+                            </thead>
+                            <tbody id="preview-itemInfo-data">
+                                ${information}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `
+    }
+
+    const previewTab = document.querySelector("#preview-tab");
+    previewTab.querySelectorAll("li a").forEach(
+        (a) => {
+            a.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                previewTab.querySelectorAll("li").forEach(
+                    (li) => {
+                        li.classList = null;
+                    }
+                )
+                a.parentElement.classList.add("active");
+                const type = a.getAttribute("data-type");
+                if (type !== '0') {
+                    const previewHtml = getPreviewHtml(tempItemList, type, tempExamId);
+                    renderPreview(previewHtml);
+                    renderPassage();
+                } else {
+                    const classifyHtml = getClassifyHtml(tempClassify, tempExamId);
+                    renderPreview(classifyHtml);
+                    if (typeof MathJax !== "undefined") {
+                        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                        // console.log('MathJax rendered');
+                    }
+                }
+            });
+        }
+    );
+    function goStep_1(){
+        location.href = "/customExam/step1";
+    }
+    function goStep_2(){
+        const form = document.querySelector("#formStep2");
+        if(form.querySelectorAll(".chk_paperId:checked").length < 1){
+            alert("시험지를 선택해주세요.\n최대 90문항까지 선택가능합니다.");
+            return;
+        }
+        form.querySelectorAll(".chk_paperId:checked").forEach(
+            (input) => {
+                console.log(input);
+            }
+        )
+        form.method="post";
+        form.action = "/customExam/step2";
+        form.submit();
+    }
+</script>
+</html>

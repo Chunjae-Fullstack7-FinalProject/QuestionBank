@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Document</title>
+    <link rel="stylesheet" href="/inc/css/pdf.css"/>
+    <!-- MathJax 라이브러리 -->
+    <script type="text/javascript" async
+            src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <script th:src="@{/assets/js/mathjax-config.js}"></script>
+</head>
+<body>
+<div id="pdfArea">
+    <div id="pdf-content">
+
+    </div>
+
+    <div id="all">
+        <th:block th:each="item : ${htmlList['all']}">
+            <th:block th:utext="${item}"/>
+        </th:block>
+    </div>
+    <div id="question">
+        <th:block th:each="item : ${htmlList['questions']}">
+            <th:block th:utext="${item}"/>
+        </th:block>
+    </div>
+    <div id="answer">
+        <th:block th:each="item, status:${htmlList['answers']}">
+            <div class="pdf-item" th:if="${status.odd}" th:text="${status.count/2 + 1}+'.'"></div>
+            <th:block th:utext="${item}"/>
+        </th:block>
+    </div>
+
+
+<!--    <th:block th:each="item : ${htmlList['questions']}">-->
+<!--        <div class="pdf-item pdf-item-all">-->
+<!--            <th:block class="pdf-img" th:utext="${item}"/>-->
+<!--        </div>-->
+<!--    </th:block>-->
+<!--    <th:block th:each="item, status:${htmlList['answers']}">-->
+<!--        <div class="pdf-item pdf-item-all">-->
+<!--            <span th:if="${status.odd}" th:text="${(status.count+1)/2}+'.'"></span>-->
+<!--            <th:block class="pdf-img" th:utext="${item}"/>-->
+<!--        </div>-->
+<!--    </th:block>-->
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<script src="/inc/js/pdf.js"></script>
+<script>
+    // const items = document.querySelectorAll(".pdf-item");
+
+    function generatePdf() {
+        const element = document.getElementById('pdf-content');
+        const options = {
+            margin: 15,
+            filename: 'two-column.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['css'] },
+        };
+
+        html2pdf().set(options).from(element).save();
+    }
+    // generatePdf();
+
+
+    // 테이블 분리 및 배치
+    function splitTableAndDistribute(element, container, availableHeight, switchAreaCallback) {
+        const originalTable = element.querySelector("table");
+        const rows = Array.from(originalTable.querySelectorAll("tr"));
+        let currentHeight = 0;
+
+        // 새 테이블 생성
+        let newTable = createNewTableStructure(originalTable);
+
+        rows.forEach((row) => {
+            const rowHeight = row.offsetHeight;
+
+            if (currentHeight + rowHeight > availableHeight) {
+                // 현재 컨테이너가 가득 찼으면 새 컨테이너로 전환
+                container.appendChild(newTable);
+                ({ container, availableHeight } = switchAreaCallback());
+                newTable = createNewTableStructure(originalTable);
+                currentHeight = 0;
+            }
+
+            // 현재 테이블 또는 새 테이블에 행 추가
+            newTable.querySelector("tbody").appendChild(row);
+            currentHeight += rowHeight;
+        });
+
+        // 마지막 테이블 추가
+        if (newTable.querySelector("tbody").children.length > 0) {
+            container.appendChild(newTable);
+        }
+    }
+
+</script>
+</body>
+</html>
+

@@ -79,6 +79,15 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     implementation 'org.apache.commons:commons-text:1.10.0'
+
+    //webflux
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    //reactor-netty
+    implementation 'io.projectreactor.netty:reactor-netty'
+
+    // Apache Batik for SVG to PNG conversion
+    implementation 'org.apache.xmlgraphics:batik-transcoder:1.16'
+    implementation 'org.apache.xmlgraphics:batik-codec:1.16'
 }
 
 sourceSets {
