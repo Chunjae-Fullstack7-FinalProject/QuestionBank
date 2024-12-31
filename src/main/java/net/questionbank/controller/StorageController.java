@@ -57,7 +57,7 @@ public class StorageController {
 
     @GetMapping("/download/{fileName}")
     public void pdfDownload(@PathVariable String fileName, RedirectAttributes redirectAttributes, HttpServletResponse response) {
-        File pdf = new File(fileDir + fileName);
+        File pdf = new File(fileDir + File.separator + fileName);
 
         try {
             byte[] file = FileUtils.readFileToByteArray(pdf);

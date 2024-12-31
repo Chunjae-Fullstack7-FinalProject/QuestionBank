@@ -54,7 +54,7 @@ public class TestApiController {
     public ResponseEntity<String> savePdf(@RequestBody MultipartFile file) {
         String filename = file.getOriginalFilename();
         try {
-            File outputFile = new File(pdfDir + filename);
+            File outputFile = new File(pdfDir + File.separator + filename);
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                 fos.write(file.getBytes());
             }
