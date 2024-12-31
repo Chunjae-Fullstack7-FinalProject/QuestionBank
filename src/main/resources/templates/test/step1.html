@@ -31,6 +31,14 @@
         .disappear {
             display:none;
         }
+        .check-group button {
+            display: inline-block;
+            max-width: 450px;
+            white-space: normal;
+            word-wrap: break-word;
+            word-break: break-word;
+            text-align:left;
+        }
         .check-group em {
             word-break: break-all;
         }
@@ -107,7 +115,9 @@
                                                             <div class="check-group">
                                                                 <input type="checkbox" th:id="${small.smallChapterId}" class="que-allCheck depth03" data-depth="3">
                                                                 <label th:for="${small.smallChapterId}">
-                                                                    <button type="button" class="dep-btn active" th:text="${small.smallChapterName}" style="font-size:85%;">소단원 이름</button>
+                                                                    <button type="button" class="dep-btn active" th:text="${small.smallChapterName}" style="font-size:85%;">
+                                                                        소단원 이름
+                                                                        <em th:id="${small.smallChapterId}" style="color:#5670dc; font-size: 85%;">(0)</em></button>
                                                                     <em th:id="${small.smallChapterId}" style="color:#5670dc; font-size: 85%;">(0)</em>
                                                                 </label>
                                                             </div>
@@ -554,6 +564,7 @@
             } else {
                 $(".range[data-step='" + stepData + "']").hide();
                 $('#level-distribution-btn-group').find("span[data-step='" + stepData + "']").attr('data-count', 0);
+                $('#level-distribution-btn-group').find("span[data-step='" + stepData + "']").data('count', 0);
                 $('#rangeWrap').find("div[data-step='" + stepData + "']").addClass('disappear');
                 $('#rangeWrap').find("div[data-step='" + stepData + "']").find('span.num').text('');
                 $('#range-wrap').find(`input[type=number][data-step=${stepData}]`).val(0);
@@ -1132,7 +1143,7 @@
         levelContainer.each(function() {
            const value = Number($(this).data('count'));
            if(value !== 0){
-               levelCnt.push(30);
+               levelCnt.push(value);
            } else {
                levelCnt.push(0);
            }
@@ -1392,17 +1403,17 @@
                         let finalLow = 0;
                         let finalMiddle = 0;
                         let finalHigh = 0;
-                        if(difficulties[0].count === 0){
+                        if(difficulties[0].count === 0 && lowDiff < 0){
                             finalLow = Number(low); //실제로 온 값
                         } else {
                             finalLow = Number(requestLow.data('count')) + Number(difficulties[0].count);
                         }
-                        if(difficulties[1].count === 0){
+                        if(difficulties[1].count === 0 && middleDiff < 0){
                             finalMiddle = Number(middle);
                         } else {
                             finalMiddle = Number(requestMiddle.data('count')) + Number(difficulties[1].count);
                         }
-                        if(difficulties[2].count === 0){
+                        if(difficulties[2].count === 0 && highDiff < 0){
                             finalHigh = Number(high);
                         } else {
                             finalHigh = Number(requestHigh.data('count')) + Number(difficulties[2].count);
