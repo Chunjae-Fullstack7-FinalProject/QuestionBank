@@ -117,20 +117,24 @@
 							<div class="table">
 								<div class="fix-head">
 									<span>번호</span>
+									<input type="hidden">
 									<span>문제 유형</span>
 									<span>문제 형태</span>
 									<span>난이도</span>
 								</div>
 								<div class="tbody">
-									<div class="scroll-inner">
-										<div class="col" th:each="item, status:${testInfo.questions}">
-											<span th:text="${item.itemNo}">1</span>
-											<span class="tit" th:text="${item.largeChapterName +' > '+item.mediumChapterName}"></span>
-											<span th:if="${item.questionFormCode >= '10' && item.questionFormCode <= '50'}">객관식</span>
-											<span th:unless="${item.questionFormCode >= '10' && item.questionFormCode <= '50'}">주관식</span>
-											<span th:text="${item.difficultyName}">하</span>
+										<div class="scroll-inner">
+											<th:block  th:each="item, status:${testInfo.questions}">
+											<input type="hidden" th:value="${item.itemId}" name="questionIds">
+											<div class="col">
+												<span th:text="${item.itemNo}">1</span>
+												<span class="tit" th:text="${item.largeChapterName +' > '+item.mediumChapterName}"></span>
+												<span th:if="${item.questionFormCode >= '10' && item.questionFormCode <= '50'}">객관식</span>
+												<span th:unless="${item.questionFormCode >= '10' && item.questionFormCode <= '50'}">주관식</span>
+												<span th:text="${item.difficultyName}">하</span>
+											</div>
+											</th:block>
 										</div>
-									</div>
 								</div>
 							</div>
 						</div>
@@ -138,7 +142,7 @@
 				</div>
 			</div>
 			<div class="step-btn-wrap">
-				<button type="button" class="btn-step">STEP 2 문항 편집</button>
+				<button type="button" class="btn-step" onclick="goStep2();">STEP 2 문항 편집</button>
 				<button type="button" class="btn-step next done">시험지 저장하기</button>
 			</div>
 

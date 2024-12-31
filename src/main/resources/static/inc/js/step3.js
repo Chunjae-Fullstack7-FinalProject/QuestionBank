@@ -11,3 +11,21 @@ function goFirstStep() {
         form.submit();
     }
 }
+
+function goStep2() {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/customExam/step2";
+    document.querySelector("body").appendChild(form);
+    // document.querySelectorAll(".item-no").forEach(itemNo => {
+    //     const no = itemNo.firstChild.textContent;
+    //     form.innerHTML += `<input type="hidden" value="${no}" name="questionIds">`;
+    // });
+
+    document.querySelectorAll("input[name=questionIds]").forEach( item => {
+        form.append(item);
+        }
+    );
+
+    form.submit();
+}
