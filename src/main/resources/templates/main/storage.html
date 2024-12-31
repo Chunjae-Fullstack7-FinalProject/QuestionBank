@@ -27,7 +27,7 @@
 <body>
 <div class="container mt-3">
     <div class="d-flex justify-content-end">
-        <th:block th:if="${session.loginDtd == null}">
+        <th:block th:if="${session.loginDto == null}">
             <p class="mx-2"><a href="/member/login"
                                class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">로그인</a>
             </p>
@@ -35,7 +35,7 @@
                   class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">회원가입</a>
             </p>
         </th:block>
-        <p th:if="${session.loginDtd != null}">
+        <p th:if="${session.loginDto != null}">
             <a href="/member/logout"
                class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">로그아웃</a>
         </p>
