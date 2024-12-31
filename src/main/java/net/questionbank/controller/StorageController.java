@@ -40,12 +40,7 @@ public class StorageController {
     public String storage(Model model, @Valid TestSearchDTO testSearchDTO, BindingResult bindingResult, HttpSession session, RedirectAttributes redirectAttributes) {
         MemberLoginDTO loginDto = (MemberLoginDTO) session.getAttribute("loginDto");
 
-//        if(loginDto == null) {
-//            redirectAttributes.addFlashAttribute("loginDto", new MemberLoginDTO());
-//            return "redirect:/main";
-//        }
-
-        String userId = "test1";
+        String userId = loginDto.getMemberId();
 
         testSearchDTO.setUserId(userId);
 
