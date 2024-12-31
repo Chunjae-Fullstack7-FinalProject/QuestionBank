@@ -35,7 +35,14 @@
 				<li class="active">STEP 2 문항 편집</li>
 				<li>STEP 3 시험지 저장</li>
 			</ul>
-			<button type="button" class="del-btn"></button>
+			<button type="button" class="del-btn" onclick="winClose()"></button>
+			<script>
+				function winClose() {
+					if (confirm('이 페이지에서 나가시겠습니까?')) {
+						window.open('', '_self', '').close();
+					}
+				}
+			</script>
 		</div>
 		<div class="pop-content">
 			<div class="view-box">
@@ -44,7 +51,9 @@
 						<span class="subject" th:text="${session.textbookDetailDTO?.getSubjectName()}"></span>
 						<span th:text="${session.textbookDetailDTO?.getCurriculumName()}"></span>
 					</div>
-					<button class="btn-default btn-research" id="re-search"><i class="research"></i>재검색</button>
+					<th:block th:if="${type ne 'edit'}">
+						<button class="btn-default btn-research" id="re-search"><i class="research"></i>재검색</button>
+					</th:block>
 					<button class="btn-default pop-btn" data-pop="que-scope-pop" id="scopeBtn" onclick="popFunc(this)">출제범위</button>
 				</div>
 				<!-- 인규 추가(재검색 js) -->
@@ -408,17 +417,17 @@
 					<div class="cnt-box type01">
 						<div class="tab-wrap">
 							<ul class="tab-menu-type01">
-								<li class="ui-tab-btn active">
+								<li class="ui-tab-btn active" data-id="summaryTab">
 									<a href="javascript:;">문제지 요약</a>
 								</li>
-								<li class="ui-tab-btn" data-id="similar">
+								<li class="ui-tab-btn" data-id="similarTab">
 									<a href="javascript:;">유사 문제</a>
 								</li>
 								<li class="ui-tab-btn" id="deleteTab">
 									<a href="javascript:;">삭제 문항</a>
 								</li>
 							</ul>
-							<div class="contents on">
+							<div class="contents on" data-id="summaryTab">
 								<div class="table half-type">
 									<!--지문 있는 테이블 유형-->
 									<div class="fix-head">
@@ -450,7 +459,7 @@
 									</div>
 								</div>
 							</div>
-							<div class="contents" data-id="similar">
+							<div class="contents" data-id="similarTab">
 								<div class="levelCntTop cnt-top">
 									<span class="title" id="similarTitle"> </span>
 									<div class="right-area">
@@ -983,7 +992,7 @@
 											<!-- e: 정답 데이터 영역 -->
 										</div>
 									</div>
-									<button type="button" class="btn-similar-que btn-default" data-id="similar" onclick="executeSimilarAPI(${q.itemId}, ${index+1}, this)">
+									<button type="button" class="btn-similar-que btn-default" data-id="similarTab" onclick="executeSimilarAPI(${q.itemId}, ${index+1}, this, true)">
 										<i class="similar"></i> 유사 문제
 									</button>
 								</div>
@@ -1003,7 +1012,7 @@
 	document.addEventListener("DOMContentLoaded", getQuestionInfo);
 
 	function renderSummary(questions){
-		//console.log(questions);
+		console.log(questions);
 		const container = document.querySelector(".test");
 		container.innerHTML = "";
 		let flag = false;
@@ -1102,7 +1111,7 @@
 	}
 
 	//유사 문항 탭
-	function renderSimilar(similarQuestions, index, itemId){
+	function renderSimilar(similarQuestions, index, itemId, flag){
 		console.log("similarQuestions");
 		console.log(similarQuestions);
 		const itemNum = index;
@@ -1121,6 +1130,12 @@
 
 		//유사 항목 없을 때
 		if (!similarQuestions || similarQuestions.length === 0) {
+			if(flag){
+				alert("유사 항목이 없습니다.");
+				tabActive("summaryTab");
+				//renderSummary(questions);
+				return summary;
+			}
 			console.log("유사 항목 없음");
 			container.innerHTML = "";
 			container.insertAdjacentHTML("beforeend",
@@ -1131,7 +1146,6 @@
 			`
 			);
 			return;
-
 		}
 
 		//유사 문항 노출
@@ -1215,7 +1229,7 @@
 							</div>
 							<div class="que-bottom">
 								<div class="btn-wrap">
-									<button type="button" class="btn-default" onclick="executeSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId}, ${itemNum})">
+									<button type="button" class="btn-default" onclick="executeSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId}, ${itemNum}, false)">
 										<i class="add-type02"></i>추가
 									</button>
 								</div>
@@ -1233,11 +1247,7 @@
 	}
 
 	function addQuestion(newItemData, targetItemId, index) {
-		if(questions.length > 99){
-			alert("최대 문항 수는 100");
-			return;
-		}
-		const newItem = JSON.parse(decodeURIComponent(newItemData)); // JSON 파싱
+		const newItem = JSON.parse(decodeURIComponent(newItemData)); //JSON 파싱
 		console.log("추가할 데이터:", newItem);
 
 		// 기존 문항 찾기(단일 문항일때는 ?)
@@ -1373,48 +1383,6 @@
 		console.log("업데이트 된 questions: " + questions);
 
 
-	}
-
-
-	function updateAllOrder(newItem) {
-		console.log(newItem);
-		//console.log(questions);
-		const overallOrder = Array.from($("#table-1").children(".depth-01, .singleQuestion"))
-				.flatMap((element) => {
-					const $element = $(element);
-					const type = $element.hasClass("depth-01") ? "passage" : "question";
-
-					// 지문일 경우 내부 문항 포함
-					if (type === "passage") {
-						return $element.find(".col").map(function () {
-							return { id: $(this).data("item-id"), type: "question" };
-						}).get();
-					}
-
-					// 단일 문항일 경우
-					return { id: $element.data("item-id"), type };
-				});
-
-		console.log("전체 순서 (지문 제외):", overallOrder);
-
-		// `questions` 배열을 재구성
-		const reordered = [];
-		overallOrder.forEach(({ id, type }) => {
-			if (type === "question") {
-				// 단일 문항 및 지문 내부 문항만 추가
-				const question = questions.find(q => q.itemId === id);
-				if(!question){
-					console.log("새로운 문항");
-					// 새로 추가된 문항의 기본 데이터를 생성
-					const newElement = document.querySelector(`[data-item-id="${id}"]`);
-					reordered.push(newItem);
-				}
-				if (question) reordered.push(question);
-			}
-		});
-		console.log("reordered: " + reordered.length);
-		questions = reordered;
-		console.log("변경된 배열:", questions);
 	}
 
 
@@ -1601,8 +1569,18 @@
 		}
 	}
 
-	function similarActive(button){
-		const targetId = button.getAttribute("data-id");
+	function tabActive(button){
+		console.log(button);
+		let targetId;
+		if(button === "summaryTab"){
+			targetId = button;
+			console.log(button);
+		}else{
+			targetId = button.getAttribute("data-id");
+			console.log(button);
+		}
+
+		console.log(targetId);
 		if (!targetId) {
 			console.log("버튼에 data-id가 없음");
 			return;
@@ -1620,7 +1598,14 @@
 		}
 
 		//tab 부분
-		const targetTab = button.getAttribute("data-id");
+		let targetTab;
+		if(button === "summaryTab"){
+			targetTab = button;
+		}else{
+			targetTab = button.getAttribute("data-id");
+		}
+		console.log(targetTab);
+
 		if (!targetId) {
 			console.log("버튼에 data-id가 없음");
 			return;
@@ -1637,6 +1622,7 @@
 			console.log("tab을 찾을 수 없음");
 		}
 
+		console.log("dddd");
 	}
 
 	function scrollItem(itemId){
@@ -1695,13 +1681,14 @@
 	}
 
 	// 유사 문항 불러오기
-	async function executeSimilarAPI(itemId, index, button){
+	async function executeSimilarAPI(itemId, index, button, flag){
 		similarQuestions = await getSimilarQuestionInfo(itemId, index);
 		filterSimilarQuestions();
-		renderSimilar(similarQuestions, index, itemId);
-		similarActive(button);
-		clickActive(button);
-
+		const answer = renderSimilar(similarQuestions, index, itemId, flag);
+		if(!answer){
+			tabActive(button);
+			clickActive(button);
+		}
 	}
 
 	// 유사 문항 추가
@@ -1713,7 +1700,7 @@
 		renderLevelCnt(count);
 		renderSummary(questions);
 		const typeCnt = calculateQuestionType(questions);
-		renderQuestionType(typeCnt)
+		renderQuestionType(typeCnt);
 	}
 
 	//전체 추가
@@ -1776,7 +1763,8 @@
 	function goStep_3(){
 		const form = document.createElement("form");
 		if(questions.length > 100){
-			alert("100문제 초과");
+			alert("최대 100문항 까지 저장 가능합니다.\n" +
+					"100문항 이하로 구성해주세요. \n");
 			return;
 		}
 		questions.forEach(
@@ -2251,7 +2239,12 @@
 		console.log(deletedQuestions);
 		renderDeletedQuestions();
 		renderQuestions(questions);
+
+		const count = calculateLevelCnt(questions);
+		renderLevelCnt(count);
 		renderSummary(questions);
+		const typeCnt = calculateQuestionType(questions);
+		renderQuestionType(typeCnt);
 	}
 	//추가버튼 클릭시 복구 ~ 렌더링까지 수행하는 함수
 	function executeRestore(button){
@@ -2263,8 +2256,13 @@
 		deletedQuestions = sortAndReorder(deletedQuestions);
 		//console.log("after questions : ",questions);
 		renderDeletedQuestions();
+
 		renderQuestions(questions);
+		const count = calculateLevelCnt(questions);
+		renderLevelCnt(count);
 		renderSummary(questions);
+		const typeCnt = calculateQuestionType(questions);
+		renderQuestionType(typeCnt);
 	}
 	//questions에서 단원별로 그룹화해서 객체로 만들기
 	function groupChapters(questions) {

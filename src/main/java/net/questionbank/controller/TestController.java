@@ -11,6 +11,7 @@ import net.questionbank.dto.main.SubjectRequestDTO;
 import net.questionbank.dto.test.LargeDTO;
 import net.questionbank.dto.presetExam.LargeChapterDTO;
 import net.questionbank.dto.test.RequestBodyDTO;
+import net.questionbank.dto.test.TempTestHtmlDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.exception.CustomRuntimeException;
 import net.questionbank.service.step3.Step3Service;
@@ -61,20 +62,22 @@ public class TestController {
         return "test/step0";
     }
     @RedirectWithError(redirectUri = "/error/error")
-    @GetMapping("/step1")
-    public String step1(Model model, SubjectRequestDTO subjectRequestDTO, HttpSession session) {
+    @PostMapping("/step1")
+    public String step1(Model model, HttpSession session) {
         //여기 치고 들어오면 팅궈야 함.
         TextBookApiDTO textbookDetailDTO = (TextBookApiDTO)session.getAttribute("textbookDetailDTO");
         if (textbookDetailDTO == null) {
             throw new CustomRuntimeException("textbook not found");
         }
         String subjectId = textbookDetailDTO.getSubjectId().toString();
-        subjectRequestDTO.setSubjectId(subjectId);
+        SubjectRequestDTO subjectRequestDTO = SubjectRequestDTO.builder()
+                .subjectId(subjectId)
+                .build();
         List<LargeDTO> largeList = testService.step1(subjectRequestDTO);
         model.addAttribute("largeList", largeList);
         model.addAttribute("subjectId", subjectId);
         model.addAttribute("textbookDetailDTO", textbookDetailDTO);
-        return "test/step1";
+        return "test/step1_1";
     }
 
 
@@ -88,16 +91,14 @@ public class TestController {
     public String getItemIds(Model model,
                              @RequestParam(required = false, name = "examId") String[] examIds,
                              String[] questionIds,
-                             @RequestParam(required = false, defaultValue = "") String type,
-                             @RequestParam String strRequestBody,
-                             @RequestParam String requestLow,
-                             @RequestParam String requestMiddle,
-                             @RequestParam String requestHigh) {
-
+                             @RequestParam(required = false) String strRequestBody,
+                             @RequestParam(required = false) String requestLow,
+                             @RequestParam(required = false) String requestMiddle,
+                             @RequestParam(required = false) String requestHigh) {
+        String type = "";
         if(examIds!=null){
             questionIds = testService.getPresetExamQuestions(examIds);
-            model.addAttribute("questionIds", questionIds);
-            model.addAttribute("type", "edit");
+            type = "edit";
         }
 
         //json 파싱
@@ -108,6 +109,7 @@ public class TestController {
         } catch(Exception e){
             log.error(e.getMessage());
         }
+        model.addAttribute("questionIds", questionIds);
         model.addAttribute("requestLow", requestLow);
         model.addAttribute("requestMiddle", requestMiddle);
         model.addAttribute("requestHigh", requestHigh);
@@ -115,16 +117,19 @@ public class TestController {
         return "test/step2";
     }
 
-
-    //@GetMapping("/step3")
     @PostMapping("/step3")
     public String step3(Model model, @RequestParam(required = false, name="itemId") List<Long> itemIdList, HttpSession session) {
         TextBookApiDTO textbookDetailDTO = (TextBookApiDTO)session.getAttribute("textbookDetailDTO");
+
         log.info("itemIdList : {}", itemIdList);
-        model.addAttribute("testInfo", step3Service.testInfoHtml(itemIdList, textbookDetailDTO.getSubjectId()));
+
+        TempTestHtmlDTO tempTestDTO = step3Service.testInfoHtml(itemIdList, textbookDetailDTO.getSubjectId());
+        tempTestDTO.setTextbookApiDTO(textbookDetailDTO);
+        model.addAttribute("testInfo", tempTestDTO);
         model.addAttribute("subjectId", textbookDetailDTO.getSubjectId());
         model.addAttribute("itemIdList", itemIdList);
         model.addAttribute("pdfFileId", UUID.randomUUID().toString());
+        model.addAttribute("descriptive", tempTestDTO.getDescriptive().equals("O"));
         return "test/sub04_01";
     }
 

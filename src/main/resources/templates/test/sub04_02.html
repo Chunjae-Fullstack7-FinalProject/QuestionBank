@@ -42,7 +42,7 @@
 							<p>저장된 시험지는 시험지 보관함 메뉴에서 확인 가능합니다. </p>
 						</span>
 						<div class="btn-wrap">
-							<button class="btn-icon">시험지 보관함으로 이동</button>
+							<button class="btn-icon" onclick="goStorage();">시험지 보관함으로 이동</button>
 						</div>
 					</div>
 					
@@ -52,15 +52,14 @@
 		<div class="dim"></div>
 	</div>
 
+<script src="/inc/js/popup-control.js"></script>
+<script src="/inc/js/step3.js"></script>
 <script>
-	history.pushState(null, null, location.href);
-
-	// 뒤로라기 이벤트감지 -> 현재페이지로 이동
-	window.onpopstate = function() {
-		history.go(1);
+	function goStorage() {
+		window.opener.location.href="/storage";
+		self.close();
 	}
 </script>
-<script src="/assets/step3/step3.js"></script>
 </body>
 
 

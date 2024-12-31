@@ -128,7 +128,7 @@
 <body>
 <div class="register-container">
   <div class="register-header">
-    <span class="logo"></span>
+    <span class="logo" onclick="main()"></span>
     <h1 class="title">회원가입</h1>
   </div>
   <div class="register-body">
@@ -148,7 +148,7 @@
         <label for="email">이메일</label>
         <input class="register-input email-input" id="email" name="email" type="email" placeholder="이메일 형식에 맞게 정확히 입력하세요.">
         <div class="btn-container">
-          <button id="btnBack" class="btn-back" type="button">이전</button>
+          <button id="btnBack" class="btn-back" type="button" onclick="history.back()">이전</button>
           <input class="btn-main" id="btnSubmit" type="submit" value="회원가입">
         </div>
       </form>
@@ -156,6 +156,9 @@
   </div>
 </div>
 <script th:inline="javascript">
+  function main(){
+    location.href="/main";
+  }
   const errors = [[${errors}]];
   if(errors){
     alert(errors);
