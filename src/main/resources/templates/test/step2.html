@@ -44,7 +44,7 @@
 						<span class="subject" th:text="${session.textbookDetailDTO?.getSubjectName()}"></span>
 						<span th:text="${session.textbookDetailDTO?.getCurriculumName()}"></span>
 					</div>
-					<th:block th:if="${type == null}">
+					<th:block th:if="${type ne 'edit'}">
 						<button class="btn-default btn-research" id="re-search"><i class="research"></i>재검색</button>
 					</th:block>
 					<button class="btn-default pop-btn" data-pop="que-scope-pop" id="scopeBtn" onclick="popFunc(this)">출제범위</button>

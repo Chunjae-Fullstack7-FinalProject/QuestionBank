@@ -40,14 +40,6 @@ public class MemberController {
         try {
             MemberLoginDTO loginDTO = memberService.login(memberLoginDTO);
             session.setAttribute("loginDto", loginDTO);
-            Boolean goCustomExam = (Boolean)session.getAttribute("goCustomExam");
-            if(goCustomExam!=null && goCustomExam) {
-                log.info("goCustomExam234234");
-                session.removeAttribute("goCustomExam");
-                req.setAttribute("subjectId", session.getAttribute("subjectId"));
-                session.removeAttribute("subjectId");
-                return "forward:/customExam/step0";
-            }
         }catch(CustomRuntimeException e){
             throw e;
         }
