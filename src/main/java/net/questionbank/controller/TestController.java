@@ -11,6 +11,7 @@ import net.questionbank.dto.main.SubjectRequestDTO;
 import net.questionbank.dto.test.LargeDTO;
 import net.questionbank.dto.presetExam.LargeChapterDTO;
 import net.questionbank.dto.test.RequestBodyDTO;
+import net.questionbank.dto.test.TempTestHtmlDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.exception.CustomRuntimeException;
 import net.questionbank.service.step3.Step3Service;
@@ -115,16 +116,19 @@ public class TestController {
         return "test/step2";
     }
 
-
-    //@GetMapping("/step3")
     @PostMapping("/step3")
     public String step3(Model model, @RequestParam(required = false, name="itemId") List<Long> itemIdList, HttpSession session) {
         TextBookApiDTO textbookDetailDTO = (TextBookApiDTO)session.getAttribute("textbookDetailDTO");
+
         log.info("itemIdList : {}", itemIdList);
-        model.addAttribute("testInfo", step3Service.testInfoHtml(itemIdList, textbookDetailDTO.getSubjectId()));
+
+        TempTestHtmlDTO tempTestDTO = step3Service.testInfoHtml(itemIdList, textbookDetailDTO.getSubjectId());
+        tempTestDTO.setTextbookApiDTO(textbookDetailDTO);
+        model.addAttribute("testInfo", tempTestDTO);
         model.addAttribute("subjectId", textbookDetailDTO.getSubjectId());
         model.addAttribute("itemIdList", itemIdList);
         model.addAttribute("pdfFileId", UUID.randomUUID().toString());
+        model.addAttribute("descriptive", tempTestDTO.getDescriptive().equals("O"));
         return "test/sub04_01";
     }
 

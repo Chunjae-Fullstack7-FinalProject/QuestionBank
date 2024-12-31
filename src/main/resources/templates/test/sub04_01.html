@@ -62,8 +62,8 @@
 				<div class="view-box">
 					<div class="view-top">
 						<div class="paper-info">
-							<span th:text="${testInfo.textbookApiDTO.subjectName}"></span>
-							<th:block th:text="${'(20' + testInfo.textbookApiDTO.curriculumCode+ ')'}"></th:block>
+							<span class="subject" th:text="${session.textbookDetailDTO?.getSubjectName()}"></span>
+							<span th:text="${session.textbookDetailDTO?.getCurriculumName()}"></span>
 						</div>
 						<div class="btn-wrap">
 							<button class="btn-default"><a href="javascript:goFirstStep();">처음으로</a></button>
@@ -147,8 +147,8 @@
 				<div class="loading-cnt">
 					<img src="/images/common/loading_icon.gif" alt="로딩중">
 					<div class="txt-box">
-						<span class="tit">LOADING<br>잠시만 기다려주세요.</span>
-						<span class="txt">이 화면이 지속되면 페이지를 <em>새로고침</em> 해 주세요.</span>
+						<span class="tit">LOADING<br>시험지 저장 중입니다.</span>
+						<span class="txt">이 과정은 인터넷 연결상태와 선택한 범위에 따라 수분이 걸릴 수 있습니다.<br>진행 과정 중에 창을 닫지 마십시오.</span>
 					</div>
 				</div>
 			</div>
@@ -161,56 +161,6 @@
 
         </div>
 
-
-
-<!--        <th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['all'].size()-2, 2)}">-->
-<!--            <th:block th:if="${testInfo.imageList['all'].get(item).endsWith('.')}">-->
-<!--                <div class="pdf-item pdf-item-all pdf-question-grid">-->
-<!--                    <div class="pdf-number" th:text="${testInfo.imageList['all'].get(item)}"></div>-->
-<!--                    <img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>-->
-<!--                </div>-->
-<!--            </th:block>-->
-<!--            <th:block th:if="${testInfo.imageList['all'].get(item).endsWith(')')}">-->
-<!--                <div class="pdf-item pdf-item-all">-->
-<!--                    <div class="pdf-div pdf-answer" th:text="${testInfo.imageList['all'].get(item)}"></div>-->
-<!--                    <img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>-->
-<!--                </div>-->
-<!--            </th:block>-->
-<!--			<th:block th:if="${testInfo.imageList['all'].get(item).endsWith(']') || testInfo.imageList['all'].get(item).equals('')}">-->
-<!--				<div class="pdf-item pdf-item-all">-->
-<!--					<div class="pdf-div" th:text="${testInfo.imageList['all'].get(item)}"></div>-->
-<!--					<img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>-->
-<!--				</div>-->
-<!--			</th:block>-->
-<!--        </th:block>-->
-
-<!--		<th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['questions'].size()-2, 2)}">-->
-<!--			<th:block th:if="${testInfo.imageList['questions'].get(item).endsWith('.')}">-->
-<!--				<div class="pdf-item pdf-item-question pdf-question-grid">-->
-<!--					<div class="pdf-number" th:text="${testInfo.imageList['questions'].get(item)}"></div>-->
-<!--					<img class="pdf-img" th:src="${testInfo.imageList['questions'].get(item+1)}"/>-->
-<!--				</div>-->
-<!--			</th:block>-->
-<!--			<th:block th:if="${testInfo.imageList['questions'].get(item).endsWith(']') || testInfo.imageList['questions'].get(item).equals('')}">-->
-<!--				<div class="pdf-item pdf-item-question">-->
-<!--					<div class="pdf-div" th:text="${testInfo.imageList['questions'].get(item)}"></div>-->
-<!--					<img class="pdf-img" th:src="${testInfo.imageList['questions'].get(item+1)}"/>-->
-<!--				</div>-->
-<!--			</th:block>-->
-<!--		</th:block>-->
-<!--		<th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['answers'].size()-2, 2)}">-->
-<!--			<th:block th:if="${testInfo.imageList['answers'].get(item).endsWith('.')}">-->
-<!--				<div class="pdf-item pdf-item-answer">-->
-<!--					<div class="pdf-number" th:text="${testInfo.imageList['answers'].get(item)}"></div>-->
-<!--				</div>-->
-<!--			</th:block>-->
-<!--			<th:block th:if="${testInfo.imageList['answers'].get(item).endsWith(')')}">-->
-<!--				<div class="pdf-item pdf-item-answer">-->
-<!--					<div class="pdf-div pdf-answer" th:text="${testInfo.imageList['answers'].get(item)}"></div>-->
-<!--					<img class="pdf-img" th:src="${testInfo.imageList['answers'].get(item+1)}"/>-->
-<!--				</div>-->
-<!--			</th:block>-->
-<!--		</th:block>-->
 		<div id="all">
 			<th:block th:each="item : ${testInfo.htmlList['all']}">
 				<th:block th:utext="${item}"/>
@@ -230,11 +180,14 @@
     </div>
 
 
+	<script src="/inc/js/common.js"></script>
     <script src="/inc/js/step3.js"></script>
+	<script src="/inc/js/popup-control.js"></script>
 	<script src="/inc/js/pdf.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
     <script>
 		const itemclass = ['all', 'question', 'answer'];
+		const subjectId = [[${subjectId}]];
 
 		async function savePdf(title) {
 
@@ -308,10 +261,10 @@
 				return;
 			}
 
-			if (title_length > 20) {
-				alert("시험지명은 20자 이하로 입력해주세요.");
-				return;
-			}
+			// if (title_length > 20) {
+			// 	alert("시험지명은 20자 이하로 입력해주세요.");
+			// 	return;
+			// }
 
 			$("#loading-container").removeClass("loading-off").addClass("loading-on");
 			save();
@@ -320,7 +273,6 @@
 		async function save() {
 			const title = $("#test-title").val();
 			await savePdf(title);
-
 
 			const url = "/api/customExam/save";
 			//로딩중 표시하기
@@ -335,7 +287,7 @@
 					'subjectName': `[[${testInfo.textbookApiDTO.areaName}]]`,
 					'itemIdList': [[${itemIdList}]],
 					'pdfFileId' : `[[${pdfFileId}]]`,
-					'descriptive' : `[[${ testInfo.descriptive=='O' }]]`
+					'descriptive' : [[${descriptive}]]
 				})
 			});
 

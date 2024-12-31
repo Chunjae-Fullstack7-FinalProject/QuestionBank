@@ -38,6 +38,7 @@ public class TestApiController {
             if(loginDto == null) {
                 loginDto = MemberLoginDTO.builder().memberId("test1").name("이름").build();
             }
+
             testSaveDTO.setUserId(loginDto.getMemberId());
             testSaveDTO.setUserName(loginDto.getName());
             step3Service.saveTestInfo(testSaveDTO, testSaveDTO.getItemIdList());
