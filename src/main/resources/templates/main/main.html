@@ -69,7 +69,6 @@
             <p><a href="/member/register" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">회원가입</a></p>
         </th:block>
         <p th:if="${session.loginDto != null}">
-            <th:block th:text="${session.loginDto.memberId}"></th:block>
             <a href="/member/logout" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">로그아웃</a>
         </p>
     </div>
