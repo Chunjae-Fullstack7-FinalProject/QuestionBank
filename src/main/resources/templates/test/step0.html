@@ -243,6 +243,7 @@
         const examId = button.getAttribute("data-exam-id");
         const examName = button.getAttribute("data-exam-name");
         const type = button.getAttribute("data-type");
+
         if(type==='classify'){
             const classifyList = await getPreviewClassify(button);
             const classifyHtml = getPdfClassifyHtml(classifyList,examName);
@@ -250,6 +251,10 @@
             container.innerHTML = '';
             container.innerHTML += classifyHtml;
             console.log("pdf examName : " + examName + ", type : " + type);
+            if (typeof MathJax !== "undefined") {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                // console.log('MathJax rendered');
+            }
             savePdf1(examName, type);
             return;
         }
@@ -260,7 +265,12 @@
             if(type==='answers' && index%2==0) container.innerHTML += `<div class="pdf-item">${index/2+1}.</div>`;
             container.innerHTML += item;
         });
-        page(examName, type);
+
+        if (typeof MathJax !== "undefined") {
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+            // console.log('MathJax rendered');
+        }
+        await page(examName, type);
         console.log("pdf examName : " + examName + ", type : " + type);
         await savePdf1(examName, type);
     }
