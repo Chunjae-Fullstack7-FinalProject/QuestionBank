@@ -30,7 +30,14 @@
             <ul class="title">
                 <li class="active"><img src="../images/common/ico_step_active.png" alt="">출제 방법 선택</li>
             </ul>
-            <button type="button" class="del-btn"></button>
+            <button type="button" class="del-btn" onclick="winClose()"></button>
+            <script>
+                function winClose() {
+                    if (confirm('이 페이지에서 나가시겠습니까?')) {
+                        window.open('', '_self', '').close();
+                    }
+                }
+            </script>
         </div>
         <div class="pop-content">
             <div class="view-box">
