@@ -985,7 +985,7 @@
 											<!-- e: 정답 데이터 영역 -->
 										</div>
 									</div>
-									<button type="button" class="btn-similar-que btn-default" data-id="similarTab" onclick="executeSimilarAPI(${q.itemId}, ${index+1}, this)">
+									<button type="button" class="btn-similar-que btn-default" data-id="similarTab" onclick="executeSimilarAPI(${q.itemId}, ${index+1}, this, true)">
 										<i class="similar"></i> 유사 문제
 									</button>
 								</div>
@@ -1104,7 +1104,7 @@
 	}
 
 	//유사 문항 탭
-	function renderSimilar(similarQuestions, index, itemId){
+	function renderSimilar(similarQuestions, index, itemId, flag){
 		console.log("similarQuestions");
 		console.log(similarQuestions);
 		const itemNum = index;
@@ -1123,20 +1123,22 @@
 
 		//유사 항목 없을 때
 		if (!similarQuestions || similarQuestions.length === 0) {
-			alert("유사 항목이 없습니다.");
-			tabActive("summaryTab");
-			//renderSummary(questions);
-			return summary;
-			// console.log("유사 항목 없음");
-			// container.innerHTML = "";
-			// container.insertAdjacentHTML("beforeend",
-			//  `
-			// <div class="data view-que-list">
-			// 	<p>유사 항목이 없습니다.</p>
-			// </div>
-			// `
-			// );
-			// return;
+			if(flag){
+				alert("유사 항목이 없습니다.");
+				tabActive("summaryTab");
+				//renderSummary(questions);
+				return summary;
+			}
+			console.log("유사 항목 없음");
+			container.innerHTML = "";
+			container.insertAdjacentHTML("beforeend",
+			 `
+			<div class="data view-que-list">
+				<p>유사 항목이 없습니다.</p>
+			</div>
+			`
+			);
+			return;
 		}
 
 		//유사 문항 노출
@@ -1220,7 +1222,7 @@
 							</div>
 							<div class="que-bottom">
 								<div class="btn-wrap">
-									<button type="button" class="btn-default" onclick="executeSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId}, ${itemNum})">
+									<button type="button" class="btn-default" onclick="executeSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId}, ${itemNum}, false)">
 										<i class="add-type02"></i>추가
 									</button>
 								</div>
@@ -1672,16 +1674,14 @@
 	}
 
 	// 유사 문항 불러오기
-	async function executeSimilarAPI(itemId, index, button){
+	async function executeSimilarAPI(itemId, index, button, flag){
 		similarQuestions = await getSimilarQuestionInfo(itemId, index);
 		filterSimilarQuestions();
-		const answer = renderSimilar(similarQuestions, index, itemId);
+		const answer = renderSimilar(similarQuestions, index, itemId, flag);
 		if(!answer){
 			tabActive(button);
 			clickActive(button);
 		}
-
-
 	}
 
 	// 유사 문항 추가
@@ -1693,7 +1693,7 @@
 		renderLevelCnt(count);
 		renderSummary(questions);
 		const typeCnt = calculateQuestionType(questions);
-		renderQuestionType(typeCnt)
+		renderQuestionType(typeCnt);
 	}
 
 	//전체 추가
@@ -2232,7 +2232,12 @@
 		console.log(deletedQuestions);
 		renderDeletedQuestions();
 		renderQuestions(questions);
+
+		const count = calculateLevelCnt(questions);
+		renderLevelCnt(count);
 		renderSummary(questions);
+		const typeCnt = calculateQuestionType(questions);
+		renderQuestionType(typeCnt);
 	}
 	//추가버튼 클릭시 복구 ~ 렌더링까지 수행하는 함수
 	function executeRestore(button){
@@ -2244,8 +2249,13 @@
 		deletedQuestions = sortAndReorder(deletedQuestions);
 		//console.log("after questions : ",questions);
 		renderDeletedQuestions();
+
 		renderQuestions(questions);
+		const count = calculateLevelCnt(questions);
+		renderLevelCnt(count);
 		renderSummary(questions);
+		const typeCnt = calculateQuestionType(questions);
+		renderQuestionType(typeCnt);
 	}
 	//questions에서 단원별로 그룹화해서 객체로 만들기
 	function groupChapters(questions) {
