@@ -91,18 +91,6 @@
                     </form>
                 </div>
             </div>
-
-            <!--            <div class="content-top__sort">-->
-            <!--                <label class="content-top__text">시험지명</label>-->
-            <!--                <div class="content-top__input">-->
-            <!--                    <form method="get" id="contentForm" name="contentForm">-->
-            <!--                        <input type="text" id="keyword" name="keyword" value=""-->
-            <!--                               onkeyup="if (event.keyCode == 13) { getList(1); }" placeholder="시험지명을 입력해 주세요.">-->
-            <!--                    </form>-->
-            <!--                </div>-->
-            <!--            </div>-->
-
-
             <div class="col-sm-auto justify-content-center content-top__sort">
                 <button type="submit" id="btn-submit" class="btn content-top__button is-primary">검색</button> &nbsp;
                 <button type="reset" id="btn-reset" class="btn content-top__button is-gray">초기화</button>
@@ -112,11 +100,12 @@
 
     <div class="item-list row row-cols-2">
         <div class="card-custom" th:each="item : ${testList}">
-            <div class="card-header" th:text="${item.testTitle}">
+            <div class="card-header">
+                <h3 th:text="${item.testTitle}"></h3>
             </div>
             <div class="row">
-                <div class="card-body col-6 justify-content-center align-content-center">
-                    <p>[[${item.textbookTitle}]]([[${item.author}]]) &nbsp; | &nbsp; [[${item.count}]]문항 &nbsp; | &nbsp; [[${#temporals.format(item.createdAt, 'yyyy-MM-dd')}]]</p>
+                <div class="card-body col-6 justify-content-center align-content-left">
+                    <p><small>[[${item.textbookTitle}]]([[${item.author}]])&nbsp;|&nbsp;[[${item.count}]]문항&nbsp;|&nbsp;[[${#temporals.format(item.createdAt, 'yyyy-MM-dd')}]]</small></p>
                     <div class="actions">
                         <button class="btn btn-primary btn-sm">문항 편집</button>
                         <button class="btn btn-secondary btn-sm">폴더 이동</button>
