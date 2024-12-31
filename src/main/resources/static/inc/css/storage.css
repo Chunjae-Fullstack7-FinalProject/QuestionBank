@@ -14,7 +14,6 @@ input {
 }
 
 input[type="text"] {
-    width: 100%;
     border: 1px solid #e0e0e0;
     border-radius: 5px;
     vertical-align: middle;
@@ -26,8 +25,6 @@ input[type="text"]:focus {
 }
 
 .form-control {
-    display: block;
-    width: 100%;
     font-weight: 350;
     color: #495057;
     background-color: #ffffff;
@@ -79,11 +76,15 @@ select.form-control {
     justify-content: left;
 }
 
-.storage__option .content-top__input input {
-    border-radius: 6px;
-}
+/*.content-top__sort input {*/
+/*    border-radius: 6px;*/
+/*    width: 100%;*/
+/*    height: 100%;*/
+/*    box-sizing: border-box; !* 패딩 포함 *!*/
+/*    margin: 0;*/
+/*}*/
 
-.storage__option .content-top__input input::placeholder {
+.content-top__sort input::placeholder {
     color: #ccc;
 }
 
@@ -97,23 +98,23 @@ select.form-control {
     border-radius: 8px;
     padding: 20px;
     background-color: #fff;
-    margin: 10px;
-    max-width: 40%;
-}
-.card-header {
-    display: flex;
-    align-items: center;
-    font-weight: bold;
-}
-.card-header img {
-    margin-right: 10px;
-}
-.card-body {
-    margin-top: 10px;
-}
-.card-body p {
+    margin: 10px auto;
     text-align: center;
 }
+
+.card-header {
+    text-align: left;
+}
+
+.card-header h3 {
+    font-weight: bold;
+}
+
+.card-body {
+    margin: 10px;
+    display: inline-block;
+}
+
 .download-section {
     text-align: center;
 }
@@ -143,10 +144,11 @@ select.form-control {
 }
 
 .search-bar {
-    background-color: #f8f9fa; /* 연한 회색 배경 */
+    background-color: #f8f9fa;
     padding: 15px;
-    border: 1px solid #dee2e6; /* 테두리 */
+    border: 1px solid #dee2e6;
     border-radius: 5px;
+    margin: 10px;
 }
 .search-bar label {
     font-weight: bold;
@@ -162,4 +164,15 @@ select.form-control {
 
 .item-list {
     margin: 10px auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 630px));
+    justify-content: center;
+    justify-items: center;
+}
+
+form {
+    display: block;
+    width: 100%;
+    padding: 0;
+    margin: 0;
 }
