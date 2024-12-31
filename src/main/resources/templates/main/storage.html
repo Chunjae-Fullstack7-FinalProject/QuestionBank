@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- Bootstrap CSS -->
+    <link href="/inc/css/storage.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .header h1 {
+            font-size: 2.5rem;
+        }
+
+        /* 상단 탭 스타일 */
+        .tabs a {
+            margin-right: 15px;
+        }
+
+        .tabs a.active {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+    </style>
+
+</head>
+<body>
+<div class="container mt-3">
+    <div class="d-flex justify-content-end">
+        <th:block th:if="${session.loginDto == null}">
+            <p class="mx-2"><a href="/member/login"
+                               class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">로그인</a>
+            </p>
+            <p><a href="/member/register"
+                  class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">회원가입</a>
+            </p>
+        </th:block>
+        <p th:if="${session.loginDto != null}">
+            <a href="/member/logout"
+               class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">로그아웃</a>
+        </p>
+    </div>
+    <!-- 제목 -->
+    <div class="header text-center mb-4">
+        <h1>문제은행 <span style="color: #666; font-size: 1.2rem;">BETA</span></h1>
+        <p>문제출제, 시험지 편집까지! 편리하게 시험지 제작 서비스를 제공합니다.</p>
+    </div>
+
+    <!-- 상단 탭 -->
+    <div class="d-flex justify-content-center mb-4">
+        <a href="#" class="btn btn-outline-primary me-md-2">중학</a>
+        <a href="#" class="btn btn-outline-primary active">시험지 보관함</a>
+    </div>
+
+    <!--    검색영역-->
+
+    <div class="storage__option">
+        <div class="row g-3 align-items-center content-top">
+            <div class="col-auto content-top__sort"><span class="form-label content-top__text">교과서</span></div>
+            <div class="col content-top__sort">
+                <select class="content-top__dropdown form-control form-select" id="selSubject" name="selSubject"
+                        title="과목 선택"
+                        onchange="setCode();">
+                    <option value="0" th:selected="${searchInfo.subject=='0'}">과목</option>
+                    <option value="KO" th:selected="${searchInfo.subject=='KO'}">국어</option>
+                    <option value="EN" th:selected="${searchInfo.subject=='EN'}">영어</option>
+                    <option value="MA" th:selected="${searchInfo.subject=='MA'}">수학</option>
+                    <option value="SO" th:selected="${searchInfo.subject=='SO'}">사회</option>
+                    <option value="HS" th:selected="${searchInfo.subject=='HS'}">역사</option>
+                    <option value="MO" th:selected="${searchInfo.subject=='MO'}">도덕</option>
+                    <option value="SC" th:selected="${searchInfo.subject=='SC'}">과학</option>
+                </select>
+            </div>
+            <div class="col content-top__sort">
+                <select id="textbook" class="content-top__dropdown form-control form-select" onchange="setTextbook();">
+                    <option value="0">교과서</option>
+                    <option th:each="item : ${textbookList}" th:value="${item.textbookId}" th:text="${item.title}+' - '+${item.author}" th:selected="${item.textbookId==searchInfo.textbookId}"></option>
+                </select>
+            </div>
+            <div class="col justify-content-center content-top__sort">
+                <div class="col-8 col-sm-auto form-label content-top__text">시험지명</div>
+                <div class="col-4 col-sm">
+                    <form method="get" id="contentForm" name="contentForm" action="/storage">
+                        <input type="hidden" id="cateCode" name="cateCode" value="TestBank-Storage"/>
+    <!--                    <input type="hidden" id="sid" name="sid" value="0"/>-->
+                        <input type="hidden" id="tid" name="textbookId" th:value="${searchInfo.textbookId}"/>
+                        <input type="hidden" id="pageIndex" name="pageIndex" value="1"/>
+                        <input type="hidden" id="subjectId" name="subject" th:value="${searchInfo.subject}"/>
+                        <input type="text" id="keyword" name="keyword" th:value="${searchInfo.keyword}" class="form-control"
+                               onkeyup="if (event.keyCode === 13) { getList(1); }" placeholder="시험지명을 입력해 주세요.">
+                    </form>
+                </div>
+            </div>
+            <div class="col-sm-auto justify-content-center content-top__sort">
+                <button type="submit" id="btn-submit" class="btn content-top__button is-primary">검색</button> &nbsp;
+                <button type="reset" id="btn-reset" class="btn content-top__button is-gray">초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="item-list row row-cols-2">
+        <div class="card-custom" th:each="item : ${testList}">
+            <div class="card-header">
+                <h3 th:text="${item.testTitle}"></h3>
+            </div>
+            <div class="row">
+                <div class="card-body col-6 justify-content-center align-content-left">
+                    <p><small>[[${item.textbookTitle}]]([[${item.author}]])&nbsp;|&nbsp;[[${item.count}]]문항&nbsp;|&nbsp;[[${#temporals.format(item.createdAt, 'yyyy-MM-dd')}]]</small></p>
+                    <div class="actions">
+                        <button class="btn btn-primary btn-sm">문항 편집</button>
+                        <button class="btn btn-secondary btn-sm">폴더 이동</button>
+                        <button class="btn btn-danger btn-sm">시험지 삭제</button>
+                    </div>
+                </div>
+                <div class="download-section col-6 justify-content-center align-content-center">
+                    <span>시험지 다운로드</span>
+                    <div class="d-flex justify-content-center">
+                        <button class="btn btn-circle" th:data-file="'all-'+${item.filePath}+'.pdf'">전체</button>
+                        <button class="btn btn-circle" th:data-file="'question-'+${item.filePath}+'.pdf'">문제</button>
+                        <button class="btn btn-circle" th:data-file="'answer-'+${item.filePath}+'.pdf'">정답<br>+<br>해설</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    document.querySelectorAll(".btn-circle").forEach(value=>{
+        value.addEventListener("click", e => {
+            location.href='/storage/download/'+value.dataset.file;
+        });
+    });
+
+    const subject = document.getElementById("selSubject");
+    const textbook = document.getElementById("textbook");
+    const sid = document.getElementById("subjectId");
+    const tid = document.getElementById("tid");
+    const keyword = document.getElementById("keyword");
+    const form = document.getElementById("contentForm");
+    function setCode() {
+        sid.value = subject.value;
+        fetch("/api/storage/textbook", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'subjectId': subject.value
+            })
+        }).then(response => {
+            response.json().then(json => {
+                console.log(json);
+                tid.value = 0;
+                textbook.innerHTML = `<option value="0">교과서</option>`;
+                for(let item of json) {
+                    textbook.innerHTML += `<option value="${item.textbookId}">${item.title}-${item.author}</option>`;
+                }
+            });
+        });
+    }
+
+    function setTextbook() {
+        tid.value = textbook.value;
+    }
+
+    document.getElementById("btn-submit").addEventListener("click", e=>{
+        form.submit();
+    });
+    document.getElementById("btn-reset").addEventListener("click", e=>{
+        location.href="/storage";
+    })
+</script>
+</body>
+</html>

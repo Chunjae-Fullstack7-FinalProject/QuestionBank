@@ -31,6 +31,9 @@
         .disappear {
             display:none;
         }
+        .check-group em {
+            word-break: break-all;
+        }
     </style>
 </head>
 
@@ -43,7 +46,6 @@
                 <li class="active">STEP 1 단원선택</li>
                 <li>STEP 2 문항 편집</li>
                 <li>STEP 3 시험지 저장</li>
-                <li id="test">test</li>
             </ul>
             <button type="button" class="del-btn" onclick="winClose()"></button>
             <script>
@@ -83,7 +85,7 @@
                                                 <div class="title-chk">
                                                     <input type="checkbox" th:id="${large.largeChapterId}" class="que-allCheck depth01" data-depth="1">
                                                     <label th:for="${large.largeChapterId}">
-                                                        <button type="button" class="dep-btn active" th:text="${large.largeChapterName}">대단원 이름</button>
+                                                        <button type="button" class="dep-btn active" th:text="${large.largeChapterName}" style="font-size:95%;">대단원 이름</button>
                                                     </label>
                                                 </div>
                                             </div>
@@ -95,7 +97,7 @@
                                                     <div class="check-group">
                                                         <input type="checkbox" th:id="${medium.mediumChapterId}" class="que-allCheck depth02" data-depth="2">
                                                         <label th:for="${medium.mediumChapterId}">
-                                                            <button type="button" class="dep-btn active" th:text="${medium.mediumChapterName}">중단원 이름</button>
+                                                            <button type="button" class="dep-btn active" th:text="${medium.mediumChapterName}" style="font-size:95%;">중단원 이름</button>
                                                         </label>
                                                     </div>
 
@@ -105,8 +107,8 @@
                                                             <div class="check-group">
                                                                 <input type="checkbox" th:id="${small.smallChapterId}" class="que-allCheck depth03" data-depth="3">
                                                                 <label th:for="${small.smallChapterId}">
-                                                                    <button type="button" class="dep-btn active" th:text="${small.smallChapterName}">소단원 이름</button>
-                                                                    <em th:id="${small.smallChapterId}" style="color:#5670dc;">(0)</em>
+                                                                    <button type="button" class="dep-btn active" th:text="${small.smallChapterName}" style="font-size:85%;">소단원 이름</button>
+                                                                    <em th:id="${small.smallChapterId}" style="color:#5670dc; font-size: 85%;">(0)</em>
                                                                 </label>
                                                             </div>
 
@@ -116,8 +118,8 @@
                                                                     <div class="check-group">
                                                                         <input type="checkbox" th:data-large="${large.largeChapterId}" th:data-middle="${medium.mediumChapterId}" th:data-small="${small.smallChapterId}" th:id="${topic.topicChapterId}" class="que-allCheck depth04" data-depth="4">
                                                                         <label th:for="${topic.topicChapterId}">
-                                                                            <button type="button" class="active" th:text="${topic.topicChapterName}">토픽 이름</button>
-                                                                            <em th:id="${topic.topicChapterId}" style="color:#5670dc;">(0)</em>
+                                                                            <button type="button" class="active" th:text="${topic.topicChapterName}" style="font-size:85%;">토픽 이름</button>
+                                                                            <em th:id="${topic.topicChapterId}" style="color:#5670dc; font-size: 85%;">(0)</em>
                                                                         </label>
                                                                     </div>
                                                                 </div>
@@ -922,12 +924,42 @@
 
     }
 
+
     // 난이도별 문제 수 팝업
 
     //기존 문제 총합
     let initTotal;
     //계산될 총합
     const popSum = $('#range-total');
+
+
+
+    // popup
+    let _dim = $(".dim");
+    let _html = $("html , body");
+    let popBtn = $(".pop-btn");
+    let closePop = $(".pop-close");
+
+    function popFunc() {
+        let _this = $(this);
+        let popData = _this.data("pop");
+
+        _html.css("overflow", "hidden");
+        _dim.fadeIn();
+
+        $(".pop-wrap[data-pop='" + popData + "']").show();
+
+        console.log($(".pop-wrap[data-pop='" + popData + "']"));
+    }
+    function popClose() {
+        let _this = $(this);
+        $(".pop-wrap").hide();
+        _html.css("overflow", "auto");
+        _dim.fadeOut();
+    }
+
+    popBtn.on('click',popFunc);
+    closePop.on('click',popClose);
 
     const setBtn = $('i.setting');
     setBtn.on('click', initiate);
@@ -1024,39 +1056,13 @@
             }
         });
     }
-    //팝업닫기
-    function popClose() {
-        // this를 현재 호출된 요소로 참조
-        let _this = this;
 
-        // .pop-wrap 클래스를 가진 요소를 숨김
-        const popWrap = document.querySelector(".pop-wrap");
-        if (popWrap) {
-            popWrap.style.display = "none";
-        }
-
-        // <html> 요소의 overflow 속성을 auto로 설정
-        const htmlElement = document.documentElement; // <html> 요소를 가져옴
-        htmlElement.style.overflow = "auto";
-
-        // _dim 요소를 점점 사라지게 처리
-        const dim = document.querySelector(".dim"); // _dim은 가정된 클래스 이름
-        if (dim) {
-            dim.style.transition = "opacity 0.5s"; // 서서히 사라지는 효과 추가
-            dim.style.opacity = "0";
-            // opacity가 0이 되면 display: none 처리
-            setTimeout(() => {
-                dim.style.display = "none";
-            }, 500); // 애니메이션 지속 시간과 맞춤
-        }
-    }
 
 
 
 
     //대망의 문제 수 확인
-    $('#nextBtn').on('click', finalCheck); //여기 수정해야 함.
-    $('#test').on('click',finalCheck);
+    $('#nextBtn').on('click', finalCheck);
     async function finalCheck() {
         let txtExamNum = $("#txt-exam-num").val();
         console.log("문제 수 =============>" + txtExamNum);
@@ -1247,6 +1253,9 @@
                     let strRequestBody = JSON.stringify(requestBody);
                     new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
                     new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
+                    new_form.append($('<input/>', {type: 'hidden', name: 'requestLow', value: requestLow.data('count')}));
+                    new_form.append($('<input/>', {type: 'hidden', name: 'requestMiddle', value: requestMiddle.data('count')}));
+                    new_form.append($('<input/>', {type: 'hidden', name: 'requestHigh', value: requestHigh.data('count')}));
                     new_form.appendTo('body');
                     new_form.submit();
 
@@ -1386,30 +1395,30 @@
                         if(difficulties[0].count === 0){
                             finalLow = Number(low); //실제로 온 값
                         } else {
-                            finalLow = Number(requestLow.data('count') + difficulties[0].count);
+                            finalLow = Number(requestLow.data('count')) + Number(difficulties[0].count);
                         }
                         if(difficulties[1].count === 0){
                             finalMiddle = Number(middle);
                         } else {
-                            finalMiddle = Number(requestMiddle.data('count') + difficulties[1].count);
+                            finalMiddle = Number(requestMiddle.data('count')) + Number(difficulties[1].count);
                         }
                         if(difficulties[2].count === 0){
                             finalHigh = Number(high);
                         } else {
-                            finalHigh = Number(requestHigh.data('count') + difficulties[2].count);
+                            finalHigh = Number(requestHigh.data('count')) + Number(difficulties[2].count);
                         }
 
                         console.log("finalLow:", finalLow);
                         console.log("finalMiddle:", finalMiddle);
                         console.log("finalHigh:", finalHigh);
 
-                        let displayLow = $('#displayLow').text(finalLow);
-                        let displayMiddle = $('#displayMiddle').text(finalMiddle);
-                        let displayHigh = $('#displayHigh').text(finalHigh);
+                        let displayLow = $('#displayLow').text(Number(finalLow));
+                        let displayMiddle = $('#displayMiddle').text(Number(finalMiddle));
+                        let displayHigh = $('#displayHigh').text(Number(finalHigh));
                         let displayTotal = $('#displayTotal').text(
-                            ($('#displayLow').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayLow').text())) +
-                            ($('#displayMiddle').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayMiddle').text())) +
-                            ($('#displayHigh').closest('div.range').hasClass('disappear') ? 0 : Number($('#displayHigh').text()))
+                            ($('#displayLow').closest('div.range').hasClass('disappear') ? 0 : finalLow) +
+                            ($('#displayMiddle').closest('div.range').hasClass('disappear') ? 0 : finalMiddle) +
+                            ($('#displayHigh').closest('div.range').hasClass('disappear') ? 0 : finalHigh)
                         );
 
                         //확인 버튼
@@ -1423,6 +1432,9 @@
                             let strRequestBody = JSON.stringify(requestBody);
                             new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
                             new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
+                            new_form.append($('<input/>', {type: 'hidden', name: 'requestLow', value: requestLow.data('count')}));
+                            new_form.append($('<input/>', {type: 'hidden', name: 'requestMiddle', value: requestMiddle.data('count')}));
+                            new_form.append($('<input/>', {type: 'hidden', name: 'requestHigh', value: requestHigh.data('count')}));
                             new_form.appendTo('body');
                             new_form.submit();
                         });

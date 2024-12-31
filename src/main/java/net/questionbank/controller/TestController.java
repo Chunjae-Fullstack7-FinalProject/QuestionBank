@@ -1,6 +1,7 @@
 package net.questionbank.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
@@ -40,7 +41,10 @@ public class TestController {
    
     @PostMapping("/step0")
     @RedirectWithError(redirectUri = "/error/error")
-    public String step0(@RequestParam String subjectId, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
+    public String step0(@RequestParam(required = false) String subjectId, HttpServletRequest req, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
+        if(subjectId == null) {
+            subjectId = (String)req.getAttribute("subjectId");
+        }
         log.info(subjectId);
         TextBookApiDTO textbookDetailDTO = textbookService.getTextbookDetails(subjectId);
         if (textbookDetailDTO == null) {
@@ -56,7 +60,7 @@ public class TestController {
         log.info("largeChapterList : {}", largeChapterList);
         return "test/step0";
     }
-  
+    @RedirectWithError(redirectUri = "/error/error")
     @GetMapping("/step1")
     public String step1(Model model, SubjectRequestDTO subjectRequestDTO, HttpSession session) {
         //여기 치고 들어오면 팅궈야 함.
@@ -85,10 +89,14 @@ public class TestController {
                              @RequestParam(required = false, name = "examId") String[] examIds,
                              String[] questionIds,
                              @RequestParam(required = false, defaultValue = "") String type,
-                             @RequestParam String  strRequestBody) {
+                             @RequestParam String strRequestBody,
+                             @RequestParam String requestLow,
+                             @RequestParam String requestMiddle,
+                             @RequestParam String requestHigh) {
 
         if(examIds!=null){
             questionIds = testService.getPresetExamQuestions(examIds);
+            model.addAttribute("questionIds", questionIds);
             model.addAttribute("type", "edit");
         }
 
@@ -96,55 +104,26 @@ public class TestController {
         ObjectMapper objectMapper = new ObjectMapper();
         try{
             RequestBodyDTO requestBodyDTO = objectMapper.readValue(strRequestBody, RequestBodyDTO.class);
-            model.addAttribute("requestBody", requestBodyDTO); //재검색용 requestBody
+            model.addAttribute("requestBodyDTO", requestBodyDTO); //재검색용 requestBody
         } catch(Exception e){
             log.error(e.getMessage());
         }
-
-        model.addAttribute("questionIds", questionIds);
+        model.addAttribute("requestLow", requestLow);
+        model.addAttribute("requestMiddle", requestMiddle);
+        model.addAttribute("requestHigh", requestHigh);
         model.addAttribute("type", type);
-
         return "test/step2";
     }
 
 
-    @GetMapping("/step3")
+    //@GetMapping("/step3")
     @PostMapping("/step3")
-    public String step3(Model model, @RequestParam(required = false) List<Long> itemIdList, @RequestParam(required = false) Long subjectId) {
-        int testId = 1;
-        List<Long> ids = new ArrayList<>();
-//        ids.add(491164L);
-//        ids.add(494519L);
-//        ids.add(494552L);
-//        ids.add(494553L);
-//        ids.add(493138L);
-//        ids.add(493140L);
-//        ids.add(493137L);
-//        ids.add(493139L);
-//        ids.add(493141L);
-//        ids.add(487792L);
-//        ids.add(494581L);
-
-        ids.add(481705L);
-        ids.add(481709L);
-        ids.add(481711L);
-        ids.add(481712L);
-        ids.add(481717L);
-        ids.add(481718L);
-        ids.add(977246L);
-        ids.add(977249L);
-        ids.add(977250L);
-        ids.add(977253L);
-        ids.add(977254L);
-        ids.add(977257L);
-        ids.add(977258L);
-        ids.add(977259L);
-
-        Long testSubjectId = 1154L;
-
-        model.addAttribute("testInfo", step3Service.testInfoHtml(ids, testSubjectId));
-        model.addAttribute("subjectId", subjectId == null ? testSubjectId : subjectId);
-        model.addAttribute("itemIdList", itemIdList == null ? ids : itemIdList);
+    public String step3(Model model, @RequestParam(required = false, name="itemId") List<Long> itemIdList, HttpSession session) {
+        TextBookApiDTO textbookDetailDTO = (TextBookApiDTO)session.getAttribute("textbookDetailDTO");
+        log.info("itemIdList : {}", itemIdList);
+        model.addAttribute("testInfo", step3Service.testInfoHtml(itemIdList, textbookDetailDTO.getSubjectId()));
+        model.addAttribute("subjectId", textbookDetailDTO.getSubjectId());
+        model.addAttribute("itemIdList", itemIdList);
         model.addAttribute("pdfFileId", UUID.randomUUID().toString());
         return "test/sub04_01";
     }

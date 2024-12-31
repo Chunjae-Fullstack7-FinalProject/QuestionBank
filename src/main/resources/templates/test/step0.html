@@ -114,6 +114,7 @@
                                                 <span>
                                                     <div class="btn-wrap">
                                                         <button type="button"
+                                                                th:id="${presetExam.examId + '_all'}"
                                                                 class="btn-default"
                                                                 th:data-exam-id="${presetExam.examId}"
                                                                 th:data-exam-name="${presetExam.examName}"
@@ -121,6 +122,7 @@
                                                                 onclick="pdf(this)"
                                                         >전체</button>
                                                         <button type="button"
+                                                                th:id="${presetExam.examId + '_questions'}"
                                                                 class="btn-default"
                                                                 th:data-exam-id="${presetExam.examId}"
                                                                 th:data-exam-name="${presetExam.examName}"
@@ -128,6 +130,7 @@
                                                                 onclick="pdf(this)"
                                                         >문제</button>
                                                         <button type="button"
+                                                                th:id="${presetExam.examId + '_answers'}"
                                                                 class="btn-default"
                                                                 th:data-exam-id="${presetExam.examId}"
                                                                 th:data-exam-name="${presetExam.examName}"
@@ -135,6 +138,7 @@
                                                                 onclick="pdf(this)"
                                                         >정답 + 해설</button>
                                                         <button type="button"
+                                                                th:id="${presetExam.examId + '_classify'}"
                                                                 class="btn-default"
                                                                 th:data-exam-id="${presetExam.examId}"
                                                                 th:data-exam-name="${presetExam.examName}"
@@ -236,23 +240,21 @@
         }
     }
     async function pdf(button) {
-        //restcontroller
-        //getQuestionsHtmlFromApi -> html
-        //testPdfHtmlList -> map
-
-        //자바스크립트에서 map 반환
-        //document.getEleslkdjf;("all | question | answer").innerhtml = map foreach (답만 가져올때 두개에 하나씩 문제 번호
-        //<div class="pdf-item">1.</div>
-        //title = 시험지 제목 item=all | question | answer
         const examId = button.getAttribute("data-exam-id");
         const examName = button.getAttribute("data-exam-name");
         const type = button.getAttribute("data-type");
+
         if(type==='classify'){
             const classifyList = await getPreviewClassify(button);
             const classifyHtml = getPdfClassifyHtml(classifyList,examName);
             const container = document.getElementById("pdf-content");
             container.innerHTML = '';
             container.innerHTML += classifyHtml;
+            console.log("pdf examName : " + examName + ", type : " + type);
+            if (typeof MathJax !== "undefined") {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                // console.log('MathJax rendered');
+            }
             savePdf1(examName, type);
             return;
         }
@@ -263,7 +265,13 @@
             if(type==='answers' && index%2==0) container.innerHTML += `<div class="pdf-item">${index/2+1}.</div>`;
             container.innerHTML += item;
         });
-        page(examName, type);
+
+        if (typeof MathJax !== "undefined") {
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+            // console.log('MathJax rendered');
+        }
+        await page(examName, type);
+        console.log("pdf examName : " + examName + ", type : " + type);
         await savePdf1(examName, type);
     }
 
@@ -351,8 +359,12 @@
     let passageId = 0;
     let passageCount = 0;
     let passageMap = {};
-
-    function getPreviewHtml(itemList, type) {
+    function typeToString(type){
+        if(type === 2) return 'all';
+        if(type === 1) return 'questions';
+        if(type === 3) return 'answers';
+    }
+    function getPreviewHtml(itemList, type, examId) {
         console.log("getPreviewHtml start");
         console.log(itemList);
         let typeToInt = parseInt(type);
@@ -437,7 +449,12 @@
         }
         return `
             <div class="btn-wrap">
-                <button type="button" class="btn-icon"><i class="download"></i>다운로드</button>
+                <button type="button"
+                class="btn-icon"
+                data-exam-id="${examId}"
+                data-type="${typeToString(typeToInt)}"
+                onclick="popPdf(this)"
+                id="btnPopDownlaod"><i class="download"></i>다운로드</button>
             </div>
             <div class="view-box">
                 <div class="scroll-inner">
@@ -456,7 +473,13 @@
             </div>
         `;
     }
-
+    async function popPdf(button){
+        const examId = button.getAttribute("data-exam-id");
+        const type = button.getAttribute("data-type");
+        const pdfButton = document.getElementById(examId + '_' + type);
+        console.log(examId + type);
+        pdf(pdfButton);
+    }
     function popClose() {
         // this를 현재 호출된 요소로 참조
         let _this = this;
@@ -513,6 +536,7 @@
 
     let tempItemList;
     let tempClassify;
+    let tempExamId;
     document.querySelectorAll(".pop-btn").forEach(
         (btn) => {
             btn.addEventListener("click", async (e) => {
@@ -522,11 +546,15 @@
                 const examId = btn.getAttribute("data-exam-id");
                 tempItemList = null;
                 tempClassify = null;
+                tempExamId = null;
                 try {
                     tempItemList = await getPreviewContent(btn);
                     tempClassify = await getPreviewClassify(btn);
+                    tempExamId = examId;
                     renderPopHeader(tempItemList, examName, examId);
-                    const previewHtml = getPreviewHtml(tempItemList, 2);
+                    document.querySelectorAll("li a").forEach(ele => ele.parentElement.classList = null);
+                    document.querySelector("li a[data-type='2']").parentElement.classList.add("active");
+                    const previewHtml = getPreviewHtml(tempItemList, 2, examId);
                     renderPreview(previewHtml);
                     renderPassage();
                 } catch (error) {
@@ -536,7 +564,7 @@
         }
     );
 
-    function getClassifyHtml(classifyList) {
+    function getClassifyHtml(classifyList, examId) {
         console.log("classifyList : "+classifyList);
         let information = '';
         for (inform of classifyList) {
@@ -556,7 +584,7 @@
         }
         return `
         <div class="btn-wrap">
-            <button type="button" class="btn-icon"><i class="download"></i>다운로드</button>
+            <button type="button" class="btn-icon" data-exam-id="${examId}" data-type="classify" onclick="popPdf(this)"><i class="download"></i>다운로드</button>
         </div>
         <div class="view-box">
             <div class="scroll-inner">
@@ -677,11 +705,11 @@
                 a.parentElement.classList.add("active");
                 const type = a.getAttribute("data-type");
                 if (type !== '0') {
-                    const previewHtml = getPreviewHtml(tempItemList, type);
+                    const previewHtml = getPreviewHtml(tempItemList, type, tempExamId);
                     renderPreview(previewHtml);
                     renderPassage();
                 } else {
-                    const classifyHtml = getClassifyHtml(tempClassify);
+                    const classifyHtml = getClassifyHtml(tempClassify, tempExamId);
                     renderPreview(classifyHtml);
                     if (typeof MathJax !== "undefined") {
                         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
