@@ -9,6 +9,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name="file")
 public class File {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

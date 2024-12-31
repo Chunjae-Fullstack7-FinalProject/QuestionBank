@@ -1809,7 +1809,7 @@ input[type=checkbox]:checked + label::before {
 }
 .full-pop-que .full-pop-wrap .view-box .view-bottom .cnt-box .view-que-list .view-que-box.active {
   border: 2px solid #5670dc;
-  background-color: #fcfaff;
+  background-color: #fefeff;
 }
 .full-pop-que .full-pop-wrap .view-box .view-bottom .cnt-box .view-que-list .que-top {
   display: flex;

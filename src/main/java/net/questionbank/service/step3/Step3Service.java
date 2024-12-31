@@ -4,7 +4,7 @@ import net.questionbank.dto.question.QuestionImageApiDTO;
 import net.questionbank.dto.question.QuestionHtmlApiDTO;
 import net.questionbank.dto.test.TempTestHtmlDTO;
 import net.questionbank.dto.test.TempTestImageDTO;
-import net.questionbank.dto.test.TestDTO;
+import net.questionbank.dto.test.TestSaveDTO;
 import net.questionbank.dto.test.TestDataDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 
@@ -17,7 +17,7 @@ public interface Step3Service {
     List<QuestionImageApiDTO> getQuestionsImageFromApi(List<Long> itemIdList);
     List<QuestionHtmlApiDTO> getQuestionsHtmlFromApi(List<Long> itemIdList);
     TextBookApiDTO getTextBookFromApi(Long subjectId);
-    void saveTestInfo(TestDTO testDTO, List<Long> questionIdList);
+    void saveTestInfo(TestSaveDTO testSaveDTO, List<Long> questionIdList);
     boolean sendTestInfo(TestDataDTO testDataDto);
     Map<String, List<String>> testPdfImageList(List<QuestionImageApiDTO> questionsFromApi);
 

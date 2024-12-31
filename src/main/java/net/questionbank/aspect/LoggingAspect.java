@@ -28,15 +28,16 @@ public class LoggingAspect {
         long startTime = System.currentTimeMillis();
 
         try{
-            Object result = joinPoint.proceed(args);
+            Object result = joinPoint.proceed();
+            long endTime = System.currentTimeMillis();
+            //메서드 종료시 로그
+            log.info("{} -> {} end in {} ms", className, method, endTime - startTime);
+            return result;
         }catch (Throwable e){
             log.error("error in {}.{}",className,method, e);
             throw e;
         }
-        long endTime = System.currentTimeMillis();
-        //메서드 종료시 로그
-        log.info("{} -> {} end in {} ms", className, method, endTime - startTime);
-        return joinPoint.proceed();
+
     }
 
     @Around("within(@net.questionbank.annotation.Logging *)")

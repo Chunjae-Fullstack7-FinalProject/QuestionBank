@@ -64,11 +64,11 @@
 <body>
 <div class="container mt-3">
     <div class="d-flex justify-content-end">
-        <th:block th:if="${session.loginDTO == null}">
+        <th:block th:if="${session.loginDto == null}">
             <p class="mx-2"><a href="/member/login" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">로그인</a></p>
             <p><a href="/member/register" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">회원가입</a></p>
         </th:block>
-        <p th:if="${session.loginDTO != null}">
+        <p th:if="${session.loginDto != null}">
             <a href="/member/logout" class="link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">로그아웃</a>
         </p>
     </div>
@@ -112,7 +112,7 @@
 <script>
     function customExamPopup(textbookId) {
         let pop_title = "win_pop";
-        let url = 'http://localhost:8080/customExam/step0'; // 여기는 감찬햄이 알아서 보셈. 테스트 환경이랑 배포랑도 달라질 거라 신경 써줘야 함.
+        let url = '/customExam/step0'; // 여기는 감찬햄이 알아서 보셈. 테스트 환경이랑 배포랑도 달라질 거라 신경 써줘야 함.
         window.open("", pop_title, 'width=1400,height=1024,status=no,toolbar=no, left=500, top=0');
 
         let new_form = $('<form></form>');
