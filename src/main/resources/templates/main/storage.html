@@ -25,6 +25,12 @@
 
 </head>
 <body>
+<script>
+    const error = `[[${errors}]]`;
+    if(error !== '') {
+        alert(error);
+    }
+</script>
 <div class="container mt-3">
     <div class="d-flex justify-content-end">
         <th:block th:if="${session.loginDto == null}">
@@ -85,7 +91,7 @@
                         <input type="hidden" id="tid" name="textbookId" th:value="${searchInfo.textbookId}"/>
                         <input type="hidden" id="pageIndex" name="pageIndex" value="1"/>
                         <input type="hidden" id="subjectId" name="subject" th:value="${searchInfo.subject}"/>
-                        <input type="text" id="keyword" name="keyword" th:value="${searchInfo.keyword}" class="form-control" placeholder="시험지명을 입력해 주세요.">
+                        <input type="text" id="keyword" name="keyword" th:value="${searchInfo.keyword}" class="form-control" placeholder="시험지명을 입력해 주세요." maxlength="20">
                     </form>
             </div>
             <div class="col-sm-auto justify-content-center content-top__sort">
@@ -99,7 +105,7 @@
         <div class="card-custom" th:each="item : ${testList}">
             <div class="card-body justify-content-center align-content-left">
                 <div class="card-header">
-                    <h3 th:text="${item.testTitle}"></h3>
+                    <h3 th:text="${item.testTitle}" class="text-truncate"></h3>
                     <p><small>[[${item.textbookTitle}]]([[${item.author}]])&nbsp;|&nbsp;[[${item.count}]]문항&nbsp;|&nbsp;[[${#temporals.format(item.createdAt, 'yyyy-MM-dd')}]]</small></p>
                 </div>
             </div>
@@ -161,7 +167,13 @@
     }
 
     document.getElementById("btn-submit").addEventListener("click", e=>{
-        form.submit();
+        e.preventDefault();
+        if(form.keyword.value.length > 20) {
+            alert("20자 이내로 입력해주세요.");
+        }
+        else {
+            form.submit();
+        }
     });
     document.getElementById("btn-reset").addEventListener("click", e=>{
         location.href="/storage";

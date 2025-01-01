@@ -38,6 +38,13 @@ public class StorageController {
 
     @GetMapping("")
     public String storage(Model model, @Valid TestSearchDTO testSearchDTO, BindingResult bindingResult, HttpSession session, RedirectAttributes redirectAttributes) {
+
+
+        if(bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errors", bindingResult.getAllErrors().get(0).getDefaultMessage());
+            return "redirect:/storage";
+        }
+
         MemberLoginDTO loginDto = (MemberLoginDTO) session.getAttribute("loginDto");
 
         String userId = loginDto.getMemberId();
