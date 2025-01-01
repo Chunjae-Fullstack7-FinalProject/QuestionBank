@@ -61,10 +61,11 @@ public class TestController {
         log.info("largeChapterList : {}", largeChapterList);
         return "test/step0";
     }
+
     @RedirectWithError(redirectUri = "/error/error")
     @PostMapping("/step1")
     public String step1(Model model, HttpSession session) {
-        //여기 치고 들어오면 팅궈야 함.
+
         TextBookApiDTO textbookDetailDTO = (TextBookApiDTO)session.getAttribute("textbookDetailDTO");
         if (textbookDetailDTO == null) {
             throw new CustomRuntimeException("textbook not found");
@@ -114,7 +115,7 @@ public class TestController {
         model.addAttribute("requestMiddle", requestMiddle);
         model.addAttribute("requestHigh", requestHigh);
         model.addAttribute("type", type);
-        return "test/step2";
+        return "test/step2_2";
     }
 
     @PostMapping("/step3")
