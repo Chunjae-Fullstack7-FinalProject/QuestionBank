@@ -99,7 +99,7 @@
         <div class="card-custom" th:each="item : ${testList}">
             <div class="card-body justify-content-center align-content-left">
                 <div class="card-header">
-                    <h3 th:text="${item.testTitle}"></h3>
+                    <h3 th:text="${item.testTitle}" class="text-truncate"></h3>
                     <p><small>[[${item.textbookTitle}]]([[${item.author}]])&nbsp;|&nbsp;[[${item.count}]]문항&nbsp;|&nbsp;[[${#temporals.format(item.createdAt, 'yyyy-MM-dd')}]]</small></p>
                 </div>
             </div>
