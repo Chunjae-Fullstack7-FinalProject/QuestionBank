@@ -121,6 +121,10 @@ public class TestController {
     public String step3(Model model, @RequestParam(required = false, name="itemId") List<Long> itemIdList, HttpSession session) {
         TextBookApiDTO textbookDetailDTO = (TextBookApiDTO)session.getAttribute("textbookDetailDTO");
 
+        if(textbookDetailDTO == null) {
+            throw new CustomRuntimeException("textbook not found");
+        }
+
         log.info("itemIdList : {}", itemIdList);
 
         TempTestHtmlDTO tempTestDTO = step3Service.testInfoHtml(itemIdList, textbookDetailDTO.getSubjectId());
