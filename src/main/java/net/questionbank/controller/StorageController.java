@@ -40,12 +40,7 @@ public class StorageController {
     public String storage(Model model, @Valid TestSearchDTO testSearchDTO, BindingResult bindingResult, HttpSession session, RedirectAttributes redirectAttributes) {
         MemberLoginDTO loginDto = (MemberLoginDTO) session.getAttribute("loginDto");
 
-//        if(loginDto == null) {
-//            redirectAttributes.addFlashAttribute("loginDto", new MemberLoginDTO());
-//            return "redirect:/main";
-//        }
-
-        String userId = "test1";
+        String userId = loginDto.getMemberId();
 
         testSearchDTO.setUserId(userId);
 
@@ -62,7 +57,7 @@ public class StorageController {
 
     @GetMapping("/download/{fileName}")
     public void pdfDownload(@PathVariable String fileName, RedirectAttributes redirectAttributes, HttpServletResponse response) {
-        File pdf = new File(fileDir + fileName);
+        File pdf = new File(fileDir + File.separator + fileName);
 
         try {
             byte[] file = FileUtils.readFileToByteArray(pdf);

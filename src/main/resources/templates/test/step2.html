@@ -35,7 +35,14 @@
 				<li class="active">STEP 2 문항 편집</li>
 				<li>STEP 3 시험지 저장</li>
 			</ul>
-			<button type="button" class="del-btn"></button>
+			<button type="button" class="del-btn" onclick="winClose()"></button>
+			<script>
+				function winClose() {
+					if (confirm('이 페이지에서 나가시겠습니까?')) {
+						window.open('', '_self', '').close();
+					}
+				}
+			</script>
 		</div>
 		<div class="pop-content">
 			<div class="view-box">
@@ -44,7 +51,7 @@
 						<span class="subject" th:text="${session.textbookDetailDTO?.getSubjectName()}"></span>
 						<span th:text="${session.textbookDetailDTO?.getCurriculumName()}"></span>
 					</div>
-					<th:block th:if="${type == null}">
+					<th:block th:if="${type ne 'edit'}">
 						<button class="btn-default btn-research" id="re-search"><i class="research"></i>재검색</button>
 					</th:block>
 					<button class="btn-default pop-btn" data-pop="que-scope-pop" id="scopeBtn" onclick="popFunc(this)">출제범위</button>
@@ -350,7 +357,7 @@
 						<div class="cnt-top">
 							<span class="title">문제 목록</span>
 							<div class="right-area">
-								<div class="select-wrap">
+								<div class="select-wrap" id="search-select-wrap">
 									<button type="button" class="select-btn">문제만 보기</button>
 									<ul class="select-list" style="display: none;">
 										<li>
@@ -367,7 +374,7 @@
 										</li>
 									</ul>
 								</div>
-								<div class="select-wrap">
+								<div class="select-wrap" id="sort-select-wrap">
 									<button type="button" class="select-btn">단원순</button>
 									<ul class="select-list">
 										<li>
@@ -695,127 +702,167 @@
 		}
 	}
 
-	//검색 조건 버튼 이벤트
-	function searchQuestions(status){
-		console.log(status);
-		let searchList = [];
-		switch(status){
+	// 상태 관리 객체
+	const state = {
+		searchStatus: "문제만 보기",
+		sortStatus: "단원순",
+		currentSimilarContext: null
+	};
+
+
+
+
+	// 필터링 함수
+	function filterQuestionsBySearch(searchStatus) {
+		let filteredQuestions = [];
+		switch (searchStatus) {
 			case "문제만 보기":
-				searchList = questions.map(q => ({
+				filteredQuestions = questions.map(q => ({
 					...q,
 					explainUrl: null,
 					answerUrl: null,
-				}))
+				}));
 				break;
 			case "문제+정답 보기":
-				searchList = questions.map(q => ({
+				filteredQuestions = questions.map(q => ({
 					...q,
-					explainUrl: null
+					explainUrl: null,
 				}));
 				break;
 			case "문제+해설+정답 보기":
-				searchList = questions
+				filteredQuestions = questions;
 				break;
-			case "편집단계에서만 적용되는 보기 옵션":
-				break;
-			default: //문제만 보기
-				searchList = questions.map(q => ({
+			default: // 기본값: 문제만 보기
+				filteredQuestions = questions.map(q => ({
 					...q,
 					explainUrl: null,
 					answerUrl: null,
-				}))
+				}));
 				break;
 		}
-		renderQuestions(searchList);
+		// 선택한 항목을 셀렉트 박스에 표시
+		const selectButton = document.querySelector("#search-select-wrap .select-btn");
+		if (selectButton) {
+			selectButton.textContent = searchStatus; // 선택한 텍스트 업데이트
+		}
+		return filteredQuestions;
 	}
 
-	//검색 이벤트 리스너
-	document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
-		button.addEventListener("click", (e) =>{
-			const status = e.target.textContent.trim();
-			if(["문제만 보기", "문제+정답 보기", "문제+해설+정답 보기", "편집단계에서만 적용되는 보기 옵션"].includes(status)){
-				searchQuestions(status);
-			}
-		})
-	})
-
-	//정렬 조건 버튼 이벤트
-	function sortQuestions(status){
-		//기존 데이터를 사용해야함
-		let sortQuestionsList = [...questions];
-		//console.log(sortQuestionsList);
-		switch (status){
+	// 정렬 함수
+	function sortQuestionsByStatus(filteredQuestions, sortStatus) {
+		let sortedQuestions = [...filteredQuestions];
+		switch (sortStatus) {
 			case "단원순":
-				sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
+				sortedQuestions.sort((a, b) => {
+					const chapterA = a.largeChapterName || "";
+					const chapterB = b.largeChapterName || "";
+					return chapterA.localeCompare(chapterB);
+				});
 				break;
 			case "난이도순":
 				const level = { "최하": 1, "하": 2, "중": 3, "상": 4, "최상": 5 };
-
-				//지문별로 그룹화 (단일 문항 포함)
-				const groupedByPassage = questions.reduce((groups, question) => {
-					const passageId = question.passageId || "null";
-					if (!groups[passageId]) {
-						groups[passageId] = [];
-					}
-					groups[passageId].push(question);
-					return groups;
-				}, {});
-
-				//그룹 정보 계산 (지문별 데이터 생성)
-				const groupedArray = Object.entries(groupedByPassage).map(([passageId, questions]) => {
-					const minDifficulty = Math.min(
-							...questions.map(q => level[q.difficultyName] || Infinity)
-					);
-					const chapterName = questions[0].largeChapterName || "기타";
-					const singleQuestion = passageId.startsWith("null");
-					return { passageId, questions, minDifficulty, chapterName, singleQuestion };
-				});
-
-				//그룹 정렬 (난이도와 단원 순서)
-				groupedArray.sort((a, b) => {
-					//난이도 순으로 정렬
-					if (a.minDifficulty !== b.minDifficulty) {
-						return a.minDifficulty - b.minDifficulty;
-					}
-					//단일 문항을 앞에 두기
-					if (a.singleQuestion !== b.singleQuestion) {
-						return a.singleQuestion ? -1 : 1;
-					}
-					//단원 순서로 정렬
-					return (a.chapterName || "").localeCompare(b.chapterName || "");
-				});
-
-				//그룹 내 문항 정렬 (난이도 순)
-				groupedArray.forEach(group => {
-					group.questions.sort((a, b) => {
-						const difficultyA = level[a.difficultyName] || Infinity;
-						const difficultyB = level[b.difficultyName] || Infinity;
-						return difficultyA - difficultyB;
-					});
-				});
-				//정렬된 그룹의 문항 배열로 다시 만듦
-				sortQuestionsList = groupedArray.flatMap(group => group.questions);
-				break
-			case "문제 형태순":
+				sortedQuestions.sort((a, b) => (level[a.difficultyName] || Infinity) - (level[b.difficultyName] || Infinity));
 				break;
-			default: //단원순
-				console.log("기본값 단원순");
-				sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
+			case "문제 형태순":
+				sortedQuestions.sort((a, b) => (a.questionFormName || "").localeCompare(b.questionFormName || ""));
+				break;
+			default: // 기본값: 단원순
+				sortedQuestions.sort((a, b) => {
+					const chapterA = a.largeChapterName || "";
+					const chapterB = b.largeChapterName || "";
+					return chapterA.localeCompare(chapterB);
+				});
 				break;
 		}
-		renderQuestions(sortQuestionsList);
-		renderSummary(sortQuestionsList);
+		// 선택한 항목을 셀렉트 박스에 표시
+		const selectButton = document.querySelector("#sort-select-wrap .select-btn");
+		if (selectButton) {
+			selectButton.textContent = sortStatus; // 선택한 텍스트 업데이트
+		}
+		return sortedQuestions;
 	}
 
-	//정렬 이벤트 리스너
-	document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
+	function filterQuestionsBySearchForSimilar(searchStatus){
+		let filteredSimilarQuestions = [];
+		switch (searchStatus) {
+			case "문제만 보기":
+				filteredSimilarQuestions = similarQuestions.map(q => ({
+					...q,
+					explainUrl: null,
+					answerUrl: null,
+				}));
+				break;
+			case "문제+정답 보기":
+				filteredSimilarQuestions = similarQuestions.map(q => ({
+					...q,
+					explainUrl: null,
+				}));
+				break;
+			case "문제+해설+정답 보기":
+				filteredSimilarQuestions = similarQuestions;
+				break;
+			default: // 기본값: 문제만 보기
+				filteredSimilarQuestions = similarQuestions.map(q => ({
+					...q,
+					explainUrl: null,
+					answerUrl: null,
+				}));
+				break;
+		}
+		return filteredSimilarQuestions;
+	}
+
+
+	// 필터링과 정렬 적용
+	function applyFiltersAndSorting() {
+		//필터링
+		const filteredQuestions = filterQuestionsBySearch(state.searchStatus);
+		console.log(filteredQuestions);
+
+		//정렬
+		const sortedQuestions = sortQuestionsByStatus(filteredQuestions, state.sortStatus);
+		console.log(sortedQuestions);
+
+		//렌더링
+		renderQuestions(sortedQuestions);
+		renderSummary(sortedQuestions);
+
+		// 4. 유사 문항 렌더링 (번호 유지)
+		if (state.currentSimilarContext) {
+			console.log("similarQuestions");
+			console.log(similarQuestions);
+			const { itemId, index } = state.currentSimilarContext;
+			const filteredSimilarQuestions = filterQuestionsBySearchForSimilar(state.searchStatus);
+			const sortedSimilarQuestions = sortQuestionsByStatus(filteredSimilarQuestions, state.sortStatus);
+			console.log("filteredSimilarQuestions");
+			console.log(filteredSimilarQuestions);
+			renderSimilar(sortedSimilarQuestions, index, itemId);
+		}
+	}
+
+	// 검색 이벤트 리스너
+	document.querySelectorAll("#search-select-wrap .select-list a").forEach(button => {
+		button.addEventListener("click", (e) => {
+			const status = e.target.textContent.trim();
+			if (["문제만 보기", "문제+정답 보기", "문제+해설+정답 보기", "편집단계에서만 적용되는 보기 옵션"].includes(status)) {
+				state.searchStatus = status;
+				applyFiltersAndSorting();
+			}
+		});
+	});
+
+	// 정렬 이벤트 리스너
+	document.querySelectorAll("#sort-select-wrap .select-list a").forEach(button => {
 		button.addEventListener("click", (e) => {
 			const status = e.target.textContent.trim();
 			if (["단원순", "난이도순", "문제 형태순"].includes(status)) {
-				sortQuestions(status);
+				state.sortStatus = status;
+				applyFiltersAndSorting();
 			}
-		})
-	})
+		});
+	});
+
+
 
 	//
 	function sortSimilarSelectBox(status){
@@ -838,6 +885,9 @@
 			case "하":
 				sortSimilarList = Array.prototype.filter.call(sortSimilarList, (s) => s.difficultyName === "하");
 				console.log(sortSimilarList);
+				break;
+			case "난이도 전체":
+				sortSimilarList;
 				break;
 		}
 		renderSimilar(sortSimilarList, itemId);
@@ -890,6 +940,7 @@
 
 	//문제 데이터를 화면에 렌더링
 	function renderQuestions(questions) {
+		console.log("renderQuestions");
 		console.log(questions);
 		const container = document.querySelector(".view-que-list");
 		container.innerHTML = "";
@@ -992,7 +1043,7 @@
 							</div>
 						</div>
 						<div class="que-info-last">
-						<p class="chapter">${q.largeChapterName}>${q.mediumChapterName}>${q.smallChapterName}>${q.topicChapterName}</p>
+							<p class="chapter">${q.largeChapterName}>${q.mediumChapterName}>${q.smallChapterName}>${q.topicChapterName}</p>
 						</div>
 					</div>
 					`;
@@ -1030,7 +1081,7 @@
 
 			if(flag) {
 				questionHTML += `
-									<div class="col depth-02" data-item-id="${q.itemId}">
+									<div class="col depth-02" data-item-id="${q.itemId}" onclick="scrollItem(${q.itemId})">
 										<a href="javascript:;">
 											<span class="dragHandle ui-sortable-handle drag-type01">
 											<img
@@ -1064,7 +1115,7 @@
 			}
 			else {
 				questionHTML += `
-							<div class="col singleQuestion" data-item-id="${q.itemId}">
+							<div class="col singleQuestion" data-item-id="${q.itemId}" onclick="scrollItem(${q.itemId})">
 								<a href="javascript:;">
 									<span class="dragHandle ui-sortable-handle"><img
 										src="../images/common/ico_move_type01.png" alt=""></span>
@@ -1104,7 +1155,7 @@
 	}
 
 	//유사 문항 탭
-	function renderSimilar(similarQuestions, index, itemId, flag){
+	function renderSimilar(similarQuestions, index, itemId, flag) {
 		console.log("similarQuestions");
 		console.log(similarQuestions);
 		const itemNum = index;
@@ -1123,7 +1174,7 @@
 
 		//유사 항목 없을 때
 		if (!similarQuestions || similarQuestions.length === 0) {
-			if(flag){
+			if (flag) {
 				alert("유사 항목이 없습니다.");
 				tabActive("summaryTab");
 				//renderSummary(questions);
@@ -1132,10 +1183,10 @@
 			console.log("유사 항목 없음");
 			container.innerHTML = "";
 			container.insertAdjacentHTML("beforeend",
-			 `
-			<div class="data view-que-list">
-				<p>유사 항목이 없습니다.</p>
-			</div>
+					`
+				<div class="view-que-list scroll-inner no-data" id="item-similar-area">
+					<p>유사 문제를 모두 추가하였습니다.</p>
+				</div>
 			`
 			);
 			return;
@@ -1150,13 +1201,13 @@
 		let renderedPassageIds = new Set();
 		similarQuestions.forEach((q, index) => {
 			<!-- 앞 passageId값과 다를 경우 -->
-			const prevPassageId = index > 0 ? similarQuestions[index-1].passageId : null;
-			if(q.passageId !== null && q.passageId !== prevPassageId) {
+			const prevPassageId = index > 0 ? similarQuestions[index - 1].passageId : null;
+			if (q.passageId !== null && q.passageId !== prevPassageId) {
 				// 이전에 나온 passageId는 건너뛰기
 				if (q.passageId && renderedPassageIds.has(q.passageId)) {
 					return;
 				}
-				const count = similarQuestions.reduce((a,b) => (b.passageId === q.passageId ? a+1 : a),0); //b는 객체
+				const count = similarQuestions.reduce((a, b) => (b.passageId === q.passageId ? a + 1 : a), 0); //b는 객체
 				//시작 인덱스
 				const startIndex = similarQuestions.findIndex(b => b.passageId === q.passageId) + 1;
 				//끝 인덱스
@@ -1200,7 +1251,7 @@
 					<div class="view-que-box">
 						<div class="que-top">
 							<div class="title">
-								<span class="num">${index+1}</span>
+								<span class="num">${index + 1}</span>
 								<div class="que-badge-group">
 									<span class="que-badge  ${getLevelColor(q.difficultyName)}">${q.difficultyName}</span>
 									<span class="que-badge gray">${getQuestionType(q.questionFormCode)}</span>
@@ -1221,20 +1272,52 @@
 								</p>
 							</div>
 							<div class="que-bottom">
-								<div class="btn-wrap">
-									<button type="button" class="btn-default" onclick="executeSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId}, ${itemNum}, false)">
-										<i class="add-type02"></i>추가
-									</button>
+								<div class="data-area">
+									<div class="que-info">
+										${q.explainUrl ? `<p class="answer"><span class="label">해설</span></p>` : ""}
+										<div class="data-answer-area">
+										<!-- s: 해설 데이터 영역 -->
+										<div class="paragraph" style="text-align: Justify">
+										<span class="txt">
+											${q.explainUrl ? `<img src="${q.explainUrl}" alt="해설 이미지"/>` : ""}
+										</span>
+										</div>
+										<!-- e: 해설 데이터 영역 -->
+									</div>
+								</div>
+								<div class="data-area type01">
+									<div class="que-info">
+									${q.answerUrl ? `<p class="answer"><span class="label">정답</span></p>` : ""}
+										<div class="data-answer-area">
+											<!-- s: 정답 데이터 영역 -->
+											<div class="paragraph" style="text-align: Justify">
+											<span class="txt">
+											${q.answerUrl ? `<img src="${q.answerUrl}" alt="정답 이미지"/>` : ""}
+											</span>
+											</div>
+											<!-- e: 정답 데이터 영역 -->
+										</div>
+									</div>
+									<div class="btn-wrap">
+										<button type="button" class="btn-default" onclick="executeSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId}, ${itemNum}, false)">
+											<i class="add-type02"></i>추가
+										</button>
+									</div>
 								</div>
 							</div>
 						</div>
-						<div class="que-info-last">
+
+					</div>
+					<div class="que-info-last">
 							<p class="chapter">${q.largeChapterName}>${q.mediumChapterName}>${q.smallChapterName}>${q.topicChapterName}</p>
 						</div>
-					</div>
 				</div>
 			`
 		});
+
+
+
+
 		questionHTML += `</div>`
 		container.insertAdjacentHTML("beforeend", questionHTML);
 	}
@@ -1302,17 +1385,17 @@
 		console.log(passageId);
 		console.log(targetItemId);
 		//기존 passageId 가진 문항 찾기
-		if(!passageId){
+		if (!passageId) {
 			console.log("지문 없음")
 		}
 
-		if(!targetItemId){
+		if (!targetItemId) {
 			console.log("지문 없음")
 		}
 
 		//passageId에 해당하는 문항 정보 가져오기
-		const newItems = similarQuestions.filter(s =>s.passageId === passageId).reverse();
-		if(!newItems || newItems === 0 ){
+		const newItems = similarQuestions.filter(s => s.passageId === passageId).reverse();
+		if (!newItems || newItems === 0) {
 			console.log("지문에 대한 문항을 찾을 수 없음");
 			return;
 		}
@@ -1320,7 +1403,7 @@
 
 		//기존 passageId 가진 문항 찾기
 		const existingItem = questions.filter(q => q.passageId === passageId);
-		if(!existingItem || existingItem.length === 0){
+		if (!existingItem || existingItem.length === 0) {
 			console.log("지문이 동일하지 않는 유사 문항. 단일 문항으로 추가");
 			//targetItemId의 위치 찾기
 			const targetIndex = questions.findIndex(q => q.itemId === targetItemId);
@@ -1382,8 +1465,6 @@
 	$(document).ready(function () {
 		// 초기화 함수
 		function initializeSortable() {
-			console.log("Initializing sortable...");
-			console.log(questions);
 
 			// 전체 테이블에서 지문 및 단일 항목 이동 가능
 			$("#table-1").sortable({
@@ -1452,8 +1533,9 @@
 				console.log("변경된 배열:", questions);
 
 				// UI 업데이트
-				renderSummary(questions);
-				renderQuestions(questions);
+				applyFiltersAndSorting();
+				// renderSummary(questions);
+				// renderQuestions(questions);
 			} else {
 				console.error("변경 안됨");
 			}
@@ -1665,19 +1747,25 @@
 	window.onload = async function(){
 		questions = await getQuestionInfo();
 		sortByPassageId(questions);
-		renderQuestions(questions);
+		applyFiltersAndSorting(); // 초기 상태에 따라 필터와 정렬 적용
+
+		//renderQuestions(questions);
 		const levelCnt = calculateLevelCnt(questions);
 		renderLevelCnt(levelCnt);
-		renderSummary(questions);
+		//renderSummary(questions);
 		const typeCnt = calculateQuestionType(questions);
 		renderQuestionType(typeCnt)
 	}
 
 	// 유사 문항 불러오기
 	async function executeSimilarAPI(itemId, index, button, flag){
+		state.currentSimilarContext = { itemId, index };
 		similarQuestions = await getSimilarQuestionInfo(itemId, index);
+		console.log(similarQuestions.length);
 		filterSimilarQuestions();
-		const answer = renderSimilar(similarQuestions, index, itemId, flag);
+		const filteredQuestions = filterQuestionsBySearchForSimilar(state.searchStatus);
+		console.log(filteredQuestions.length);
+		const answer = renderSimilar(filteredQuestions, index, itemId, flag);
 		if(!answer){
 			tabActive(button);
 			clickActive(button);
@@ -1687,11 +1775,12 @@
 	// 유사 문항 추가
 	function executeSimilarAdd(newItemData, targetItemId, index){
 		const itemId = addQuestion(newItemData, targetItemId, index);
-		renderQuestions(questions);
+		applyFiltersAndSorting();
+		//renderQuestions(questions);
 		scrollItem(itemId);
 		const count = calculateLevelCnt(questions);
 		renderLevelCnt(count);
-		renderSummary(questions);
+		//renderSummary(questions);
 		const typeCnt = calculateQuestionType(questions);
 		renderQuestionType(typeCnt);
 	}

@@ -42,6 +42,9 @@
         .check-group em {
             word-break: break-all;
         }
+        label::before {
+
+        }
     </style>
 </head>
 
@@ -93,7 +96,7 @@
                                                 <div class="title-chk">
                                                     <input type="checkbox" th:id="${large.largeChapterId}" class="que-allCheck depth01" data-depth="1">
                                                     <label th:for="${large.largeChapterId}">
-                                                        <button type="button" class="dep-btn active" th:text="${large.largeChapterName}" style="font-size:95%;">대단원 이름</button>
+                                                        <button type="button" class="dep-btn active" th:text="${large.largeChapterName}">대단원 이름</button>
                                                     </label>
                                                 </div>
                                             </div>
@@ -105,7 +108,7 @@
                                                     <div class="check-group">
                                                         <input type="checkbox" th:id="${medium.mediumChapterId}" class="que-allCheck depth02" data-depth="2">
                                                         <label th:for="${medium.mediumChapterId}">
-                                                            <button type="button" class="dep-btn active" th:text="${medium.mediumChapterName}" style="font-size:95%;">중단원 이름</button>
+                                                            <button type="button" class="dep-btn active" th:text="${medium.mediumChapterName}">중단원 이름</button>
                                                         </label>
                                                     </div>
 
@@ -115,10 +118,11 @@
                                                             <div class="check-group">
                                                                 <input type="checkbox" th:id="${small.smallChapterId}" class="que-allCheck depth03" data-depth="3">
                                                                 <label th:for="${small.smallChapterId}">
-                                                                    <button type="button" class="dep-btn active" th:text="${small.smallChapterName}" style="font-size:85%;">
-                                                                        소단원 이름
-                                                                        <em th:id="${small.smallChapterId}" style="color:#5670dc; font-size: 85%;">(0)</em></button>
-                                                                    <em th:id="${small.smallChapterId}" style="color:#5670dc; font-size: 85%;">(0)</em>
+                                                                    <button type="button" class="dep-btn active" >
+                                                                        <span th:text="${small.smallChapterName}"></span>
+                                                                        <em th:id="${small.smallChapterId}" style="color:#5670dc; ">(0)</em>
+                                                                    </button>
+<!--                                                                    <em th:id="${small.smallChapterId}" style="color:#5670dc; font-size: 85%;">(0)</em>-->
                                                                 </label>
                                                             </div>
 
@@ -128,8 +132,11 @@
                                                                     <div class="check-group">
                                                                         <input type="checkbox" th:data-large="${large.largeChapterId}" th:data-middle="${medium.mediumChapterId}" th:data-small="${small.smallChapterId}" th:id="${topic.topicChapterId}" class="que-allCheck depth04" data-depth="4">
                                                                         <label th:for="${topic.topicChapterId}">
-                                                                            <button type="button" class="active" th:text="${topic.topicChapterName}" style="font-size:85%;">토픽 이름</button>
-                                                                            <em th:id="${topic.topicChapterId}" style="color:#5670dc; font-size: 85%;">(0)</em>
+                                                                            <button type="button" class="active" >
+                                                                                <span th:text="${topic.topicChapterName}"></span>
+                                                                                <em th:id="${topic.topicChapterId}" style="color:#5670dc;">(0)</em>
+                                                                            </button>
+<!--                                                                            <em th:id="${topic.topicChapterId}" style="color:#5670dc; font-size: 85%;">(0)</em>-->
                                                                         </label>
                                                                     </div>
                                                                 </div>
@@ -1143,7 +1150,7 @@
         levelContainer.each(function() {
            const value = Number($(this).data('count'));
            if(value !== 0){
-               levelCnt.push(30);
+               levelCnt.push(value);
            } else {
                levelCnt.push(0);
            }
@@ -1292,132 +1299,59 @@
                         let lowDiff = low - requestLow.data('count');
                         let middleDiff = middle - requestMiddle.data('count');
                         let highDiff = high - requestHigh.data('count');
-                        console.log("하, 응답 - 요청:",lowDiff);
-                        console.log("중, 응답 - 요청:",middleDiff);
-                        console.log("상, 응답 - 요청:",highDiff);
-                        let minusTotal = 0;
-                        if(lowDiff < 0) {
-                            minusTotal += lowDiff;
-                        }
-                        if(middleDiff < 0){
-                            minusTotal += middleDiff;
-                        }
-                        if(highDiff < 0) {
-                            minusTotal += highDiff;
-                        }
-                        console.log("부족분 총합:",minusTotal);
-                        // minusTotal 1씩 더해야됨
+
                         let itemArr = [];
                         let lowArr = [];
                         let middleArr = [];
                         let highArr = [];
                         itemList.forEach(item =>{
                             if(item.difficultyCode === '02'){
-                                lowArr.push(item);
+                                lowArr.push(item); // 이거는 응답받은 개수
                             }
                             if(item.difficultyCode === '03'){
-                                middleArr.push(item);
+                                middleArr.push(item); //응답받은 개수
                             }
                             if(item.difficultyCode === '04'){
-                                highArr.push(item);
+                                highArr.push(item); // 응답받은 개수
                             }
                         });
-                        if(lowDiff<0){
-                            lowArr.forEach(item =>{
-                                itemArr.push(item.itemId);
-                            });
-                        } else {
-                            for(let i=0 ; i<requestLow.data('count');i++){
+                        if(requestLow.data('count') <= lowArr.length){ // 요청 <= 응답일 때
+                            for(let i=0 ; i<requestLow.data('count');i++){ //요청한 개수
+                                itemArr.push(lowArr[i].itemId);
+                            }
+                        } else { // 응답 <= 요청일 때,
+                            for(let i=0 ; i<lowArr.length;i++){ //응답받은 개수
                                 itemArr.push(lowArr[i].itemId);
                             }
                         }
-                        if(middleDiff<0){
-                            middleArr.forEach(item =>{
-                                itemArr.push(item.itemId);
-                            });
-                        } else {
-                            for(let i=0 ; i<requestMiddle.data('count');i++){
+                        if(requestMiddle.data('count') <= middleArr.length){ // 요청 <= 응답일 때
+                            for(let i=0 ; i<requestMiddle.data('count');i++){ //요청한 개수
+                                itemArr.push(middleArr[i].itemId);
+                            }
+                        } else { // 응답 <= 요청일 때,
+                            for(let i=0 ; i<middleArr.length;i++){ //응답받은 개수
                                 itemArr.push(middleArr[i].itemId);
                             }
                         }
-                        if(highDiff<0){
-                            highArr.forEach(item=>{
-                                itemArr.push(item.itemId);
-                            });
-                        } else {
-                            for(let i=0 ; i<requestHigh.data('count');i++){
+                        if(requestHigh.data('count') <= highArr.length){ // 요청 <= 응답일 때
+                            for(let i=0 ; i<requestHigh.data('count');i++){ //요청한 개수
+                                itemArr.push(highArr[i].itemId);
+                            }
+                        } else { // 응답 <= 요청일 때,
+                            for(let i=0 ; i<highArr.length;i++){ //응답받은 개수
                                 itemArr.push(highArr[i].itemId);
                             }
                         }
+
                         console.log("하 배열",lowArr);
                         console.log("중 배열",middleArr);
                         console.log("상 배열",highArr);
 
-                        const difficulties = [
-                            { name: 'low', diff: lowDiff, arr: lowArr, count: 0},
-                            { name: 'middle', diff: middleDiff, arr: middleArr, count: 0},
-                            { name: 'high', diff: highDiff, arr: highArr, count: 0}
-                        ]
 
-                        //부족분 채우기
-                        while(minusTotal < 0) {
-                            let flag = false;
+                        let finalLow = requestLow.data('count') > lowArr.length ? lowArr.length : requestLow.data('count');
+                        let finalMiddle = requestMiddle.data('count') > middleArr.length ? middleArr.length : requestMiddle.data('count');
+                        let finalHigh = requestHigh.data('count')> highArr.length ? highArr.length : requestHigh.data('count');
 
-                            for(let deficit of difficulties){
-                                while(deficit.diff < 0){ // low, middle, high 중 부족한 경우
-                                    let filled = false;
-                                    for(let surplus of difficulties){
-                                        if(surplus.diff > 0 && surplus.arr.length > 0){
-                                            const item = surplus.arr.pop();
-                                            if(item){
-                                                itemArr.push(item.itemId);
-
-                                                deficit.diff++; //해당 부족 부분 한 개 없어짐
-                                                minusTotal++; // 총합도 한 개 없어짐
-                                                surplus.count++;
-                                                surplus.diff--; // 채워준 부분은 잉여부분이 한 개 없어짐
-
-                                                filled = true;
-                                                flag = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    if(!filled){ // 못 채우면 그만
-                                        break;
-                                    }
-                                }
-                            }
-                            if(!flag){ // 모두 채웠거나 잉여 문항이 없을 때
-                                break;
-                            }
-                        }
-                        console.log("minusTotal:", minusTotal);
-                        console.log("lowDiff:", difficulties[0].diff);
-                        console.log("middleDiff:", difficulties[1].diff);
-                        console.log("highDiff:", difficulties[2].diff);
-                        console.log("itemArr:", itemArr);
-                        console.log("lowCount", difficulties[0].count);
-                        console.log("MiddleCount", difficulties[1].count);
-                        console.log("highCount", difficulties[2].count);
-                        let finalLow = 0;
-                        let finalMiddle = 0;
-                        let finalHigh = 0;
-                        if(difficulties[0].count === 0 && lowDiff < 0){
-                            finalLow = Number(low); //실제로 온 값
-                        } else {
-                            finalLow = Number(requestLow.data('count')) + Number(difficulties[0].count);
-                        }
-                        if(difficulties[1].count === 0 && middleDiff < 0){
-                            finalMiddle = Number(middle);
-                        } else {
-                            finalMiddle = Number(requestMiddle.data('count')) + Number(difficulties[1].count);
-                        }
-                        if(difficulties[2].count === 0 && highDiff < 0){
-                            finalHigh = Number(high);
-                        } else {
-                            finalHigh = Number(requestHigh.data('count')) + Number(difficulties[2].count);
-                        }
 
                         console.log("finalLow:", finalLow);
                         console.log("finalMiddle:", finalMiddle);
@@ -1427,9 +1361,9 @@
                         let displayMiddle = $('#displayMiddle').text(Number(finalMiddle));
                         let displayHigh = $('#displayHigh').text(Number(finalHigh));
                         let displayTotal = $('#displayTotal').text(
-                            ($('#displayLow').closest('div.range').hasClass('disappear') ? 0 : finalLow) +
-                            ($('#displayMiddle').closest('div.range').hasClass('disappear') ? 0 : finalMiddle) +
-                            ($('#displayHigh').closest('div.range').hasClass('disappear') ? 0 : finalHigh)
+                            ($('#displayLow').closest('div.range').hasClass('disappear') ? 0 : Number(finalLow)) +
+                            ($('#displayMiddle').closest('div.range').hasClass('disappear') ? 0 : Number(finalMiddle)) +
+                            ($('#displayHigh').closest('div.range').hasClass('disappear') ? 0 : Number(finalHigh))
                         );
 
                         //확인 버튼
@@ -1461,7 +1395,7 @@
 
     }
     $('#step0').on('click', function(){
-        let url = '/customExam/step0';
+        let url = 'http://localhost:8080/customExam/step0'; //수정해줘야 함
         let new_form = $('<form></form>');
         new_form.attr("name", "new_form");
         new_form.attr("charset", "UTF-8");

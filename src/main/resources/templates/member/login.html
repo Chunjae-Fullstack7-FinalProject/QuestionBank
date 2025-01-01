@@ -41,6 +41,7 @@
             background-size: contain;
             width: 100px;
             height: 100px;
+            cursor: pointer;
         }
 
         .title {
@@ -116,7 +117,7 @@
 <body>
 <div class="login-container">
     <div class="login-header">
-        <span class="logo"></span><h1 class="title">로그인</h1>
+        <span class="logo" onclick="main()"></span><h1 class="title">로그인</h1>
     </div>
     <div class="login-body">
         <div class="slogan">
@@ -177,6 +178,9 @@
         // }
         frm.submit();
     });
+    function main(){
+        location.href="/main";
+    }
 </script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 package net.questionbank.config;
 
+import net.questionbank.filter.GuestFilter;
 import net.questionbank.filter.LoginCheckFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +21,16 @@ public class FilterConfig {
                 ,"/storage/*"
                 ,"/api/customExam/*"
                 ,"/tests/*"
+        );
+        return filterRegistrationBean;
+    }
+    @Bean
+    public FilterRegistrationBean<GuestFilter> guestCheckFilter() {
+        FilterRegistrationBean<GuestFilter> filterRegistrationBean = new FilterRegistrationBean<>();
+        filterRegistrationBean.setFilter(new GuestFilter());
+        filterRegistrationBean.addUrlPatterns(
+                "/member/login"
+                ,"/member/register"
         );
         return filterRegistrationBean;
     }
