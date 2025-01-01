@@ -122,7 +122,7 @@ public class TestController {
         TextBookApiDTO textbookDetailDTO = (TextBookApiDTO)session.getAttribute("textbookDetailDTO");
 
         if(textbookDetailDTO == null) {
-
+            throw new CustomRuntimeException("textbook not found");
         }
 
         log.info("itemIdList : {}", itemIdList);
