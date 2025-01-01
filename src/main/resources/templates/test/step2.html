@@ -350,7 +350,7 @@
 						<div class="cnt-top">
 							<span class="title">문제 목록</span>
 							<div class="right-area">
-								<div class="select-wrap">
+								<div class="select-wrap" id="search-select-wrap">
 									<button type="button" class="select-btn">문제만 보기</button>
 									<ul class="select-list" style="display: none;">
 										<li>
@@ -367,7 +367,7 @@
 										</li>
 									</ul>
 								</div>
-								<div class="select-wrap">
+								<div class="select-wrap" id="sort-select-wrap">
 									<button type="button" class="select-btn">단원순</button>
 									<ul class="select-list">
 										<li>
@@ -727,17 +727,35 @@
 				break;
 		}
 		renderQuestions(searchList);
+
+		// 선택한 항목을 셀렉트 박스에 표시
+		const selectButton = document.querySelector("#search-select-wrap .select-btn");
+		if (selectButton) {
+			selectButton.textContent = status; // 선택한 텍스트 업데이트
+		}
+	}
+
+	// 초기 검색 설정
+	function firstSearchQuestions() {
+		let currentSearchStatus = "문제만 보기";
+		const selectButton = document.querySelector("#search-select-wrap .select-btn");
+		if (selectButton) {
+			selectButton.textContent = currentSearchStatus; // 초기값 설정
+		}
+		console.log(currentSearchStatus);
+		searchQuestions(currentSearchStatus); // 기본 상태로 렌더링
 	}
 
 	//검색 이벤트 리스너
-	document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
-		button.addEventListener("click", (e) =>{
+	document.querySelectorAll("#search-select-wrap .select-list a").forEach(button => {
+		button.addEventListener("click", (e) => {
 			const status = e.target.textContent.trim();
-			if(["문제만 보기", "문제+정답 보기", "문제+해설+정답 보기", "편집단계에서만 적용되는 보기 옵션"].includes(status)){
+			if (["문제만 보기", "문제+정답 보기", "문제+해설+정답 보기", "편집단계에서만 적용되는 보기 옵션"].includes(status)) {
 				searchQuestions(status);
 			}
 		})
 	})
+
 
 	//정렬 조건 버튼 이벤트
 	function sortQuestions(status){
@@ -803,12 +821,28 @@
 				sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
 				break;
 		}
+		// 선택한 항목을 셀렉트 박스에 표시
+		const selectButton = document.querySelector("#sort-select-wrap .select-btn");
+		if (selectButton) {
+			selectButton.textContent = status; // 선택한 텍스트 업데이트
+		}
 		renderQuestions(sortQuestionsList);
 		renderSummary(sortQuestionsList);
 	}
 
+	// 초기 검색 설정
+	function firstSortQuestions() {
+		let currentSortStatus = "단원순";
+		const selectButton = document.querySelector("#sort-select-wrap .select-btn");
+		if (selectButton) {
+			selectButton.textContent = currentSortStatus; // 초기값 설정
+		}
+		console.log(currentSortStatus);
+		sortQuestions(currentSortStatus); // 기본 상태로 렌더링
+	}
+
 	//정렬 이벤트 리스너
-	document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
+	document.querySelectorAll("#sort-select-wrap .select-list a").forEach(button =>{
 		button.addEventListener("click", (e) => {
 			const status = e.target.textContent.trim();
 			if (["단원순", "난이도순", "문제 형태순"].includes(status)) {
@@ -1665,7 +1699,11 @@
 	window.onload = async function(){
 		questions = await getQuestionInfo();
 		sortByPassageId(questions);
-		renderQuestions(questions);
+		//firstSearchQuestions(); //문제만 보기(검색)
+		//firstSortQuestions();
+		searchQuestions("문제만 보기");
+		sortQuestions("단원순");
+		//renderQuestions(questions);
 		const levelCnt = calculateLevelCnt(questions);
 		renderLevelCnt(levelCnt);
 		renderSummary(questions);
