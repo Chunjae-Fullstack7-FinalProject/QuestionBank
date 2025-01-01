@@ -109,6 +109,7 @@ async function page(title, classname) {
     await replaceImgWithPng(include);
 
     content.innerHTML = containerLayout;
+    document.querySelector(".pdf-td-title").innerHTML = title;
 
     //mm -> px 비율
     const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
@@ -131,7 +132,7 @@ async function page(title, classname) {
         //     })
         // }
 
-        if(value.innerHTML.includes("<table") && height > maxHeight-currentHeight && maxHeight-currentHeight > 30*toPx) {
+        if(value.innerHTML.includes("<table") && height > maxHeight-currentHeight && maxHeight-currentHeight > 30*toPx && height > maxHeight) {
             value.querySelectorAll("table").forEach(table => {
                         table.removeAttribute("style");
                         table.classList.add("pdf-item-table");

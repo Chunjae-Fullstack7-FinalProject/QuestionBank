@@ -55,7 +55,7 @@ public class Step3ServiceImpl implements Step3Service {
         List<QuestionHtmlApiDTO> questionsFromApi = getQuestionsHtmlFromApi(itemIdList);
         return TempTestHtmlDTO.builder()
                 .questions(questionsFromApi)
-                .textbookApiDTO(getTextBookFromApi(subjectId))
+//                .textbookApiDTO(getTextBookFromApi(subjectId))
                 .htmlList(testPdfHtmlList(questionsFromApi))
                 .build();
     }
@@ -84,10 +84,6 @@ public class Step3ServiceImpl implements Step3Service {
 
     @Override
     public TextBookApiDTO getTextBookFromApi(Long subjectId) {
-
-//        JSONObject jsonObject = new JSONObject();
-//        jsonObject.put("subjectId", textBookId);
-
         TextbookApiResponse responseDTO = webClient
                 .post()
                 .uri("/chapter/subjectInfo-list")
@@ -135,24 +131,27 @@ public class Step3ServiceImpl implements Step3Service {
         // 전송 실패했을 때 어떻게 할지 정해야함
         // 일단 로그만 찍음
         // 서술형 있으면 제외
-//        if(testDTO.isDescriptive()) {
-//            return;
-//        }
-//        try {
-//            boolean b = sendTestInfo(TestDataDTO.builder()
-//                    .examId((long) test.getTestId())
-//                    .examName(test.getTitle())
-//                    .itemList(questionIdList)
-//                    .teacherId(test.getMember().getMemberId())
-//                    .teacherName(test.getMember().getName())
-//                    .subjectName(testDTO.getSubjectName())
-//                    .build()
-//            );
-//        } catch (IllegalStateException e) {
-//            log.error(e.getMessage());
-//        } catch (Exception e) {
-//            log.error("오류");
-//        }
+        if(testSaveDTO.isDescriptive()) {
+            return;
+        }
+        try {
+            boolean b = sendTestInfo(TestDataDTO.builder()
+                    .examId((long) test.getTestId())
+                    .examName(test.getTitle())
+                    .itemList(questionIdList)
+                    .teacherId(test.getMember().getMemberId())
+                    .teacherName(test.getMember().getName())
+                    .subjectName(testSaveDTO.getSubjectName())
+                    .build()
+            );
+            if(!b) {
+                log.error("전송 실패");
+            }
+        } catch (IllegalStateException e) {
+            log.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("오류");
+        }
 
     }
 

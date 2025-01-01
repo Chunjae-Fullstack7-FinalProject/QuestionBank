@@ -38,6 +38,7 @@ public class TestApiController {
             if(loginDto == null) {
                 loginDto = MemberLoginDTO.builder().memberId("test1").name("이름").build();
             }
+
             testSaveDTO.setUserId(loginDto.getMemberId());
             testSaveDTO.setUserName(loginDto.getName());
             step3Service.saveTestInfo(testSaveDTO, testSaveDTO.getItemIdList());
@@ -53,7 +54,7 @@ public class TestApiController {
     public ResponseEntity<String> savePdf(@RequestBody MultipartFile file) {
         String filename = file.getOriginalFilename();
         try {
-            File outputFile = new File(pdfDir + filename);
+            File outputFile = new File(pdfDir + File.separator + filename);
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                 fos.write(file.getBytes());
             }

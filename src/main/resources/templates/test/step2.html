@@ -35,7 +35,14 @@
 				<li class="active">STEP 2 문항 편집</li>
 				<li>STEP 3 시험지 저장</li>
 			</ul>
-			<button type="button" class="del-btn"></button>
+			<button type="button" class="del-btn" onclick="winClose()"></button>
+			<script>
+				function winClose() {
+					if (confirm('이 페이지에서 나가시겠습니까?')) {
+						window.open('', '_self', '').close();
+					}
+				}
+			</script>
 		</div>
 		<div class="pop-content">
 			<div class="view-box">
@@ -44,7 +51,7 @@
 						<span class="subject" th:text="${session.textbookDetailDTO?.getSubjectName()}"></span>
 						<span th:text="${session.textbookDetailDTO?.getCurriculumName()}"></span>
 					</div>
-					<th:block th:if="${type == null}">
+					<th:block th:if="${type ne 'edit'}">
 						<button class="btn-default btn-research" id="re-search"><i class="research"></i>재검색</button>
 					</th:block>
 					<button class="btn-default pop-btn" data-pop="que-scope-pop" id="scopeBtn" onclick="popFunc(this)">출제범위</button>
