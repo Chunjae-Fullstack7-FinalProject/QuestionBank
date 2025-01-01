@@ -702,161 +702,121 @@
 		}
 	}
 
-	//검색 조건 버튼 이벤트
-	function searchQuestions(status){
-		console.log(status);
-		let searchList = [];
-		switch(status){
+	// 상태 관리 객체
+	const state = {
+		searchStatus: "문제만 보기", // 초기 검색 상태
+		sortStatus: "단원순",        // 초기 정렬 상태
+	};
+
+	// 필터링 함수
+	function filterQuestionsBySearch(searchStatus) {
+		let filteredQuestions = [];
+		switch (searchStatus) {
 			case "문제만 보기":
-				searchList = questions.map(q => ({
+				filteredQuestions = questions.map(q => ({
 					...q,
 					explainUrl: null,
 					answerUrl: null,
-				}))
+				}));
 				break;
 			case "문제+정답 보기":
-				searchList = questions.map(q => ({
+				filteredQuestions = questions.map(q => ({
 					...q,
-					explainUrl: null
+					explainUrl: null,
 				}));
 				break;
 			case "문제+해설+정답 보기":
-				searchList = questions
+				filteredQuestions = questions;
 				break;
-			case "편집단계에서만 적용되는 보기 옵션":
-				break;
-			default: //문제만 보기
-				searchList = questions.map(q => ({
+			default: // 기본값: 문제만 보기
+				filteredQuestions = questions.map(q => ({
 					...q,
 					explainUrl: null,
 					answerUrl: null,
-				}))
+				}));
 				break;
 		}
-		renderQuestions(searchList);
-
 		// 선택한 항목을 셀렉트 박스에 표시
 		const selectButton = document.querySelector("#search-select-wrap .select-btn");
 		if (selectButton) {
-			selectButton.textContent = status; // 선택한 텍스트 업데이트
+			selectButton.textContent = searchStatus; // 선택한 텍스트 업데이트
 		}
+		return filteredQuestions;
 	}
 
-	// 초기 검색 설정
-	function firstSearchQuestions() {
-		let currentSearchStatus = "문제만 보기";
-		const selectButton = document.querySelector("#search-select-wrap .select-btn");
+	// 정렬 함수
+	function sortQuestionsByStatus(filteredQuestions, sortStatus) {
+		let sortedQuestions = [...filteredQuestions];
+		switch (sortStatus) {
+			case "단원순":
+				console.log("aaaaa");
+				sortedQuestions.sort((a, b) => {
+					const chapterA = a.largeChapterName || "";
+					const chapterB = b.largeChapterName || "";
+					return chapterA.localeCompare(chapterB);
+				});
+				break;
+			case "난이도순":
+				const level = { "최하": 1, "하": 2, "중": 3, "상": 4, "최상": 5 };
+				sortedQuestions.sort((a, b) => (level[a.difficultyName] || Infinity) - (level[b.difficultyName] || Infinity));
+				break;
+			case "문제 형태순":
+				sortedQuestions.sort((a, b) => (a.questionFormName || "").localeCompare(b.questionFormName || ""));
+				break;
+			default: // 기본값: 단원순
+				sortedQuestions.sort((a, b) => {
+					const chapterA = a.largeChapterName || "";
+					const chapterB = b.largeChapterName || "";
+					return chapterA.localeCompare(chapterB);
+				});
+				break;
+		}
+		// 선택한 항목을 셀렉트 박스에 표시
+		const selectButton = document.querySelector("#sort-select-wrap .select-btn");
 		if (selectButton) {
-			selectButton.textContent = currentSearchStatus; // 초기값 설정
+			selectButton.textContent = sortStatus; // 선택한 텍스트 업데이트
 		}
-		console.log(currentSearchStatus);
-		searchQuestions(currentSearchStatus); // 기본 상태로 렌더링
+		return sortedQuestions;
 	}
 
-	//검색 이벤트 리스너
+	// 필터링과 정렬 적용
+	function applyFiltersAndSorting() {
+		// 1. 필터링
+		const filteredQuestions = filterQuestionsBySearch(state.searchStatus);
+		console.log(filteredQuestions);
+
+		// 2. 정렬
+		const sortedQuestions = sortQuestionsByStatus(filteredQuestions, state.sortStatus);
+		console.log(sortedQuestions);
+		// 3. 렌더링
+		renderQuestions(sortedQuestions);
+
+		renderSummary(sortedQuestions);
+	}
+
+	// 검색 이벤트 리스너
 	document.querySelectorAll("#search-select-wrap .select-list a").forEach(button => {
 		button.addEventListener("click", (e) => {
 			const status = e.target.textContent.trim();
 			if (["문제만 보기", "문제+정답 보기", "문제+해설+정답 보기", "편집단계에서만 적용되는 보기 옵션"].includes(status)) {
-				searchQuestions(status);
+				state.searchStatus = status;
+				applyFiltersAndSorting();
 			}
-		})
-	})
+		});
+	});
 
-
-	//정렬 조건 버튼 이벤트
-	function sortQuestions(status){
-		//기존 데이터를 사용해야함
-		let sortQuestionsList = [...questions];
-		//console.log(sortQuestionsList);
-		switch (status){
-			case "단원순":
-				sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
-				break;
-			case "난이도순":
-				const level = { "최하": 1, "하": 2, "중": 3, "상": 4, "최상": 5 };
-
-				//지문별로 그룹화 (단일 문항 포함)
-				const groupedByPassage = questions.reduce((groups, question) => {
-					const passageId = question.passageId || "null";
-					if (!groups[passageId]) {
-						groups[passageId] = [];
-					}
-					groups[passageId].push(question);
-					return groups;
-				}, {});
-
-				//그룹 정보 계산 (지문별 데이터 생성)
-				const groupedArray = Object.entries(groupedByPassage).map(([passageId, questions]) => {
-					const minDifficulty = Math.min(
-							...questions.map(q => level[q.difficultyName] || Infinity)
-					);
-					const chapterName = questions[0].largeChapterName || "기타";
-					const singleQuestion = passageId.startsWith("null");
-					return { passageId, questions, minDifficulty, chapterName, singleQuestion };
-				});
-
-				//그룹 정렬 (난이도와 단원 순서)
-				groupedArray.sort((a, b) => {
-					//난이도 순으로 정렬
-					if (a.minDifficulty !== b.minDifficulty) {
-						return a.minDifficulty - b.minDifficulty;
-					}
-					//단일 문항을 앞에 두기
-					if (a.singleQuestion !== b.singleQuestion) {
-						return a.singleQuestion ? -1 : 1;
-					}
-					//단원 순서로 정렬
-					return (a.chapterName || "").localeCompare(b.chapterName || "");
-				});
-
-				//그룹 내 문항 정렬 (난이도 순)
-				groupedArray.forEach(group => {
-					group.questions.sort((a, b) => {
-						const difficultyA = level[a.difficultyName] || Infinity;
-						const difficultyB = level[b.difficultyName] || Infinity;
-						return difficultyA - difficultyB;
-					});
-				});
-				//정렬된 그룹의 문항 배열로 다시 만듦
-				sortQuestionsList = groupedArray.flatMap(group => group.questions);
-				break
-			case "문제 형태순":
-				break;
-			default: //단원순
-				console.log("기본값 단원순");
-				sortQuestionsList.sort((a, b) => (a.largeChapterName || "").localeCompare(b.largeChapterName || ""));
-				break;
-		}
-		// 선택한 항목을 셀렉트 박스에 표시
-		const selectButton = document.querySelector("#sort-select-wrap .select-btn");
-		if (selectButton) {
-			selectButton.textContent = status; // 선택한 텍스트 업데이트
-		}
-		renderQuestions(sortQuestionsList);
-		renderSummary(sortQuestionsList);
-	}
-
-	// 초기 검색 설정
-	function firstSortQuestions() {
-		let currentSortStatus = "단원순";
-		const selectButton = document.querySelector("#sort-select-wrap .select-btn");
-		if (selectButton) {
-			selectButton.textContent = currentSortStatus; // 초기값 설정
-		}
-		console.log(currentSortStatus);
-		sortQuestions(currentSortStatus); // 기본 상태로 렌더링
-	}
-
-	//정렬 이벤트 리스너
-	document.querySelectorAll("#sort-select-wrap .select-list a").forEach(button =>{
+	// 정렬 이벤트 리스너
+	document.querySelectorAll("#sort-select-wrap .select-list a").forEach(button => {
 		button.addEventListener("click", (e) => {
 			const status = e.target.textContent.trim();
 			if (["단원순", "난이도순", "문제 형태순"].includes(status)) {
-				sortQuestions(status);
+				state.sortStatus = status;
+				applyFiltersAndSorting();
 			}
-		})
-	})
+		});
+	});
+
+
 
 	//
 	function sortSimilarSelectBox(status){
@@ -931,6 +891,7 @@
 
 	//문제 데이터를 화면에 렌더링
 	function renderQuestions(questions) {
+		console.log("renderQuestions");
 		console.log(questions);
 		const container = document.querySelector(".view-que-list");
 		container.innerHTML = "";
@@ -1174,9 +1135,9 @@
 			container.innerHTML = "";
 			container.insertAdjacentHTML("beforeend",
 			 `
-			<div class="data view-que-list">
-				<p>유사 항목이 없습니다.</p>
-			</div>
+				<div class="view-que-list scroll-inner no-data" id="item-similar-area">
+					<p>유사 문제를 모두 추가하였습니다.</p>
+				</div>
 			`
 			);
 			return;
@@ -1706,14 +1667,12 @@
 	window.onload = async function(){
 		questions = await getQuestionInfo();
 		sortByPassageId(questions);
-		//firstSearchQuestions(); //문제만 보기(검색)
-		//firstSortQuestions();
-		searchQuestions("문제만 보기");
-		sortQuestions("단원순");
+		applyFiltersAndSorting(); // 초기 상태에 따라 필터와 정렬 적용
+
 		//renderQuestions(questions);
 		const levelCnt = calculateLevelCnt(questions);
 		renderLevelCnt(levelCnt);
-		renderSummary(questions);
+		//renderSummary(questions);
 		const typeCnt = calculateQuestionType(questions);
 		renderQuestionType(typeCnt)
 	}
