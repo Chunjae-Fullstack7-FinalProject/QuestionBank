@@ -1,5 +1,6 @@
 package net.questionbank.service.step3;
 
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -18,7 +19,15 @@ import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -39,6 +48,8 @@ public class Step3ServiceImpl implements Step3Service {
     private String fileDir;
     @Value("${file.imageUri}")
     private String fileUri;
+    @Value("${file.pdfDir}")
+    private String pdfDir;
 
     @Override
     public TempTestImageDTO testInfoImage(List<Long> itemIdList, Long subjectId) {
@@ -262,6 +273,103 @@ public class Step3ServiceImpl implements Step3Service {
     }
 
     @Override
+    public Map<String, String> testPdfImageStringList(List<QuestionImageApiDTO> questionsFromApi) {
+
+//        if (questionsFromApi == null || questionsFromApi.isEmpty()) return null;
+//
+//        Map<String, String> map = new HashMap<>();
+//
+//        StringBuilder all = new StringBuilder();
+//        StringBuilder questions = new StringBuilder();
+//        StringBuilder answers = new StringBuilder();
+//
+//        int startNo = 0;
+//        int passageIndex = 0;
+//        Long cpid = 0L;
+//
+//        try {
+//            QuestionImageApiDTO question = null;
+//
+//            for (QuestionImageApiDTO questionApiDTO : questionsFromApi) {
+//                question = questionApiDTO;
+//
+//                if (!cpid.equals(question.getPassageId())) {
+//                    if (startNo > 0 && startNo < question.getItemNo() - 1) {
+//                        all.set(passageIndex, "[" + startNo + "-" + (question.getItemNo() - 1) + "]");
+//                    }
+//                    passageIndex = all.size();
+//                    all.add("");
+//                    all.add(question.getPassageUrl());
+//                    startNo = question.getItemNo();
+//                }
+//
+//                cpid = question.getPassageId() != null ? question.getPassageId() : 0L;
+//
+//                all.add(question.getItemNo() + ".");
+//                all.add(question.getQuestionUrl());
+//                all.add("(답)");
+//                all.add(question.getAnswerUrl());
+//                all.add("(해설)");
+//                all.add(question.getExplainUrl());
+//
+//            }
+//
+//            cpid = 0L;
+//            if (!cpid.equals(question.getPassageId())) {
+//                if (startNo > 0 && startNo < question.getItemNo()) {
+//                    all.set(passageIndex, "[" + startNo + "-" + (question.getItemNo()) + "]");
+//                }
+//            }
+//
+//            List<String> questions = all.stream().filter(str -> {
+//                if (str.startsWith("(")) {
+//                    return false;
+//                }
+//                if (str.contains("answer")) {
+//                    return false;
+//                }
+//                if (str.contains("explain")) {
+//                    return false;
+//                }
+//                return true;
+//            }).toList();
+//
+//            List<String> answers = all.stream().filter(str -> {
+//                if (str.startsWith("(")) {
+//                    return true;
+//                }
+//                if (str.contains("answer")) {
+//                    return true;
+//                }
+//                if (str.contains("explain")) {
+//                    return true;
+//                }
+//                if (str.endsWith(".")) {
+//                    return true;
+//                }
+//                if (str.contains("question")) {
+//                    return true;
+//                }
+//                return false;
+//            }).map(str -> {
+//                if (str.contains("question")) return "";
+//                return str;
+//            }).toList();
+//
+//
+//            map.put("all", all);
+//            map.put("questions", questions);
+//            map.put("answers", answers);
+//
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+
+//        return map;
+        return null;
+    }
+
+    @Override
     public Map<String, List<String>> testPdfHtmlList(List<QuestionHtmlApiDTO> questionsFromApi) {
 
         if (questionsFromApi == null || questionsFromApi.isEmpty()) return null;
@@ -283,14 +391,14 @@ public class Step3ServiceImpl implements Step3Service {
                 if (!cpid.equals(question.getPassageId()) && question.getPassageId() != null) {
                     if (startNo > 0 && startNo < question.getItemNo() - 1) {
                         all.set(passageIndex, all.get(passageIndex)
-                                        .replaceFirst("<span class=\"txt \">", "<div class=\"paragraph pdf-passage-no\" style=\"border-left:0.2mm none;border-right:0.2mm none;border-top:0.2mm none;border-bottom:0.2mm none;text-indent: 14px;margin-left: 0px;margin-right: 0px;\">\n         <span class=\"txt \"><strong>[" + startNo + "-" + (question.getItemNo() - 1) + "]</strong></span>\n        </div>\n<span class=\"txt \">")
+                                        .replaceFirst("<span class=\"txt \">", "<div class=\"paragraph pdf-passage-no\">         <span class=\"txt \"><strong>[" + startNo + "-" + (question.getItemNo() - 1) + "]</strong></span>        </div><span class=\"txt \">")
 //                                .replaceFirst("<caption></caption>","<caption>[" + startNo + "-" + (question.getItemNo() - 1) + "]</caption>")
                         );
                     }
                     passageIndex = all.size();
                     all.add(question.getPassageHtml()
-                            .replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-question\">")
-                            .replace(" </body>\n</html>", "</div>")
+                            .replace("<html> <head></head> <body> ", "<div class=\"pdf-item pdf-item-question\">")
+                            .replace(" </body></html>", "</div>")
                             .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item-passage\"")
                             .replace("class=\"paragraph\"", "class=\"paragraph pdf-line\"")
                     );
@@ -300,58 +408,82 @@ public class Step3ServiceImpl implements Step3Service {
                 cpid = question.getPassageId() != null ? question.getPassageId() : 0L;
 
                 String html = question.getQuestionHtml()
-                        .replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-question\">")
-                        .replace(" </body>\n</html>", "</div>")
+                        .replace("<html> <head></head> <body> ", "<div class=\"pdf-item pdf-item-question\">")
+                        .replace(" </body></html>", "</div>")
                         .replaceFirst("class=\"paragraph\"", "class=\"paragraph pdf-item-question-main\"")
-                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt\"><strong>" + question.getItemNo() + ".</strong>&nbsp;</span>\n<span class=\"txt \">");
+                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt\"><strong>" + question.getItemNo() + ".</strong>&nbsp;</span><span class=\"txt \">");
 
                 if (html.contains("<table")) {
-                    html = html.replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-question\">")
-                            .replace(" </body>\n</html>", "</div>")
+                    html = html.replace("<html> <head></head> <body> ", "<div class=\"pdf-item pdf-item-question\">")
+                            .replace(" </body></html>", "</div>")
                             .replace("class=\"paragraph\"", "class=\"paragraph pdf-line\"")
                     ;
                 }
 
                 all.add(html);
 
+                StringBuilder sb = new StringBuilder();
+
                 if (question.getChoice1Html() != null && !question.getChoice1Html().isEmpty()) {
-                    all.add(question.getChoice1Html().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-choice\">")
-                            .replace(" </body>\n</html>", "</div>")
-                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">①&nbsp;")
-                    );
+                    sb.append("<div class=\"pdf-item pdf-item-choice\">");
+                    sb.append(question.getChoice1Html().replace("<html> <head></head> <body> ", "")
+                            .replace(" </body></html>", "")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">①&nbsp;"));
+//                    all.add(question.getChoice1Html().replace("<html> <head></head> <body> ", "<div class=\"pdf-item pdf-item-choice\">")
+//                            .replace(" </body></html>", "</div>")
+//                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">①&nbsp;")
+//                    );
                 }
                 if (question.getChoice2Html() != null && !question.getChoice2Html().isEmpty()) {
-                    all.add(question.getChoice2Html().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-choice\">")
-                            .replace(" </body>\n</html>", "</div>")
-                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">②&nbsp;")
-                    );
+                    sb.append(question.getChoice2Html().replace("<html> <head></head> <body> ", "")
+                            .replace(" </body></html>", "")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">②&nbsp;"));
+//                    all.add(question.getChoice2Html().replace("<html> <head></head> <body> ", "<div class=\"pdf-item pdf-item-choice\">")
+//                            .replace(" </body></html>", "</div>")
+//                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">②&nbsp;")
+//                    );
                 }
                 if (question.getChoice3Html() != null && !question.getChoice3Html().isEmpty()) {
-                    all.add(question.getChoice3Html().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-choice\">")
-                            .replace(" </body>\n</html>", "</div>")
-                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">③&nbsp;")
-                    );
+                    sb.append(question.getChoice3Html().replace("<html> <head></head> <body> ", "")
+                            .replace(" </body></html>", "")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">③&nbsp;"));
+//                    all.add(question.getChoice3Html().replace("<html> <head></head> <body> ", "<div class=\"pdf-item pdf-item-choice\">")
+//                            .replace(" </body></html>", "</div>")
+//                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">③&nbsp;")
+//                    );
                 }
                 if (question.getChoice4Html() != null && !question.getChoice4Html().isEmpty()) {
-                    all.add(question.getChoice4Html().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-choice\">")
-                            .replace(" </body>\n</html>", "</div>")
-                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">④&nbsp;")
-                    );
+                    sb.append(question.getChoice4Html().replace("<html> <head></head> <body> ", "")
+                            .replace(" </body></html>", "")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">④&nbsp;"));
+//                    all.add(question.getChoice4Html().replace("<html> <head></head> <body> ", "<div class=\"pdf-item pdf-item-choice\">")
+//                            .replace(" </body></html>", "</div>")
+//                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">④&nbsp;")
+//                    );
                 }
                 if (question.getChoice5Html() != null && !question.getChoice5Html().isEmpty()) {
-                    all.add(question.getChoice5Html().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-choice\">")
-                            .replace(" </body>\n</html>", "</div>")
-                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">⑤&nbsp;")
-                    );
+                    sb.append(question.getChoice5Html().replace("<html> <head></head> <body> ", "")
+                            .replace(" </body></html>", "")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">⑤&nbsp;"));
+//                    all.add(question.getChoice5Html().replace("<html> <head></head> <body> ", "<div class=\"pdf-item pdf-item-choice\">")
+//                            .replace(" </body></html>", "</div>")
+//                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">⑤&nbsp;")
+//                    );
                 }
 
-                all.add(question.getAnswerHtml().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-answer\">")
-                        .replace(" </body>\n</html>", "</div>")
-                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt pdf-answer\">(답)<br></span>\n<span class=\"txt \">")
+                if(!sb.isEmpty()){
+                    sb.append("</div>");
+                    all.add(sb.toString());
+                }
+
+
+                all.add(question.getAnswerHtml().replace("<html> <head></head> <body> ", "<div class=\"pdf-item pdf-item-answer\">")
+                        .replace(" </body></html>", "</div>")
+                        .replaceFirst("<span class=\"txt \">", "<span class=\"txt pdf-answer\">(답)<br></span><span class=\"txt \">")
                 );
-                all.add(question.getExplainHtml().replace("<html>\n <head></head>\n <body>\n ", "<div class=\"pdf-item pdf-item-answer\">")
-                                .replace(" </body>\n</html>", "</div>")
-                                .replaceFirst("<span class=\"txt \">", "<span class=\"txt pdf-answer\">(해설)<br></span>\n<span class=\"txt \">")
+                all.add(question.getExplainHtml().replace("<html> <head></head> <body> ", "<div class=\"pdf-item pdf-item-answer\">")
+                                .replace(" </body></html>", "</div>")
+                                .replaceFirst("<span class=\"txt \">", "<span class=\"txt pdf-answer\">(해설)<br></span><span class=\"txt \">")
 //                        .replace("class=\"paragraph\"", "class=\"paragraph pdf-item pdf-item-answer\"")
                 );
 
@@ -361,7 +493,7 @@ public class Step3ServiceImpl implements Step3Service {
             if (!cpid.equals(question.getPassageId())) {
                 if (startNo > 0 && startNo < question.getItemNo()) {
                     all.set(passageIndex, all.get(passageIndex)
-                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">[" + startNo + "-" + (question.getItemNo()) + "]</span>\n<span class=\"txt \">"));
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">[" + startNo + "-" + (question.getItemNo()) + "]</span><span class=\"txt \">"));
                     all.set(passageIndex, "[" + startNo + "-" + (question.getItemNo()) + "]");
                 }
             }
@@ -375,12 +507,99 @@ public class Step3ServiceImpl implements Step3Service {
 
             //문제만 추출
             List<String> questions = all.stream().filter(str -> !str.contains("pdf-item-answer")).toList();
+            //정답+해설만 추출
             List<String> answers = all.stream().filter(str -> str.contains("pdf-item-answer")).toList();
 
 
             map.put("all", all);
             map.put("questions", questions);
             map.put("answers", answers);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return map;
+    }
+
+    @Override
+    public Map<String, String> testPdfHtmlStringList(List<QuestionHtmlApiDTO> questionsFromApi) {
+
+        if (questionsFromApi == null || questionsFromApi.isEmpty()) return null;
+
+        Map<String, String> map = new HashMap<>();
+
+        StringBuilder all = new StringBuilder();
+        StringBuilder questions = new StringBuilder();
+        StringBuilder answers = new StringBuilder();
+
+        try {
+            QuestionHtmlApiDTO question = null;
+
+            for (QuestionHtmlApiDTO questionApiDTO : questionsFromApi) {
+                question = questionApiDTO;
+
+                if (question.getPassageId() != null) {
+                    all.append(question.getPassageHtml());
+                    questions.append(question.getPassageHtml());
+                }
+
+                all.append(question.getItemNo() +". <br/>");
+                questions.append(question.getItemNo() +". <br/>");
+                answers.append(question.getItemNo() +". <br/>");
+
+                all.append(question.getQuestionHtml());
+                questions.append(question.getQuestionHtml());
+
+                StringBuilder sb = new StringBuilder();
+
+                if (question.getChoice1Html() != null && !question.getChoice1Html().isEmpty()) {
+                    sb.append(question.getChoice1Html().replace("<html> <head></head> <body> ", "")
+                            .replace(" </body></html>", "")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">①&nbsp;"));
+                }
+                if (question.getChoice2Html() != null && !question.getChoice2Html().isEmpty()) {
+                    sb.append(question.getChoice2Html().replace("<html> <head></head> <body> ", "")
+                            .replace(" </body></html>", "")
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">②&nbsp;"));
+                }
+                if (question.getChoice3Html() != null && !question.getChoice3Html().isEmpty()) {
+                    sb.append(question.getChoice3Html()
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">③&nbsp;"));
+                }
+                if (question.getChoice4Html() != null && !question.getChoice4Html().isEmpty()) {
+                    sb.append(question.getChoice4Html()
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">④&nbsp;"));
+                }
+                if (question.getChoice5Html() != null && !question.getChoice5Html().isEmpty()) {
+                    sb.append(question.getChoice5Html()
+                            .replaceFirst("<span class=\"txt \">", "<span class=\"txt \">⑤&nbsp;"));
+
+                }
+
+                if(!sb.isEmpty()){
+                    all.append(sb.toString());
+                    questions.append(sb.toString());
+                }
+
+
+                all.append(question.getAnswerHtml().replaceFirst("<span class=\"txt \">"
+                        , "<span class=\"txt pdf-answer\">(답)<br></span><span class=\"txt \">"));
+                answers.append(question.getAnswerHtml().replaceFirst("<span class=\"txt \">"
+                        , "<span class=\"txt pdf-answer\">(답)<br></span><span class=\"txt \">"));
+                all.append(question.getExplainHtml().replaceFirst("<span class=\"txt \">"
+                                , "<span class=\"txt pdf-answer\">(해설)<br></span><span class=\"txt \">"));
+                answers.append(question.getExplainHtml().replaceFirst("<span class=\"txt \">"
+                        , "<span class=\"txt pdf-answer\">(해설)<br></span><span class=\"txt \">"));
+
+            }
+
+            map.put("all", all.toString().replace("<html>\n <head></head>\n <body>\n  ", "<div class=\"pdf-item\">")
+                    .replace("\n </body>\n</html>", "</div>"));
+            map.put("questions", questions.toString().replace("<html>\n <head></head>\n <body>\n  ", "<div class=\"pdf-item\">")
+                    .replace("\n </body>\n</html>", "</div>"));
+            map.put("answers", answers.toString().replace("<html>\n <head></head>\n <body>\n  ", "<div class=\"pdf-item\">")
+                    .replace("\n </body>\n</html>", "</div>"));
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -415,4 +634,149 @@ public class Step3ServiceImpl implements Step3Service {
 //        return "file:///E:/QuestionBank/src/main/resources/static/convertPng/" + pngPath;
         return fileUri + pngPath;
     }
+
+
+
+    @Override
+    public ResponseEntity<byte[]> HtmlToPdfExample(String html, String title) {
+
+        // 변환할 HTML 파일 경로나, HTML 문자열을 준비합니다.
+        String htmlFilePath = "path/to/input.html";
+        String outputPdfPath = pdfDir;
+
+
+        String htmlContent =
+                "<html lang=\"ko\">" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\" />\n" +
+                "    <title>Title</title>\n" +
+                "    <link rel=\"stylesheet\" href=\"./inc/css/pdf.css\"></link>\n" +
+                "  <style>\n" +
+                "body {\n" +
+                "    margin: 0;\n" +
+                "    padding: 0;\n" +
+                "    font-family: \"Malgun Gothic\", sans-serif;\n" +
+                "}\n" +
+                "    @page {\n" +
+                "      margin: 10mm;\n" +
+                "      size: A4;\n" +
+                "    }\n" +
+                "    .header {\n" +
+                "    }\n" +
+                "    .content {\n" +
+                "      column-count: 2;\n" +
+                "      column-gap: 10mm;\n" +
+                "    }\n" +
+                ".content table, tr, td {\n" +
+                "  /* 컬럼 내부에서 분할을 허용 */\n" +
+                "  break-inside: auto !important;\n" +
+                "  -webkit-column-break-inside: auto !important;\n" +
+                "  page-break-inside: auto !important;\n" +
+                "}\n" +
+                "    span.txt {\n" +
+                "      break-inside: avoid !important;\n" +
+                "    }\n" +
+                "</style>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "<div class=\"header\">\n" +
+                "  <table class=\"pdf-title-table\">\n" +
+                "    <tr>\n" +
+                "      <td rowspan=\"2\" class=\"pdf-td-title\">"+title+"</td>\n" +
+                "      <td class=\"pdf-td-grade\"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>\n" +
+                "    </tr>\n" +
+                "    <tr>\n" +
+                "      <td class=\"pdf-td-name\">이름:</td>\n" +
+                "    </tr>\n" +
+                "  </table>\n" +
+                "</div>\n" +
+                "<div class=\"content\">\n" +
+                html +
+                "</div>\n" +
+                "</body>\n" +
+                "</html>";
+
+        System.out.println("header = " + htmlContent);
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            PdfRendererBuilder builder = new PdfRendererBuilder();
+
+
+
+            builder.withHtmlContent(convertTableToDiv(htmlContent.replace("type=\"text\">", "type=\"text\"/>")
+                    .replace("<col style=\"width: 100%\">", "<col style=\"width: 100%\"/>")
+                    .replace("&nbsp;", " ")
+                    .replace("<br>", "<br/>")), "file:///D:/java7/QuestionBank/src/main/resources/static/");
+
+
+
+            builder.toStream(baos);
+
+            builder.useFont(
+                    new File("C:/Windows/Fonts/malgun.ttf"),
+                    "Malgun Gothic"
+            );
+
+
+            builder.run();
+
+            byte[] pdfBytes = baos.toByteArray();
+
+            // 3) HTTP 응답으로 PDF 바이너리 전달
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            // 다운로드 되게 하고 싶다면 Content-Disposition 설정
+            headers.setContentDispositionFormData("attachment", "myDocument.pdf");
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+    }
+
+    public String convertTableToDiv(String originalHtml) {
+        // 1) HTML 문자열을 Jsoup Document로 파싱
+        Document doc = Jsoup.parse(originalHtml);
+
+        // 2) 모든 <table> 엘리먼트를 찾음
+        Elements tables = doc.select("table");
+
+        for (Element table : tables) {
+            // 새로 만들 "table 대체"용 <div>
+            Element tableWrapper = doc.createElement("div");
+            tableWrapper.addClass("table-wrapper");
+            // 예: CSS에서 .table-wrapper { column-count: 2; } 등 적용 가능
+
+            // 3) 현재 <table> 안의 <tr>들을 순회
+            Elements rows = table.select("tr");
+            for (Element row : rows) {
+                // <div class="row"> 형태로 만든다
+                Element rowDiv = doc.createElement("div");
+                rowDiv.addClass("row");
+
+                // 4) 각 <tr> 안의 <td>들을 <div class="cell">로 변환
+                Elements cells = row.select("td");
+                for (Element cell : cells) {
+                    Element cellDiv = doc.createElement("div");
+                    cellDiv.addClass("cell");
+
+                    // <td> 안의 내용(텍스트/태그 등)을 그대로 옮김
+                    cellDiv.html(cell.html());
+
+                    rowDiv.appendChild(cellDiv);
+                }
+
+                tableWrapper.appendChild(rowDiv);
+            }
+
+            // 5) 원래 <table>을 새로 만든 tableWrapper <div>로 교체
+            table.replaceWith(tableWrapper);
+        }
+
+        // 6) 변환된 DOM을 문자열로 직렬화
+        return doc.html();
+    }
+
 }

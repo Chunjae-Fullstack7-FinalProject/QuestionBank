@@ -23,6 +23,7 @@
     margin: 0;
     padding: 0;
 }
+
 .paragraph {
     font-size: 9pt;
 }
@@ -30,7 +31,7 @@
 .pdf-title-table {
     box-sizing: border-box;
     height: 15mm;
-    width: 180mm;
+    width: 100%;
     border: 1mm solid darkgray;
     border-radius: 5mm;
     /*border-collapse: collapse;*/
@@ -129,8 +130,9 @@
 
 .pdf-img {
     box-sizing: border-box;
-    max-width: 75mm;
+    width: 75mm;
     padding: 1mm;
+    max-height: 210mm;
     /*width: 100%;*/
 }
 
@@ -155,4 +157,16 @@
 
 td {
     padding: 2mm;
+}
+
+.cell {
+    display: inline-block;
+    width: 100%;
+}
+
+.example {
+    padding: 0;
+    margin: 0;
+    width: 10mm;
+    height: 10mm;
 }

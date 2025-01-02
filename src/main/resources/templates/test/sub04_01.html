@@ -162,25 +162,73 @@
 
     <div id="pdfArea">
         <div id="pdf-content">
-
+			<div class="example"></div>
         </div>
+			<th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['all'].size()-2, 2)}">
+				<th:block th:if="${testInfo.imageList['all'].get(item).endsWith('.')}">
+					<div class="pdf-item pdf-item-all pdf-question-grid">
+						<div class="pdf-number" th:text="${testInfo.imageList['all'].get(item)}"></div>
+						<img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>
+					</div>
+				</th:block>
+				<th:block th:if="${testInfo.imageList['all'].get(item).endsWith(')')}">
+					<div class="pdf-item pdf-item-all">
+						<div class="pdf-div pdf-answer" th:text="${testInfo.imageList['all'].get(item)}"></div>
+						<img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>
+					</div>
+				</th:block>
+				<th:block th:if="${testInfo.imageList['all'].get(item).endsWith(']') || testInfo.imageList['all'].get(item).equals('')}">
+					<div class="pdf-item pdf-item-all">
+						<div class="pdf-div" th:text="${testInfo.imageList['all'].get(item)}"></div>
+						<img class="pdf-img" th:src="${testInfo.imageList['all'].get(item+1)}"/>
+					</div>
+				</th:block>
+			</th:block>
 
-		<div id="all">
-			<th:block th:each="item : ${testInfo.htmlList['all']}">
-				<th:block th:utext="${item}"/>
+			<th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['questions'].size()-2, 2)}">
+				<th:block th:if="${testInfo.imageList['questions'].get(item).endsWith('.')}">
+					<div class="pdf-item pdf-item-question pdf-question-grid">
+						<div class="pdf-number" th:text="${testInfo.imageList['questions'].get(item)}"></div>
+						<img class="pdf-img" th:src="${testInfo.imageList['questions'].get(item+1)}"/>
+					</div>
+				</th:block>
+				<th:block th:if="${testInfo.imageList['questions'].get(item).endsWith(']') || testInfo.imageList['questions'].get(item).equals('')}">
+					<div class="pdf-item pdf-item-question">
+						<div class="pdf-div" th:text="${testInfo.imageList['questions'].get(item)}"></div>
+						<img class="pdf-img" th:src="${testInfo.imageList['questions'].get(item+1)}"/>
+					</div>
+				</th:block>
 			</th:block>
-		</div>
-		<div id="question">
-			<th:block th:each="item : ${testInfo.htmlList['questions']}">
-				<th:block th:utext="${item}"/>
+			<th:block th:each="item : ${#numbers.sequence(0, testInfo.imageList['answers'].size()-2, 2)}">
+				<th:block th:if="${testInfo.imageList['answers'].get(item).endsWith('.')}">
+					<div class="pdf-item pdf-item-answer">
+						<div class="pdf-number" th:text="${testInfo.imageList['answers'].get(item)}"></div>
+					</div>
+				</th:block>
+				<th:block th:if="${testInfo.imageList['answers'].get(item).endsWith(')')}">
+					<div class="pdf-item pdf-item-answer">
+						<div class="pdf-div pdf-answer" th:text="${testInfo.imageList['answers'].get(item)}"></div>
+						<img class="pdf-img" th:src="${testInfo.imageList['answers'].get(item+1)}"/>
+					</div>
+				</th:block>
 			</th:block>
-		</div>
-		<div id="answer">
-			<th:block th:each="item, status:${testInfo.htmlList['answers']}">
-				<div class="pdf-item" th:if="${status.odd}" th:text="${status.count/2 + 1}+'.'"></div>
-				<th:block th:utext="${item}"/>
-			</th:block>
-		</div>
+
+<!--		<div id="all">-->
+<!--			<th:block th:each="item : ${testInfo.htmlList['all']}">-->
+<!--				<th:block th:utext="${item}"/>-->
+<!--			</th:block>-->
+<!--		</div>-->
+<!--		<div id="question">-->
+<!--			<th:block th:each="item : ${testInfo.htmlList['questions']}">-->
+<!--				<th:block th:utext="${item}"/>-->
+<!--			</th:block>-->
+<!--		</div>-->
+<!--		<div id="answer">-->
+<!--			<th:block th:each="item, status:${testInfo.htmlList['answers']}">-->
+<!--				<div class="pdf-item" th:if="${status.odd}" th:text="${status.count/2 + 1}+'.'"></div>-->
+<!--				<th:block th:utext="${item}"/>-->
+<!--			</th:block>-->
+<!--		</div>-->
     </div>
 
 
@@ -195,7 +243,7 @@
 
 		async function savePdf(title) {
 
-			await replaceSvgWithPng('.pdf-img');
+			await replaceSvgWithPng('.pdf-img', );
 
 			const element = document.getElementById('pdf-content'); // 변환할 요소
 			const options = {
@@ -207,7 +255,7 @@
 			};
 
 			for(item of itemclass) {
-				await page(title, item);
+				pagenation(item, title);
 				let filename = `${item}-[[${pdfFileId}]].pdf`; // 파일 이름 설정
 				options.filename = filename;
 
@@ -265,13 +313,13 @@
 				return;
 			}
 
-			// if (title_length > 20) {
-			// 	alert("시험지명은 20자 이하로 입력해주세요.");
-			// 	return;
-			// }
+			if (title_length > 20) {
+				alert("시험지명은 20자 이하로 입력해주세요.");
+				return;
+			}
 
 			$("#loading-container").removeClass("loading-off").addClass("loading-on");
-			save();
+			savePdf();
 		}));
 
 		async function save() {

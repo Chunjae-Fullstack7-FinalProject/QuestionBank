@@ -88,6 +88,14 @@ dependencies {
     // Apache Batik for SVG to PNG conversion
     implementation 'org.apache.xmlgraphics:batik-transcoder:1.16'
     implementation 'org.apache.xmlgraphics:batik-codec:1.16'
+
+    // https://mvnrepository.com/artifact/com.openhtmltopdf/openhtmltopdf-core
+    implementation 'com.openhtmltopdf:openhtmltopdf-core:1.0.10'
+// https://mvnrepository.com/artifact/com.openhtmltopdf/openhtmltopdf-pdfbox
+    implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
+// https://mvnrepository.com/artifact/org.jsoup/jsoup
+    implementation 'org.jsoup:jsoup:1.18.3'
+
 }
 
 sourceSets {

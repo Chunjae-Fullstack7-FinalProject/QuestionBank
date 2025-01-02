@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/inc/css/pdf.css"/>
+  <style>
+    @page {
+      margin: 10mm;
+      size: A4;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+    }
+    .content {
+      column-count: 2;
+      column-gap: 10mm;
+    }
+    span.txt {
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
+<body>
+<div class="header">
+  <table class="pdf-title-table">
+    <tr>
+      <td rowspan="2" class="pdf-td-title"></td>
+      <td class="pdf-td-grade"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>
+    </tr>
+    <tr>
+      <td class="pdf-td-name">이름:</td>
+    </tr>
+  </table>
+</div>
+<div class="content">
+<th:block th:each="item : ${htmlList['all']}">
+  <th:block th:utext="${item}"/>
+</th:block>
+</div>
+</body>
+</html>

@@ -12,11 +12,13 @@ import net.questionbank.dto.test.LargeDTO;
 import net.questionbank.dto.presetExam.LargeChapterDTO;
 import net.questionbank.dto.test.RequestBodyDTO;
 import net.questionbank.dto.test.TempTestHtmlDTO;
+import net.questionbank.dto.test.TempTestImageDTO;
 import net.questionbank.dto.textbook.TextBookApiDTO;
 import net.questionbank.exception.CustomRuntimeException;
 import net.questionbank.service.step3.Step3Service;
 import net.questionbank.service.test.TestServiceIf;
 import net.questionbank.service.textbook.TextbookServiceIf;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -128,13 +130,17 @@ public class TestController {
 
         log.info("itemIdList : {}", itemIdList);
 
-        TempTestHtmlDTO tempTestDTO = step3Service.testInfoHtml(itemIdList, textbookDetailDTO.getSubjectId());
-        tempTestDTO.setTextbookApiDTO(textbookDetailDTO);
-        model.addAttribute("testInfo", tempTestDTO);
+        TempTestImageDTO tempTestImageDTO = step3Service.testInfoImage(itemIdList, textbookDetailDTO.getSubjectId());
+        tempTestImageDTO.setTextbookApiDTO(textbookDetailDTO);
+
+//        TempTestHtmlDTO tempTestDTO = step3Service.testInfoHtml(itemIdList, textbookDetailDTO.getSubjectId());
+//        tempTestDTO.setTextbookApiDTO(textbookDetailDTO);
+
+        model.addAttribute("testInfo", tempTestImageDTO);
         model.addAttribute("subjectId", textbookDetailDTO.getSubjectId());
         model.addAttribute("itemIdList", itemIdList);
         model.addAttribute("pdfFileId", UUID.randomUUID().toString());
-        model.addAttribute("descriptive", tempTestDTO.getDescriptive().equals("O"));
+        model.addAttribute("descriptive", tempTestImageDTO.getDescriptive().equals("O"));
         return "test/sub04_01";
     }
 
@@ -147,36 +153,38 @@ public class TestController {
     @GetMapping("/pdf")
     public String pdf(Model model) {
         List<Long> ids = new ArrayList<>();
-//        ids.add(491164L);
-//        ids.add(494519L);
-//        ids.add(494552L);
-//        ids.add(494553L);
-//        ids.add(493138L);
-//        ids.add(493140L);
-//        ids.add(493137L);
-//        ids.add(493139L);
-//        ids.add(493141L);
-//        ids.add(487792L);
-//        ids.add(494581L);
-//        ids.add(493497L);
+        ids.add(491164L);
+        ids.add(494519L);
+        ids.add(494552L);
+        ids.add(494553L);
+        ids.add(493138L);
+        ids.add(493140L);
+        ids.add(493137L);
+        ids.add(493139L);
+        ids.add(493141L);
+        ids.add(487792L);
+        ids.add(494581L);
+        ids.add(493497L);
 
-        ids.add(481705L);
-        ids.add(481709L);
-        ids.add(481711L);
-        ids.add(481712L);
-        ids.add(481717L);
-        ids.add(481718L);
-        ids.add(977246L);
-        ids.add(977249L);
-        ids.add(977250L);
-        ids.add(977253L);
-        ids.add(977254L);
-        ids.add(977257L);
-        ids.add(977258L);
-        ids.add(977259L);
+//        ids.add(481705L);
+//        ids.add(481709L);
+//        ids.add(481711L);
+//        ids.add(481712L);
+//        ids.add(481717L);
+//        ids.add(481718L);
+//        ids.add(977246L);
+//        ids.add(977249L);
+//        ids.add(977250L);
+//        ids.add(977253L);
+//        ids.add(977254L);
+//        ids.add(977257L);
+//        ids.add(977258L);
+//        ids.add(977259L);
 
-        model.addAttribute("htmlList", step3Service.testPdfHtmlList(step3Service.getQuestionsHtmlFromApi(ids)));
-        return "test/test2";
+//        return step3Service.HtmlToPdfExample(step3Service.testPdfHtmlStringList(step3Service.getQuestionsHtmlFromApi(ids)).get("all"),"전체");
+
+        model.addAttribute("htmlList", step3Service.testPdfImageList(step3Service.getQuestionsImageFromApi(ids)));
+        return "test/test3";
     }
 }
 

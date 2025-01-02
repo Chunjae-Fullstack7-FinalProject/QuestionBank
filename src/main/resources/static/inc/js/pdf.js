@@ -1,10 +1,11 @@
 // 개별 svg -> png
-async function convertImgToPng(url) {
+async function convertImgToPng(url, maxHeight) {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.src = url;
 
         img.onload = () => {
+            if(img.height >= maxHeight)
             const canvas = document.createElement('canvas');
             canvas.width = img.width;
             canvas.height = img.height;
@@ -25,6 +26,7 @@ async function convertImgToPng(url) {
 //사용할 이미지 png로 변환
 async function replaceSvgWithPng(imageClassName) {
     const svgImages = document.querySelectorAll(imageClassName);
+    const toPx = document.querySelector(".example").offsetHeight/10;
 
     for (const svgImg of svgImages) {
         const svgUrl = "/api/customExam/proxy?url=" + svgImg.src; // cors 문제 피하기 위해 서버 우회
