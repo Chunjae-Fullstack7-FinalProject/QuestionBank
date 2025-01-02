@@ -78,7 +78,7 @@ public class TestController {
         model.addAttribute("largeList", largeList);
         model.addAttribute("subjectId", subjectId);
         model.addAttribute("textbookDetailDTO", textbookDetailDTO);
-        return "test/step1_1";
+        return "test/step1";
     }
 
 
@@ -115,7 +115,7 @@ public class TestController {
         model.addAttribute("requestMiddle", requestMiddle);
         model.addAttribute("requestHigh", requestHigh);
         model.addAttribute("type", type);
-        return "test/step2_2";
+        return "test/step2";
     }
 
     @PostMapping("/step3")
