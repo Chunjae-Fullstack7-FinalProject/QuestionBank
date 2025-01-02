@@ -298,17 +298,17 @@
 								let finalLow = 0;
 								let finalMiddle = 0;
 								let finalHigh = 0;
-								if(difficulties[0].count === 0){
+								if(difficulties[0].count === 0 && lowDiff < 0){
 									finalLow = Number(low); //실제로 온 값
 								} else {
 									finalLow = Number(requestLow + difficulties[0].count);
 								}
-								if(difficulties[1].count === 0){
+								if(difficulties[1].count === 0 && middleDiff < 0){
 									finalMiddle = Number(middle);
 								} else {
 									finalMiddle = Number(requestMiddle + difficulties[1].count);
 								}
-								if(difficulties[2].count === 0){
+								if(difficulties[2].count === 0 && highDiff < 0){
 									finalHigh = Number(high);
 								} else {
 									finalHigh = Number(requestHigh + difficulties[2].count);
@@ -1840,7 +1840,16 @@
 
 <script>
 	function goStep_1(){
-		location.href = "/customExam/step1";
+		let url = '/customExam/step1';
+		let new_form = $('<form></form>');
+		new_form.attr("name", "new_form");
+		new_form.attr("charset", "UTF-8");
+		new_form.attr("method", "post");
+		new_form.attr("action", url);
+		// new_form.append($('<input/>', {type: 'hidden', name: 'subjectId', value: subjectId}));
+
+		new_form.appendTo('body');
+		new_form.submit();
 	}
 	function goStep_3(){
 		const form = document.createElement("form");
