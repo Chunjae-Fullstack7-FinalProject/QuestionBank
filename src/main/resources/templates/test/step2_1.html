@@ -102,64 +102,232 @@
 							const data = await response.json();
 							//이제 여기서 처리해줘야 함
 							const itemList = data.itemList;
-							let low = 0;
-							let middle = 0;
-							let high = 0;
-							itemList.forEach(element =>{
+							let passageList = [];
+							let nonPassageList = [];
+							itemList.forEach(element => {
+								if (element.passageId != null) {
+									passageList.push(element); // 지문 문항
+								} else {
+									nonPassageList.push(element); //지문 없는 문항
+								}
+							});
+							// 지문 문항중에서 난이도 분류
+							let passageLow = [];
+							let passageMiddle = [];
+							let passageHigh = [];
+							passageList.forEach(element => {
 								switch (element.difficultyCode) {
 									case '02':
-										low += 1;
+										passageLow.push(element.itemId);
 										break;
 									case '03':
-										middle += 1;
+										passageMiddle.push(element.itemId);
 										break;
 									case '04':
-										high += 1;
+										passageHigh.push(element.itemId);
 										break;
 								}
 							});
-							console.log("응답:",data);
-							console.log("하 난이도 개수:",low); // response 중 하 난이도의 개수
-							console.log("중 난이도 개수:",middle); // response 중 중 난이도의 개수
-							console.log("상 난이도 개수:",high); // response 중 상 난이도의 개수
+							// 비 지문 문항에서 난이도 분류
+							let nonPassageLow = [];
+							let nonPassageMiddle = [];
+							let nonPassageHigh = [];
+							nonPassageList.forEach(element => {
+								switch (element.difficultyCode) {
+									case '02':
+										nonPassageLow.push(element.itemId);
+										break;
+									case '03':
+										nonPassageMiddle.push(element.itemId);
+										break;
+									case '04':
+										nonPassageHigh.push(element.itemId);
+										break;
+								}
+							});
+							//요청한 난이도
+							console.log("requestLow : ", requestLow);
+							console.log("requestMiddle : ", requestMiddle);
+							console.log("requestHigh : ", requestHigh);
+							// 응답 난이도가 필요한가? 일단 최대로 하면 되는 거 아님? --> 배열돌때 필요할 듯?
+							const passageResponseLow = passageLow.length;
+							const passageResponseMiddle = passageMiddle.length;
+							const passageResponseHigh = passageHigh.length;
+							console.log("passageResponseLow : ", passageResponseLow);
+							console.log("passageResponseMiddle : ", passageResponseMiddle);
+							console.log("passageResponseHigh : ", passageResponseHigh);
 
 
+							const nonPassageResponseLow = nonPassageLow.length;
+							const nonPassageResponseMiddle = nonPassageMiddle.length;
+							const nonPassageResponseHigh = nonPassageHigh.length;
+							console.log("nonPassageResponseLow : ", nonPassageResponseLow);
+							console.log("nonPassageResponseMiddle : ", nonPassageResponseMiddle);
+							console.log("nonPassageResponseHigh : ", nonPassageResponseHigh);
 
-							console.log("요청 하 난이도 개수:",requestLow); //내가 실제로 요청한 하 난이도의 개수
-							console.log("요청 중 난이도 개수:",requestMiddle); //내가 실제로 요청한 중 난이도의 개수
-							console.log("요청 상 난이도 개수:",requestHigh); //내가 실제로 요청한 상 난이도의 개수
 
-							const lowCheck = low >= requestLow;
-							const middleCheck = middle >= requestMiddle;
-							const highCheck = high >= requestHigh;
+							// 비지문 4 지문 6이니까, 응답 난이도 구성 역시 비율 맞춰 줄 예정.
+							// 비지문 난이도별 들어가야 할 문항 수
+							const nonPassageLowCnt = Math.round(requestLow * 0.4);
+							const nonPassageMiddleCnt = Math.round(requestMiddle * 0.4);
+							const nonPassageHighCnt = Math.round(requestHigh * 0.4);
+							console.log("nonPassageLowCnt : ", nonPassageLowCnt);
+							console.log("nonPassageMiddleCnt : ", nonPassageMiddleCnt);
+							console.log("nonPassageHighCnt : ", nonPassageHighCnt);
 
-							console.log("하 난이도, 응답보다 요청이 많니?:",lowCheck); // 응답 >= 요청인지(하)
-							console.log("중 난이도, 응답보다 요청이 많니?:",middleCheck); // 응답 >= 요청인지(하)
-							console.log("상 난이도, 응답보다 요청이 많니?:",highCheck); // 응답 >= 요청인지(하)
+							//
+							// 전체 요청한 문제 수 중에서 40%를 비 지문 문항으로 출제
+							let nonPassage = [
+								{key: 'low', value: nonPassageLow, lowCount: 0},
+								{key: 'middle', value: nonPassageMiddle, middleCount: 0},
+								{key: 'high', value: nonPassageHigh, highCount: 0}
+							];
+							console.log("nonPassage 배열 안에 객체 : ", nonPassage);
 
-							// 상, 중, 하 모두 request 보다 response 가 더 크다면, response 중 request 개수만큼 가져와서, 넘기기
-							if(lowCheck && middleCheck && highCheck){
-								let itemArr = [];
-								let lowCnt = 0;
-								let middleCnt = 0;
-								let highCnt = 0;
-								itemList.forEach(item => {
-									if(requestLow > lowCnt && item.difficultyCode === '02'){
-										lowCnt += 1;
-										itemArr.push(item.itemId);
-									}
-									if(requestMiddle > middleCnt && item.difficultyCode === '03'){
-										middleCnt += 1;
-										itemArr.push(item.itemId);
-									}
-									if(requestHigh > highCnt && item.difficultyCode === '04'){
-										highCnt += 1;
-										itemArr.push(item.itemId);
+							let itemArr = [];
+							nonPassage.forEach(item => {
+								switch (item.key) {
+									case 'low':
+										for (let i = 0; i < nonPassageLowCnt; i++) {
+											if (item.value[i] != null) {
+												itemArr.push(item.value[i]);
+												item.lowCount++;
+											}
+										}
+										break;
+									case 'middle':
+										for (let i = 0; i < nonPassageMiddleCnt; i++) {
+											if (item.value[i] != null) {
+												itemArr.push(item.value[i]);
+												item.middleCount++;
+											}
+										}
+										break;
+									case 'high':
+										for (let i = 0; i < nonPassageHighCnt; i++) {
+											if (item.value[i] != null) {
+												itemArr.push(item.value[i]);
+												item.highCount++;
+											}
+										}
+										break;
+								}
+							});
+							console.log("nonPassage input low count :", nonPassage[0].lowCount);
+							console.log("nonPassage input middle count : ", nonPassage[1].middleCount);
+							console.log("nonPassage input high count : ", nonPassage[2].highCount);
+
+							// 지문 난이도별 들어갈 문항 수
+							const passageLowCnt = requestLow - nonPassage[0].lowCount;
+							const passageMiddleCnt = requestMiddle - nonPassage[1].middleCount;
+							const passageHighCnt = requestHigh - nonPassage[2].highCount;
+							console.log("needed passage input low count : ", passageLowCnt);
+							console.log("needed passage input middle count : ", passageMiddleCnt);
+							console.log("needed passage input high count : ", passageHighCnt);
+							console.log("itemArr so far : ", itemArr);
+							// itemArr를 나머지 지문 문항들로 채워주기(여기서도 난이도는?)
+							let passage = [
+								{key: 'low', value: passageLow, lowCount: 0},
+								{key: 'middle', value: passageMiddle, middleCount: 0},
+								{key: 'high', value: passageHigh, highCount: 0}
+							];
+							passage.forEach(item => {
+								switch (item.key) {
+									case 'low':
+										for (let i = 0; i < passageLowCnt; i++) {
+											if (item.value[i] != null) {
+												itemArr.push(item.value[i]);
+												item.lowCount++;
+											}
+										}
+										break;
+									case 'middle':
+										for (let i = 0; i < passageMiddleCnt; i++) {
+											if (item.value[i] != null) {
+												itemArr.push(item.value[i]);
+												item.middleCount++;
+											}
+										}
+										break;
+									case 'high':
+										for (let i = 0; i < passageHighCnt; i++) {
+											if (item.value[i] != null) {
+												itemArr.push(item.value[i]);
+												item.highCount++;
+											}
+										}
+										break;
+								}
+							});
+
+							console.log("passage input low count :", passage[0].lowCount);
+							console.log("passage input middle count : ", passage[1].middleCount);
+							console.log("passage input high count : ", passage[2].highCount);
+
+
+							// 비지문 40% 채우고 나서, 60%를 채울 지문이 부족한 경우
+							const lowDeficit = passageLowCnt -passage[0].lowCount;
+							const middleDeficit = passageMiddleCnt - passage[1].middleCount;
+							const highDeficit = passageHighCnt - passage[2].highCount;
+							console.log("비지문 채우고, 끝까지 채워줄 지문 문항 수가 부족한 경우, 추가로 필요한 비지문 문항 수(하)", lowDeficit);
+							console.log("비지문 채우고, 끝까지 채워줄 지문 문항 수가 부족한 경우, 추가로 필요한 비지문 문항 수(중)", middleDeficit);
+							console.log("비지문 채우고, 끝까지 채워줄 지문 문항 수가 부족한 경우, 추가로 필요한 비지문 문항 수(상)", highDeficit);
+
+							const lowFlag = nonPassage[0].lowCount === nonPassageLowCnt && passageLowCnt > passage[0].lowCount;
+							const middleFlag = nonPassage[1].middleCount === nonPassageMiddleCnt && passageMiddleCnt > passage[1].middleCount;
+							const highFlag = nonPassage[2].highCount === nonPassageHighCnt && passageHighCnt > passage[2].highCount;
+
+							console.log("비지문에서 채워줘야 함? : ",lowFlag);
+							console.log("비지문에서 채워줘야 함? : ",middleFlag);
+							console.log("비지문에서 채워줘야 함? : ",highFlag);
+
+							if(lowFlag || middleFlag || highFlag){ //상, 중, 하 중 하나라도 비지문 40%는 채웠지만, 60%를 채워줄 지문이 없는 경우
+								nonPassage.forEach(item =>{
+									switch(item.key){
+										case 'low':
+											for(let i = item.value.length; i>=item.value.length-lowDeficit;i--){
+												if (item.value[i] != null) {
+													itemArr.push(item.value[i]);
+													item.lowCount++;
+												}
+											}
+											break;
+										case 'middle':
+											for(let i = item.value.length; i>=item.value.length-middleDeficit;i--){
+												if (item.value[i] != null) {
+													itemArr.push(item.value[i]);
+													item.middleCount++;
+												}
+											}
+											break;
+										case 'high':
+											for(let i = item.value.length; i>=item.value.length-highDeficit;i--){
+												if (item.value[i] != null) {
+													itemArr.push(item.value[i]);
+													item.highCount++;
+												}
+											}
+											break;
 									}
 								});
-								console.log("통과 시 넘기는 배열:",itemArr);
+							}
+							console.log("final itemArr : ", itemArr);
 
-								//재검색하면 깜빡 해야함....
+
+
+							//요청한 난이도와 넘겨주는 배열의 난이도가 일치하는지?
+							const finalLowCnt = Number(nonPassage[0].lowCount) + Number(passage[0].lowCount);
+							const finalMiddleCnt = Number(nonPassage[1].middleCount) + Number(passage[1].middleCount);
+							const finalHighCnt = Number(nonPassage[2].highCount) + Number(passage[2].highCount);
+							console.log("finalLowCnt : ", finalLowCnt);
+							console.log("finalMiddleCnt : ", finalMiddleCnt);
+							console.log("finalHighCnt : ", finalHighCnt);
+
+							const lowCheck = finalLowCnt === Number(requestLow);
+							const middleCheck =  finalMiddleCnt === Number(requestMiddle);
+							const highCheck = finalHighCnt === Number(requestHigh);
+
+							if (lowCheck && middleCheck && highCheck) {
 								let url = '/customExam/step2';
 								let new_form = $('<form></form>');
 								new_form.attr("name", "new_form");
@@ -173,103 +341,51 @@
 								new_form.append($('<input/>', {type: 'hidden', name: 'requestHigh', value: requestHigh}));
 								new_form.appendTo('body');
 								new_form.submit();
-
 							} else {
-								//팝업
-								let _dim = $(".dim");
-								let _html = $("html , body");
-								let popData = $('#quePop').data("pop");
-								_html.css("overflow", "hidden");
-								_dim.fadeIn();
-								$(".pop-wrap[data-pop='" + popData + "']").show();
+								if (itemList.length === 0) {
+									let _dim = $(".dim");
+									let _html = $("html , body");
+									let popData = $('#zeroPop').data("pop");
+									_html.css("overflow", "hidden");
+									_dim.fadeIn();
+									$(".pop-wrap[data-pop='" + popData + "']").show();
+								} else {
+									//팝업
+									let _dim = $(".dim");
+									let _html = $("html , body");
+									let popData = $('#quePop').data("pop");
+									_html.css("overflow", "hidden");
+									_dim.fadeIn();
+									$(".pop-wrap[data-pop='" + popData + "']").show();
 
-								let lowDiff = low - requestLow;
-								let middleDiff = middle - requestMiddle;
-								let highDiff = high - requestHigh;
+									let displayLow = $('#displayLow').text(Number(finalLowCnt));
+									let displayMiddle = $('#displayMiddle').text(Number(finalMiddleCnt));
+									let displayHigh = $('#displayHigh').text(Number(finalHighCnt));
+									let displayTotal = $('#displayTotal').text(
+											($('#displayLow').closest('div.range').hasClass('disappear') ? 0 : Number(finalLowCnt)) +
+											($('#displayMiddle').closest('div.range').hasClass('disappear') ? 0 : Number(finalMiddleCnt)) +
+											($('#displayHigh').closest('div.range').hasClass('disappear') ? 0 : Number(finalHighCnt))
+									);
 
-								let itemArr = [];
-								let lowArr = [];
-								let middleArr = [];
-								let highArr = [];
-								itemList.forEach(item =>{
-									if(item.difficultyCode === '02'){
-										lowArr.push(item); // 이거는 응답받은 개수
-									}
-									if(item.difficultyCode === '03'){
-										middleArr.push(item); //응답받은 개수
-									}
-									if(item.difficultyCode === '04'){
-										highArr.push(item); // 응답받은 개수
-									}
-								});
-								if(requestLow <= lowArr.length){ // 요청 <= 응답일 때
-									for(let i=0 ; i<requestLow;i++){ //요청한 개수
-										itemArr.push(lowArr[i].itemId);
-									}
-								} else { // 응답 <= 요청일 때,
-									for(let i=0 ; i<lowArr.length;i++){ //응답받은 개수
-										itemArr.push(lowArr[i].itemId);
-									}
+									//확인 버튼
+									//step2넘어가기
+									$('#nextBtn2').on('click', function() {
+										let url = '/customExam/step2';
+										let new_form = $('<form></form>');
+										new_form.attr("name", "new_form");
+										new_form.attr("method", "post");
+										new_form.attr("action", url);
+										let strRequestBody = JSON.stringify(requestBody);
+										new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
+										new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
+										new_form.append($('<input/>', {type: 'hidden', name: 'requestLow', value: requestLow}));
+										new_form.append($('<input/>', {type: 'hidden', name: 'requestMiddle', value: requestMiddle}));
+										new_form.append($('<input/>', {type: 'hidden', name: 'requestHigh', value: requestHigh}));
+										new_form.appendTo('body');
+										new_form.submit();
+									});
+
 								}
-								if(requestMiddle <= middleArr.length){ // 요청 <= 응답일 때
-									for(let i=0 ; i<requestMiddle;i++){ //요청한 개수
-										itemArr.push(middleArr[i].itemId);
-									}
-								} else { // 응답 <= 요청일 때,
-									for(let i=0 ; i<middleArr.length;i++){ //응답받은 개수
-										itemArr.push(middleArr[i].itemId);
-									}
-								}
-								if(requestHigh <= highArr.length){ // 요청 <= 응답일 때
-									for(let i=0 ; i<requestHigh;i++){ //요청한 개수
-										itemArr.push(highArr[i].itemId);
-									}
-								} else { // 응답 <= 요청일 때,
-									for(let i=0 ; i<highArr.length;i++){ //응답받은 개수
-										itemArr.push(highArr[i].itemId);
-									}
-								}
-
-								console.log("하 배열",lowArr);
-								console.log("중 배열",middleArr);
-								console.log("상 배열",highArr);
-
-
-								let finalLow = requestLow > lowArr.length ? lowArr.length : requestLow;
-								let finalMiddle = requestMiddle > middleArr.length ? middleArr.length : requestMiddle;
-								let finalHigh = requestHigh> highArr.length ? highArr.length : requestHigh;
-
-
-								console.log("finalLow:", finalLow);
-								console.log("finalMiddle:", finalMiddle);
-								console.log("finalHigh:", finalHigh);
-
-								let displayLow = $('#displayLow').text(Number(finalLow));
-								let displayMiddle = $('#displayMiddle').text(Number(finalMiddle));
-								let displayHigh = $('#displayHigh').text(Number(finalHigh));
-								let displayTotal = $('#displayTotal').text(
-										($('#displayLow').closest('div.range').hasClass('disappear') ? 0 : Number(finalLow)) +
-										($('#displayMiddle').closest('div.range').hasClass('disappear') ? 0 : Number(finalMiddle)) +
-										($('#displayHigh').closest('div.range').hasClass('disappear') ? 0 : Number(finalHigh))
-								);
-
-								//확인 버튼
-								//step2넘어가기
-								$('#nextBtn2').on('click', function() {
-									let url = '/customExam/step2';
-									let new_form = $('<form></form>');
-									new_form.attr("name", "new_form");
-									new_form.attr("method", "post");
-									new_form.attr("action", url);
-									let strRequestBody = JSON.stringify(requestBody);
-									new_form.append($('<input/>', {type: 'hidden', name: 'questionIds', value: itemArr}));
-									new_form.append($('<input/>', {type: 'hidden', name: 'strRequestBody', value: strRequestBody}));
-									new_form.append($('<input/>', {type: 'hidden', name: 'requestLow', value: requestLow}));
-									new_form.append($('<input/>', {type: 'hidden', name: 'requestMiddle', value: requestMiddle}));
-									new_form.append($('<input/>', {type: 'hidden', name: 'requestHigh', value: requestHigh}));
-									new_form.appendTo('body');
-									new_form.submit();
-								});
 							}
 						} catch(e){
 							console.error('Error fetching data:', e);
