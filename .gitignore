@@ -42,3 +42,6 @@ node_modules/
 
 ### test ###
 /src/test/*
+
+### application.properties ###
+/src/main/resources/application.properties
