@@ -108,6 +108,7 @@ select.form-control {
 
 .card-header h3 {
     font-weight: bold;
+    max-width: 235px;
 }
 
 .card-body {
@@ -165,7 +166,7 @@ select.form-control {
 .item-list {
     margin: 10px auto;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(330px, 630px));
+    grid-template-columns: repeat(auto-fill, minmax(330px, 600px));
     justify-content: center;
     justify-items: center;
 }
