@@ -748,6 +748,12 @@
 		return filteredQuestions;
 	}
 
+	// // 단원 이름에서 숫자를 추출하는 함수
+	// function extractChapterNumber(chapterName) {
+	// 	const match = chapterName.match(/\d+/); // 단원 이름에서 숫자를 추출
+	// 	return match ? parseInt(match[0], 10) : Infinity; // 숫자가 없으면 Infinity 반환
+	// }
+
 	// 정렬 함수
 	function sortQuestionsByStatus(filteredQuestions, sortStatus) {
 		let sortedQuestions = [...filteredQuestions];
@@ -760,9 +766,106 @@
 				});
 				break;
 			case "난이도순":
-				const level = { "최하": 1, "하": 2, "중": 3, "상": 4, "최상": 5 };
-				sortedQuestions.sort((a, b) => (level[a.difficultyName] || Infinity) - (level[b.difficultyName] || Infinity));
-				break;
+				const level = {"하": 2, "중": 3, "상": 4};
+
+				//지문과 단일 문항 분리
+				const passageQuestions = questions.filter(q => q.passageId !== null);
+				const singleQuestions = questions.filter(q => q.passageId === null);
+
+				//지문 그룹화
+				const groupedByPassage = passageQuestions.reduce((groups, question) => {
+					const key = question.passageId;
+					if (!groups[key]) groups[key] = [];
+					groups[key].push(question);
+					return groups;
+				}, {});
+
+				//지문 내부 정렬
+				Object.values(groupedByPassage).forEach(group => {
+					group.sort((a, b) => (level[a.difficultyName]) - (level[b.difficultyName]));
+				});
+
+				//지문 간 정렬
+				const sortedPassages = Object.keys(groupedByPassage).sort((keyA, keyB) => {
+					const groupA = groupedByPassage[keyA];
+					const groupB = groupedByPassage[keyB];
+
+					// 최소 난이도 비교
+					const minDifficultyA = Math.min(...groupA.map(q => level[q.difficultyName]));
+					const minDifficultyB = Math.min(...groupB.map(q => level[q.difficultyName]));
+					if (minDifficultyA !== minDifficultyB) return minDifficultyA - minDifficultyB;
+
+					// 단원 비교
+					const chapterA = parseInt(groupA[0].smallChapterId);
+					const chapterB = parseInt(groupB[0].smallChapterId);
+					return chapterA - chapterB;
+				});
+
+				//지문 평면화
+				const sortedPassageQuestions = sortedPassages.flatMap(key => groupedByPassage[key]);
+
+				//단일 문항 정렬
+				singleQuestions.sort((a, b) => {
+					const diffCompare = (level[a.difficultyName]) - (level[b.difficultyName]);
+					if (diffCompare !== 0){
+						return diffCompare;
+					}
+
+					const chapterA = parseInt(a.smallChapterId);
+					const chapterB = parseInt(b.smallChapterId);
+					return chapterA - chapterB;
+				});
+
+				console.log(singleQuestions);
+				console.log(sortedPassageQuestions);
+
+				//단일 문항 삽입 (지문 앞뒤로만 배치)
+				const finalSortedQuestions = [...sortedPassageQuestions];
+
+
+				singleQuestions.forEach(singleQuestion => {
+					const singleDifficulty = level[singleQuestion.difficultyName];
+					const singleChapterId = parseInt(singleQuestion.smallChapterId);
+
+
+					let insertIndex = finalSortedQuestions.length;
+
+					for (let i = 0; i < finalSortedQuestions.length; i++) {
+						const currentQuestion = finalSortedQuestions[i];
+						const currentDifficulty = level[currentQuestion.difficultyName];
+						const currentChapterId = parseInt(currentQuestion.smallChapterId);
+
+						// 지문의 첫 번째 문항의 난이도 가져옴
+						const firstPassage = currentQuestion.passageId !== null;
+						let passageDifficulty = currentDifficulty;
+						let passageChapterId = currentChapterId;
+
+						if (firstPassage) {
+							const passageStart = finalSortedQuestions.find(q => q.passageId === currentQuestion.passageId);
+							passageDifficulty = level[passageStart.difficultyName];
+							passageChapterId = parseInt(passageStart.smallChapterId);
+						}
+
+						// 단일 문항이 지문보다 우선순위가 높은 경우
+						if (singleDifficulty < passageDifficulty || (singleDifficulty === passageDifficulty && singleChapterId < passageChapterId)) {
+							insertIndex = i;
+							break;
+						}
+
+						// 지문 끝 뒤에 삽입
+						let isEndOfPassage = i;
+						isEndOfPassage === finalSortedQuestions.length - 1 || currentQuestion.passageId !== finalSortedQuestions[i + 1]?.passageId;
+						if (isEndOfPassage) {
+							insertIndex = i + 1;
+						}
+					}
+
+					// 삽입
+					finalSortedQuestions.splice(insertIndex, 0, singleQuestion);
+				});
+				return finalSortedQuestions;
+
+
 			case "문제 형태순":
 				sortedQuestions.sort((a, b) => (a.questionFormName || "").localeCompare(b.questionFormName || ""));
 				break;
@@ -770,8 +873,9 @@
 				sortedQuestions.sort((a, b) => {
 					const chapterA = a.largeChapterName || "";
 					const chapterB = b.largeChapterName || "";
-					return chapterA.localeCompare(chapterB);
+					return sortByPassageId(chapterA.localeCompare(chapterB));
 				});
+
 				break;
 		}
 		// 선택한 항목을 셀렉트 박스에 표시
@@ -1056,6 +1160,7 @@
 	document.addEventListener("DOMContentLoaded", getQuestionInfo);
 
 	function renderSummary(questions){
+		console.log("renderSummary");
 		console.log(questions);
 		const container = document.querySelector(".test");
 		container.innerHTML = "";
@@ -1081,7 +1186,7 @@
 
 			if(flag) {
 				questionHTML += `
-									<div class="col depth-02" data-item-id="${q.itemId}" onclick="scrollItem(${q.itemId})">
+									<div class="col que summary-box depth-02" data-item-id="${q.itemId}" onclick="scrollItem(${q.itemId})">
 										<a href="javascript:;">
 											<span class="dragHandle ui-sortable-handle drag-type01">
 											<img
@@ -1115,7 +1220,7 @@
 			}
 			else {
 				questionHTML += `
-							<div class="col singleQuestion" data-item-id="${q.itemId}" onclick="scrollItem(${q.itemId})">
+							<div class="col que summary-box singleQuestion" data-item-id="${q.itemId}" onclick="scrollItem(${q.itemId})">
 								<a href="javascript:;">
 									<span class="dragHandle ui-sortable-handle"><img
 										src="../images/common/ico_move_type01.png" alt=""></span>
@@ -1701,6 +1806,18 @@
 	}
 
 	function scrollItem(itemId){
+		// 1. 모든 기존 요소에서 `active` 클래스 제거
+		const allItems = document.querySelectorAll(".col.que.summary-box");
+		allItems.forEach(item => {
+			item.classList.remove("active");
+		});
+
+		// 2. 클릭된 요소에 `active` 클래스 추가
+		const onActive = document.querySelector(`.col.que.summary-box[data-item-id="${itemId}"]`);
+		if (onActive) {
+			onActive.classList.add("active");
+		}
+
 		console.log(itemId);
 		const container = document.querySelectorAll(".question-container");
 		console.log(container);
