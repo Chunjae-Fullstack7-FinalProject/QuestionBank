@@ -285,7 +285,8 @@ async function pagenation(itemclass, title) {
     for (const value of items) {
         let height = value.offsetHeight;
         if (height > maxHeight) {
-            value.querySelector("img").style.height = (maxHeight/toPx - 15) +"mm";
+            if(page === 1 && currentArea === 0) value.querySelector("img").style.height = "220mm";
+            else value.querySelector("img").style.height = "240mm";
             height = value.offsetHeight;
         }
 
