@@ -2118,6 +2118,7 @@ input[type=checkbox]:checked + label::before {
 .full-pop-que .full-pop-wrap .view-box .table .col.active {
   border: 1px solid #5670dc;
   box-sizing: border-box;
+  background-color: #faf4ff;
 }
 .full-pop-que .full-pop-wrap .view-box .table span {
   display: inline-flex;

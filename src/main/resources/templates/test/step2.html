@@ -463,9 +463,10 @@
 								<div class="levelCntTop cnt-top">
 									<span class="title" id="similarTitle"> </span>
 									<div class="right-area">
-										<div class="select-wrap">
+										<div class="select-wrap" id="level-select-wrap">
 											<button type="button" class="similarSelect select-btn">난이도 전체</button>
 											<ul class="select-list">
+												<li><a href="javascript:;">난이도 전체</a></li>
 												<li><a href="javascript:;" >상</a></li>
 												<li><a href="javascript:;" >중</a></li>
 												<li><a href="javascript:;" >하</a></li>
@@ -769,8 +770,8 @@
 	function sortQuestionsByStatus(filteredQuestions, sortStatus) {
 		let sortedQuestions = [...filteredQuestions];
 		const level = {"하": 2, "중": 3, "상": 4};
-		const passageQuestions = questions.filter(q => q.passageId !== null);
-		const singleQuestions = questions.filter(q => q.passageId === null);
+		const passageQuestions = sortedQuestions.filter(q => q.passageId !== null);
+		const singleQuestions = sortedQuestions.filter(q => q.passageId === null);
 		switch (sortStatus) {
 			case "단원순":
 				sortedQuestions.sort((a, b) => {
@@ -877,12 +878,8 @@
 
 			case "문제 형태순":
 
-				//지문과 단일 문항 분리
-				const passageQuestion = questions.filter(q => q.passageId !== null);
-				const singleQuestion = questions.filter(q => q.passageId === null);
-
 				//지문 그룹화
-				const groupedByPassageId = passageQuestion.reduce((groups, question) => {
+				const groupedByPassageId = passageQuestions.reduce((groups, question) => {
 					if (!groups[question.passageId]) groups[question.passageId] = [];
 					groups[question.passageId].push(question);
 					return groups;
@@ -915,7 +912,7 @@
 				console.log("정렬된 지문:", sortedPassageQuestion);
 
 				//단일 문항 정렬
-				const sortedSingleQuestions = singleQuestion.sort((a, b) => {
+				const sortedSingleQuestions = singleQuestions.sort((a, b) => {
 					//문제 형태 우선순위 비교
 					const formPriorityA = getFormPriority(parseInt(a.questionFormCode, 10));
 					const formPriorityB = getFormPriority(parseInt(b.questionFormCode, 10));
@@ -989,10 +986,12 @@
 	function applyFiltersAndSorting() {
 		//필터링
 		const filteredQuestions = filterQuestionsBySearch(state.searchStatus);
+		console.log(state.searchStatus);
 		console.log(filteredQuestions);
 
 		//정렬
 		const sortedQuestions = sortQuestionsByStatus(filteredQuestions, state.sortStatus);
+		console.log(state.sortStatus);
 		console.log(sortedQuestions);
 
 		//렌더링
@@ -1008,7 +1007,7 @@
 			const sortedSimilarQuestions = sortQuestionsByStatus(filteredSimilarQuestions, state.sortStatus);
 			console.log("filteredSimilarQuestions");
 			console.log(filteredSimilarQuestions);
-			renderSimilar(sortedSimilarQuestions, index, itemId);
+			renderSimilar(sortedSimilarQuestions);
 		}
 	}
 
@@ -1037,14 +1036,11 @@
 
 
 	//
-	function sortSimilarSelectBox(status){
+	function sortSimilarSelectBox(filteredQuestions, status){
 		console.log(status);
-		const itemData = document.getElementById("itemNum");
-		//console.log(itemData);
-		const itemId = itemData.textContent;
-		//console.log("data-item-id:", itemId);
-		let sortSimilarList = [...similarQuestions];
+		let sortSimilarList = [...filteredQuestions];
 		//console.log(sortSimilarList);
+		let levelFlag = false;
 		switch (status){
 			case "상":
 				sortSimilarList = Array.prototype.filter.call(sortSimilarList, (s) => s.difficultyName === "상");
@@ -1062,15 +1058,24 @@
 				sortSimilarList;
 				break;
 		}
-		renderSimilar(sortSimilarList, itemId);
+		// 선택한 항목을 셀렉트 박스에 표시
+		const selectButton = document.querySelector("#level-select-wrap .select-btn");
+		if (selectButton) {
+			selectButton.textContent = status; // 선택한 텍스트 업데이트
+		}
+		if(sortSimilarList.length === 0){
+			levelFlag = true;
+		}
+		renderSimilar(sortSimilarList, false, levelFlag);
 	}
 
 	//유사 문제(셀렉트박스) 이벤트 리스터
 	document.querySelectorAll(".select-wrap .select-list a").forEach(button =>{
 		button.addEventListener("click", (e) => {
 			const status = e.target.textContent.trim();
-			if (["상", "중", "하"].includes(status)) {
-				sortSimilarSelectBox(status);
+			if (["상", "중", "하", "난이도 전체"].includes(status)) {
+				const filteredQuestions = filterQuestionsBySearch(state.searchStatus);
+				sortSimilarSelectBox(filteredQuestions, status);
 			}
 		})
 	})
@@ -1241,7 +1246,8 @@
 				questionHTML += `</div></div>`;
 				flag=false;
 			}
-			if(q.passageId !== null && q.passageId !== prevPassageId && nextPassageId===q.passageId) {
+			if(q.passageId !== null && q.passageId !== prevPassageId && nextPassageId===q.passageId ||
+					q.passageId !== prevPassageId && nextPassageId !== q.passageId) {
 				questionHTML += `
 								<div class="depth-01" data-item-id="${q.passageId}">
 									<div class="dragHandle ui-sortable-handle drag-type02">
@@ -1328,10 +1334,12 @@
 	}
 
 	//유사 문항 탭
-	function renderSimilar(similarQuestions, index, itemId, flag) {
+	function renderSimilar(similarQuestions, flag, levelFlag) {
+		flag = flag || false;
+
 		console.log("similarQuestions");
 		console.log(similarQuestions);
-		const itemNum = index;
+
 
 		const container = document.querySelector(".data");
 		container.style.display = "block";
@@ -1342,19 +1350,30 @@
 		//문제 번호 노출
 		const title = document.getElementById("similarTitle");
 		if (title) {
-			title.textContent = `${index}번 유사 문제`;
+			title.textContent = `${state.currentSimilarContext.index}번 유사 문제`;
 		}
 
 		//유사 항목 없을 때
 		if (!similarQuestions || similarQuestions.length === 0) {
+			container.innerHTML = "";
 			if (flag) {
 				alert("유사 항목이 없습니다.");
 				tabActive("summaryTab");
 				//renderSummary(questions);
 				return summary;
 			}
+
+			if(levelFlag){
+				container.insertAdjacentHTML("beforeend",
+						`
+				<div class="view-que-list scroll-inner no-data" id="item-similar-area">
+					<p>해당 난이도의 유사 문제는 존재하지 않습니다.</p>
+				</div>
+			`
+				);
+			}
 			console.log("유사 항목 없음");
-			container.innerHTML = "";
+
 			container.insertAdjacentHTML("beforeend",
 					`
 				<div class="view-que-list scroll-inner no-data" id="item-similar-area">
@@ -1408,11 +1427,18 @@
 									${q.passageUrl ? `<img src="${q.passageUrl}" alt="지문 이미지"/>` : ""}
 								</div>
 							</div>
+							`
+							if(rangeText.includes("~")){
+								questionHTML += `
 							<div class="btn-wrap etc-btn-wrap" style="margin-top: 10px;">
-									<button type="button" class="btn-default btn-add" data-type="all"  onclick="executeAllQuestion(${q.passageId}, ${itemId}, ${itemNum})">
+									<button type="button" class="btn-default btn-add" data-type="all"  onclick="executeAllQuestion(${q.passageId}, state.currentSimilarContext.itemId, state.currentSimilarContext.index)">
 										<i class="add-type02"></i>전체 추가
 									</button>
 							</div>
+							`
+							}
+
+				questionHTML += `
 						</div>
 					</div>
 				`;
@@ -1420,7 +1446,6 @@
 
 			questionHTML += `
 				<div class="sort-group">
-					<span id="itemNum" hidden>${itemNum}</span>
 					<div class="view-que-box">
 						<div class="que-top">
 							<div class="title">
@@ -1472,7 +1497,7 @@
 										</div>
 									</div>
 									<div class="btn-wrap">
-										<button type="button" class="btn-default" onclick="executeSimilarAdd('${encodeURIComponent(JSON.stringify(q))}',${itemId}, ${itemNum}, false)">
+										<button type="button" class="btn-default" onclick="executeSimilarAdd('${encodeURIComponent(JSON.stringify(q))}', state.currentSimilarContext.itemId, state.currentSimilarContext.index, false)">
 											<i class="add-type02"></i>추가
 										</button>
 									</div>
@@ -1950,7 +1975,7 @@
 		filterSimilarQuestions();
 		const filteredQuestions = filterQuestionsBySearchForSimilar(state.searchStatus);
 		console.log(filteredQuestions.length);
-		const answer = renderSimilar(filteredQuestions, index, itemId, flag);
+		const answer = renderSimilar(filteredQuestions, index, flag);
 		if(!answer){
 			tabActive(button);
 			clickActive(button);
