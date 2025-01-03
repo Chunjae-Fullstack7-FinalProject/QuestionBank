@@ -24,7 +24,7 @@ async function convertImgToPng(url) {
 
 //사용할 이미지 png로 변환
 async function replaceSvgWithPng(imageClassName) {
-    const svgImages = document.querySelectorAll(imageClassName);
+    const svgImages = document.getElementById(imageClassName).querySelectorAll("img");
 
     for (const svgImg of svgImages) {
         const svgUrl = "/api/customExam/proxy?url=" + svgImg.src; // cors 문제 피하기 위해 서버 우회
@@ -47,7 +47,6 @@ async function replaceSvgWithPng2(element) {
         console.error(`SVG 변환 실패: ${svgUrl}`, error);
     }
 
-
 }
 
 async function replaceImgWithPng(element) {
@@ -56,7 +55,6 @@ async function replaceImgWithPng(element) {
     for (const img of images) {
         img.style.width='75mm';
         // img.removeAttribute("style");
-        img.classList.add("png-img");
         const ext = img.src.substring(img.src.lastIndexOf(".") + 1);
         const svgUrl = `/api/customExam/proxy/${ext}?url=` + img.src; // cors 문제 피하기 위해 서버 우회
         try {
@@ -268,36 +266,47 @@ async function page(title, classname) {
 
 //이미지 시험지 레이아웃
 async function pagenation(itemclass, title) {
-    const items = document.getElementById(itemclass).querySelectorAll(".pdf-item");
     const content = document.getElementById("pdf-content");
-
     content.innerHTML = containerLayout;
+
+    const items = document.getElementById(itemclass).querySelectorAll(".pdf-item");
+
+    await replaceSvgWithPng(itemclass);
+
     document.querySelector(".pdf-td-title").innerHTML = title;
 
     const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
 
-    let currentHeight = 0;
+    let currentHeight = 5 * toPx;
     let gridArea = document.getElementById("left-1");
     let page = 1;
     let maxHeight = 235 * toPx;
     let currentArea = 0;
 
     for (const value of items) {
+        const img = value.querySelector("img");
+
         let height = value.offsetHeight;
+
         if (height > maxHeight) {
-            if(page === 1 && currentArea === 0) value.querySelector("img").style.height = "220mm";
-            else value.querySelector("img").style.height = "240mm";
+            console.log(page + "," + currentArea);
+            if (page === 1 && currentArea === 0) {
+                img.style.height = "220mm";
+            } else {
+                img.style.height = "240mm";
+            }
             height = value.offsetHeight;
         }
 
-        await replaceSvgWithPng2(value.querySelector("img"));
+        console.log("height : "+ height);
 
         if (currentHeight + height > maxHeight) {
+            currentHeight = 5 * toPx;
             if (currentArea === 1) {
                 maxHeight = 255 * toPx;
                 page = page + 1;
                 currentArea = 0;
-                currentHeight = 0;
+
                 content.innerHTML += `
                             <div class="page">
                                 <div class="pdf-container">
@@ -310,7 +319,6 @@ async function pagenation(itemclass, title) {
                 gridArea = document.getElementById("left-" + page);
             } else {
                 currentArea = 1;
-                currentHeight = 0;
                 gridArea = document.getElementById("right-" + page);
             }
         }

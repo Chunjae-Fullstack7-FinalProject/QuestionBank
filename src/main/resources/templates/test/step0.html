@@ -266,6 +266,7 @@
             return;
         }
         const container = document.getElementById(type);
+        container.innerHTML = '';
         const itemList = await getPdfHtml(examId);
         itemList.forEach((item,index)=>{
             if(type==='questions' && (item.includes("pdf-answer") || item.includes("pdf-explain"))) {
