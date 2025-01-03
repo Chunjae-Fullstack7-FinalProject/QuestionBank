@@ -24,6 +24,9 @@ public class MemberServiceImpl implements MemberServiceIf{
     @Override
     public Member register(MemberRegisterDTO registerDTO) {
         try{
+            if(memberRepository.existsById(registerDTO.getMemberId())) {
+                throw new CustomRuntimeException("이미 존재하는 회원 ID 입니다.");
+            }
             Member member = Member.builder()
                     .memberId(registerDTO.getMemberId())
                     .pwd(registerDTO.getPwd())
@@ -31,7 +34,10 @@ public class MemberServiceImpl implements MemberServiceIf{
                     .name(registerDTO.getName())
                     .build();
             return memberRepository.save(member);
-        }catch(Exception e){
+        }catch(CustomRuntimeException e){
+            log.error("customRuntimeException : {}",e.getMessage());
+            throw e;
+        } catch(Exception e){
             log.error(e.getMessage());
             throw new CustomRuntimeException("오류가 발생했습니다. 다시시도하세요");
         }

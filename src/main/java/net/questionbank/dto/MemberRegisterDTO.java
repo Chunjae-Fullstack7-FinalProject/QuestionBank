@@ -28,6 +28,6 @@ public class MemberRegisterDTO {
     private String name;     // 이름
 
     @NotBlank(message = "이메일은 필수입니다.")
-    @Email(message = "유효한 이메일 형식이 아닙니다.")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]{1,20}@[a-zA-Z0-9.-]{1,20}(\\.[a-zA-Z]{2,3})+$", message = "올바른 이메일형식이 아닙니다.")
     private String email;    // 이메일
 }

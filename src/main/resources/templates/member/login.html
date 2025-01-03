@@ -143,14 +143,14 @@
         alert(errors);
     }
 
-    // function memberIdValid(memberId){
-    //     const MEMBER_ID_REGEXP = /^[a-z0-9]{5,20}$/;
-    //     return MEMBER_ID_REGEXP.test(memberId);
-    // }
-    // function pwdValid(pwd){
-    //     const PWD_REGEXP = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()-+=])[a-zA-Z\d!@#$%^&*()-+=]{8,20}$/;
-    //     return PWD_REGEXP.test(pwd);
-    // }
+    function memberIdValid(memberId){
+        const MEMBER_ID_REGEXP = /^[a-z0-9]{5,20}$/;
+        return MEMBER_ID_REGEXP.test(memberId);
+    }
+    function pwdValid(pwd){
+        const PWD_REGEXP = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()-+=])[a-zA-Z\d!@#$%^&*()-+=]{8,20}$/;
+        return PWD_REGEXP.test(pwd);
+    }
 
     const frm = document.querySelector("#frm");
     frm.addEventListener("submit",(e)=>{
@@ -166,16 +166,16 @@
             frm.pwd.focus();
             return;
         }
-        // if(!memberIdValid(frm.memberId.value)){
-        //     alert("회원 ID는 영어 소문자 또는 숫자만을 포함하고, 5~20자여야합니다.");
-        //     frm.memberId.focus();
-        //     return;
-        // }
-        // if(!pwdValid(frm.pwd.value)){
-        //     alert("비밀번호는 영어, 숫자, 특수문자를 포함해야 하며, 8~20자여야 합니다.");
-        //     frm.pwd.focus();
-        //     return;
-        // }
+        if(!memberIdValid(frm.memberId.value)){
+            alert("회원 ID는 영어 소문자 또는 숫자만을 포함하고, 5~20자여야합니다.");
+            frm.memberId.focus();
+            return;
+        }
+        if(!pwdValid(frm.pwd.value)){
+            alert("비밀번호는 영어, 숫자, 특수문자를 포함해야 하며, 8~20자여야 합니다.");
+            frm.pwd.focus();
+            return;
+        }
         frm.submit();
     });
     function main(){

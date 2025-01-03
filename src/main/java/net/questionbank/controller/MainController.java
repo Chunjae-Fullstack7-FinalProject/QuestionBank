@@ -29,7 +29,7 @@ public class MainController {
         return "redirect:/main";
     }
 
-    @GetMapping("/main")
+    @GetMapping(value = {"/main","/"})
     public String mainPage(HttpSession session){
         MemberLoginDTO loginDTO = (MemberLoginDTO) session.getAttribute("loginDto");
         return "main/main";
