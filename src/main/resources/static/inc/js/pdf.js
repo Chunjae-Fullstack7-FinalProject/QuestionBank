@@ -75,10 +75,10 @@ async function savePdf1(title, classname) {
 
     const options = {
         margin: 15, // 여백 설정
-        image: { type: 'jpeg', quality: 0.98 }, // 이미지 설정
-        html2canvas: { scale: 2, useCORS: true }, // 해상도 설정
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, // PDF 설정
-        pagebreak: { mode: ['css'] },
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'avoid', 'always'] },
     };
 
     const filename = `${title}-${classname}.pdf`; // 파일 이름 설정
@@ -123,12 +123,12 @@ async function page(title, classname) {
 
     //mm -> px 비율
     const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
-    const iHeight = 5 * toPx;
+    const iHeight = 5.0 * toPx;
 
     let currentHeight = iHeight;
     let gridArea = document.getElementById("left-1");
     let pageNo = 1;
-    let maxHeight = 235 * toPx;
+    let maxHeight = 235.0 * toPx;
     let currentArea = 0;
 
     items.forEach(value => {
@@ -142,7 +142,7 @@ async function page(title, classname) {
         //     })
         // }
 
-        if(value.innerHTML.includes("<table") && height > maxHeight-currentHeight && maxHeight-currentHeight > 30*toPx && height > maxHeight) {
+        if(value.innerHTML.includes("<table") && height > maxHeight-currentHeight && maxHeight-currentHeight > 30.0 * toPx && height > maxHeight) {
             value.querySelectorAll("table").forEach(table => {
                         table.removeAttribute("style");
                         table.classList.add("pdf-item-table");
@@ -186,7 +186,7 @@ async function page(title, classname) {
                 if(value1.innerHTML.includes("<table")){
                     return;
                 }
-                if (value1.offsetHeight + (5*toPx) + currentHeight + divElement.offsetHeight < maxHeight) {
+                if (value1.offsetHeight + (5.0 * toPx) + currentHeight + divElement.offsetHeight < maxHeight) {
 
                     td.appendChild(value1);
                 }
@@ -194,9 +194,9 @@ async function page(title, classname) {
                     if(td.childNodes.length === 0) {
                         gridArea.removeChild(divElement);
                     }
-                    currentHeight = 5*toPx;
+                    currentHeight = 5.0 * toPx;
                     if (currentArea === 1) {
-                        maxHeight = 255 * toPx;
+                        maxHeight = 255.0 * toPx;
                         pageNo = pageNo + 1;
                         currentArea = 0;
                         content.innerHTML += `
@@ -215,7 +215,7 @@ async function page(title, classname) {
                         gridArea = document.getElementById("right-" + pageNo);
                     }
 
-                    currentHeight = 5*toPx;
+                    currentHeight = 5.0 * toPx;
                     divElement = document.createElement("div");
                     divElement.classList.add("pdf-item");
                     table = document.createElement("table");
@@ -275,12 +275,13 @@ async function pagenation(itemclass, title) {
 
     document.querySelector(".pdf-td-title").innerHTML = title;
 
-    const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
+    const toPx = (document.querySelector(".pdf-title-table").offsetWidth / 180.0).toFixed(3);
+    console.log(toPx);
 
-    let currentHeight = 5 * toPx;
+    let currentHeight = 5.0 * toPx;
     let gridArea = document.getElementById("left-1");
     let page = 1;
-    let maxHeight = 235 * toPx;
+    let maxHeight = 235.0 * toPx;
     let currentArea = 0;
 
     for (const value of items) {
@@ -289,7 +290,6 @@ async function pagenation(itemclass, title) {
         let height = value.offsetHeight;
 
         if (height > maxHeight) {
-            console.log(page + "," + currentArea);
             if (page === 1 && currentArea === 0) {
                 img.style.height = "220mm";
             } else {
@@ -298,12 +298,10 @@ async function pagenation(itemclass, title) {
             height = value.offsetHeight;
         }
 
-        console.log("height : "+ height);
-
         if (currentHeight + height > maxHeight) {
-            currentHeight = 5 * toPx;
+            currentHeight = 5.0 * toPx;
             if (currentArea === 1) {
-                maxHeight = 255 * toPx;
+                maxHeight = 255.0 * toPx;
                 page = page + 1;
                 currentArea = 0;
 
@@ -322,7 +320,7 @@ async function pagenation(itemclass, title) {
                 gridArea = document.getElementById("right-" + page);
             }
         }
-        currentHeight = currentHeight + height + 5 * toPx;
+        currentHeight = currentHeight + height + 5.0 * toPx;
         gridArea.appendChild(value);
     }
 
