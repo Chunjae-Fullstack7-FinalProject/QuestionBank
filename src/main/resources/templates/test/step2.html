@@ -748,15 +748,29 @@
 		return filteredQuestions;
 	}
 
-	// // 단원 이름에서 숫자를 추출하는 함수
-	// function extractChapterNumber(chapterName) {
-	// 	const match = chapterName.match(/\d+/); // 단원 이름에서 숫자를 추출
-	// 	return match ? parseInt(match[0], 10) : Infinity; // 숫자가 없으면 Infinity 반환
-	// }
+	//문제 형태순 할 때 주관식, 객관식 변형 용도
+	function getFormPriority(formCode) {
+		const formRanges = [
+			{ range: [10, 50], priority: 1 }, // 객관식
+			{ range: [60, 99], priority: 2 }, // 주관식
+		];
+
+		for (const { range, priority } of formRanges) {
+			const [min, max] = range;
+			if (formCode >= min && formCode <= max) {
+				return priority;
+			}
+		}
+
+		return Infinity;
+	}
 
 	// 정렬 함수
 	function sortQuestionsByStatus(filteredQuestions, sortStatus) {
 		let sortedQuestions = [...filteredQuestions];
+		const level = {"하": 2, "중": 3, "상": 4};
+		const passageQuestions = questions.filter(q => q.passageId !== null);
+		const singleQuestions = questions.filter(q => q.passageId === null);
 		switch (sortStatus) {
 			case "단원순":
 				sortedQuestions.sort((a, b) => {
@@ -766,11 +780,6 @@
 				});
 				break;
 			case "난이도순":
-				const level = {"하": 2, "중": 3, "상": 4};
-
-				//지문과 단일 문항 분리
-				const passageQuestions = questions.filter(q => q.passageId !== null);
-				const singleQuestions = questions.filter(q => q.passageId === null);
 
 				//지문 그룹화
 				const groupedByPassage = passageQuestions.reduce((groups, question) => {
@@ -853,9 +862,9 @@
 						}
 
 						// 지문 끝 뒤에 삽입
-						let isEndOfPassage = i;
-						isEndOfPassage === finalSortedQuestions.length - 1 || currentQuestion.passageId !== finalSortedQuestions[i + 1]?.passageId;
-						if (isEndOfPassage) {
+						let end = i;
+						end === finalSortedQuestions.length - 1 || currentQuestion.passageId !== finalSortedQuestions[i + 1]?.passageId;
+						if (end) {
 							insertIndex = i + 1;
 						}
 					}
@@ -863,12 +872,71 @@
 					// 삽입
 					finalSortedQuestions.splice(insertIndex, 0, singleQuestion);
 				});
-				return finalSortedQuestions;
-
+				sortedQuestions = finalSortedQuestions;
+				break;
 
 			case "문제 형태순":
-				sortedQuestions.sort((a, b) => (a.questionFormName || "").localeCompare(b.questionFormName || ""));
+
+				//지문과 단일 문항 분리
+				const passageQuestion = questions.filter(q => q.passageId !== null);
+				const singleQuestion = questions.filter(q => q.passageId === null);
+
+				//지문 그룹화
+				const groupedByPassageId = passageQuestion.reduce((groups, question) => {
+					if (!groups[question.passageId]) groups[question.passageId] = [];
+					groups[question.passageId].push(question);
+					return groups;
+				}, {});
+
+				console.log("그룹화된 지문:", groupedByPassageId);
+
+				//지문 내부 정렬
+				const sortedPassageQuestion = Object.keys(groupedByPassageId).flatMap(passageId => {
+					const group = groupedByPassageId[passageId];
+
+					//객관식 → 주관식으로 정렬
+					const sortedGroup = group.sort((a, b) => {
+						//문제 형태 우선순위 비교
+						const formPriorityA = getFormPriority(parseInt(a.questionFormCode, 10));
+						const formPriorityB = getFormPriority(parseInt(b.questionFormCode, 10));
+
+						if (formPriorityA !== formPriorityB) {
+							return formPriorityA - formPriorityB;
+						}
+
+						//동일한 문제 형태일 경우 itemId로 정렬
+						return a.itemId - b.itemId;
+					});
+
+					console.log(`지문 ${passageId} 정렬 결과:`, sortedGroup);
+					return sortedGroup;
+				});
+
+				console.log("정렬된 지문:", sortedPassageQuestion);
+
+				//단일 문항 정렬
+				const sortedSingleQuestions = singleQuestion.sort((a, b) => {
+					//문제 형태 우선순위 비교
+					const formPriorityA = getFormPriority(parseInt(a.questionFormCode, 10));
+					const formPriorityB = getFormPriority(parseInt(b.questionFormCode, 10));
+
+					if (formPriorityA !== formPriorityB) {
+						return formPriorityA - formPriorityB;
+					}
+
+					// 동일한 문제 형태일 경우 itemId로 정렬
+					return a.itemId - b.itemId;
+				});
+
+				console.log("정렬된 단일 문항:", sortedSingleQuestions);
+
+				//지문, 단일 병합
+				sortedQuestions = [...sortedPassageQuestion, ...sortedSingleQuestions];
+
+				console.log("최종 병합된 결과:", sortedQuestions);
+
 				break;
+
 			default: // 기본값: 단원순
 				sortedQuestions.sort((a, b) => {
 					const chapterA = a.largeChapterName || "";
