@@ -117,21 +117,43 @@ public class TestServiceImpl implements TestServiceIf {
     }
 
     @Override
-    public String[] getPresetExamQuestions(String[] examIds) {
+    public Map<String,String[]> getPresetExamQuestions(String[] examIds) {
         try{
             QuestionResponseDTO<QuestionPresetApiDTO> questionResponseDTO = getPresetExamQuestionsFromApi(examIds).block();
-            if(questionResponseDTO == null) {
-                throw new CustomRuntimeException("세팅지 문제 조회 실패 : 조회된 문제가 없음");
-            }
-            List<QuestionPresetApiDTO> itemList = questionResponseDTO.getItemList();
-            return longListToStringArray(
-                    itemList.stream().map(QuestionImageApiDTO::getItemId).toList()
-            );
+            Map<String, List<Long>> presetExamMap = getStringListMap(questionResponseDTO);
+            Map<String,String[]> returnMap = new HashMap<>();
+            presetExamMap.forEach((key, value) -> {
+                if (!returnMap.containsKey(key)) {
+                    returnMap.put(key, longListToStringArray(value));
+                }
+            });
+            return returnMap;
+        }catch(CustomRuntimeException e){
+            log.error("CustomRuntimeException : {}",e.getMessage());
+            throw e;
         }catch(Exception e) {
             log.error(e.getMessage());
         }
+        return Map.of("",new String[]{});
+    }
 
-        return new String[0];
+    private Map<String, List<Long>> getStringListMap(QuestionResponseDTO<QuestionPresetApiDTO> questionResponseDTO) {
+        if(questionResponseDTO == null) {
+            throw new CustomRuntimeException("세팅지 문제 조회 실패 : 조회된 문제가 없음");
+        }
+        List<QuestionPresetApiDTO> itemList = questionResponseDTO.getItemList();
+        Map<String,List<Long>> presetExamMap = new HashMap<>();
+        itemList.forEach(item -> {
+           if(!presetExamMap.containsKey("all")) {
+               presetExamMap.put("all",new ArrayList<>());
+           }
+           if(!presetExamMap.containsKey(item.getExamName())) {
+               presetExamMap.put(item.getExamName(),new ArrayList<>());
+           }
+           presetExamMap.get(item.getExamName()).add(item.getItemId());
+           presetExamMap.get("all").add(item.getItemId());
+        });
+        return presetExamMap;
     }
 
     @Override

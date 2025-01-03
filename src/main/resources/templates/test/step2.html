@@ -24,6 +24,10 @@
 		.disappear {
 			display:none;
 		}
+		/* 감찬추가 */
+		.description_length{
+			text-align : right;
+		}
 	</style>
 </head>
 <body>
@@ -554,8 +558,8 @@
 						<tr>
 							<th>오류 내용</th>
 							<td>
-								<textarea name="description" id="errorContent" cols="30" rows="4" placeholder="오류내용을 간단히 적어주세요. (최대 50자)"></textarea>
-
+								<textarea name="description" id="description" cols="30" rows="4" maxlength="50" placeholder="오류내용을 간단히 적어주세요. (최대 50자)"></textarea>
+								<div class="description_length"><span id="temp_description_length">0</span>/50</div>
 							</td>
 						</tr>
 						</tbody>
@@ -653,6 +657,9 @@
 <script th:inline="javascript">
 	//문항id 배열로 티셀파 문항 리스트 조회(img) 요청
 	const questionIds = [[${questionIds}]];
+	const type = [[${type}]]; //step0 에서 넘어올 때 type=='edit' 따로 선언함
+	const presetExamMap = [[${presetExamMap}]]; //세팅지 제목 넣어주기 위한 Object
+	console.log("presetExamMap : ", presetExamMap);
 	const API_BASE_URL = '/bridge/t-sherpa'; // 프록시 서버 경로
 	let questions = [];
 	let similarQuestions = [];
@@ -1092,16 +1099,26 @@
 											<span class="tit">
 												<div class="txt">${q.largeChapterName}>${q.mediumChapterName}>${q.smallChapterName}>${q.topicChapterName}</div>
 												`
-				if([[${type}]] === "edit") {
-					questionHTML += `
+				if(type === "edit") {
+					let tempExamName = '';
+					for (let [examName, itemIdList] of Object.entries(presetExamMap)) {
+						if(itemIdList.includes(String(q.itemId))){
+							tempExamName = examName;
+							console.log("tempExamName:",tempExamName);
+						}
+					}
+					if(tempExamName !== '') {
+						questionHTML += `
 												<div class="tooltip-wrap">
-													<button type="button" class="btn-tip"></button>
+													<button type="button" class="btn-tip" onmouseover="tooltip(this)"></button>
 														<div class="tooltip type01">
 															<div class="tool-type01">
-															시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~</div>
+																${tempExamName}
+															</div>
 														</div>
 												</div>
 												`
+					}
 				}
 				questionHTML += `
 											</span>
@@ -1126,16 +1143,26 @@
 									<span class="tit">
 										<div class="txt">${q.largeChapterName}>${q.mediumChapterName}>${q.smallChapterName}>${q.topicChapterName}</div>
 											`
-				if([[${type}]] === "edit") {
-					questionHTML += `
+				if(type === "edit") {
+					let tempExamName = '';
+					for (let [examName, itemIdList] of Object.entries(presetExamMap)) {
+						if(itemIdList.includes(String(q.itemId))){
+							tempExamName = examName;
+							console.log("tempExamName:",tempExamName);
+						}
+					}
+					if(tempExamName !== '') {
+						questionHTML += `
 													<div class="tooltip-wrap">
-														<button type="button" class="btn-tip"></button>
+														<button type="button" class="btn-tip" onmouseover="tooltip(this)"></button>
 														<div class="tooltip type01">
 															<div class="tool-type01">
-																시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~시험지명블라블라~~</div>
+																${tempExamName}
+															</div>
 														</div>
 													</div>
 												`
+					}
 				}
 				questionHTML += `
 									</span>
@@ -1154,7 +1181,17 @@
 		$(document).trigger("renderSummaryComplete");
 
 	}
+	//툴팁 위치 조정
+	function tooltip (element) {
+		const _this = element;
+		const _tooltip = _this.nextElementSibling;
+		const _tooltipPosition = _this.getBoundingClientRect().top;
 
+		if (_tooltipPosition > 500) {
+			_tooltip.style.top = "-112px";
+			_tooltip.classList.add("active");
+		}
+	}
 	//유사 문항 탭
 	function renderSimilar(similarQuestions, index, itemId, flag) {
 		console.log("similarQuestions");
@@ -1910,6 +1947,7 @@
 	const selectOption = reportForm.querySelectorAll(".select-list li a");
 	const errorType = reportForm.querySelector("#errorType");
 	const errorSelectBtn = reportForm.querySelector(".select-btn");
+	const description = reportForm.querySelector("#description");
 	selectOption.forEach((option)=>{
 		option.addEventListener("click", (e)=>{
 			selectError(option);
@@ -1950,10 +1988,21 @@
 			fileText.value = selectedFile.name;
 		}
 	});
+	const tempDescriptionLength = document.querySelector("#temp_description_length");
+	description.addEventListener("input",(e)=>{
+		const tempLength = description.value.length;
+		tempDescriptionLength.textContent = tempLength;
+		if(tempLength >= 50){
+			tempDescriptionLength.style.color = "red";
+			return;
+		}
+		tempDescriptionLength.style.color = "black";
+	});
+
 	document.querySelector("#btnSubmitError").addEventListener("click",async (e)=>{
 		e.stopPropagation();
 		e.preventDefault();
-		if(reportForm.errorContent.value.length > 50){
+		if(reportForm.description.value.length > 50){
 			alert("오류내용은 50자 이하로 작성해주세요.");
 			return;
 		}

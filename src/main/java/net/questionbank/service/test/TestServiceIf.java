@@ -8,11 +8,12 @@ import net.questionbank.dto.presetExam.PresetExamApiResponse;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 
 public interface TestServiceIf {
     List<LargeDTO> step1(SubjectRequestDTO subjectRequestDTO);
     Mono<PresetExamApiResponse> getPresetExam(String subjectId);
     List<LargeChapterDTO> getPresetExamList(String subjectId);
-    String[] getPresetExamQuestions(String[] examIds);
+    Map<String,String[]> getPresetExamQuestions(String[] examIds);
     List<Long> getPresetExamItemList(String examId);
 }

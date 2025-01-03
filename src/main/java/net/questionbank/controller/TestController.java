@@ -25,6 +25,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -88,6 +89,7 @@ public class TestController {
     step1에서 받은 과목 id 값
     step2/sub03_01_01로 리턴
      */
+    @RedirectWithError(redirectUri = "/error/error")
     @PostMapping("/step2")
     public String getItemIds(Model model,
                              @RequestParam(required = false, name = "examId") String[] examIds,
@@ -98,8 +100,20 @@ public class TestController {
                              @RequestParam(required = false) String requestHigh) {
         String type = "";
         if(examIds!=null){
-            questionIds = testService.getPresetExamQuestions(examIds);
-            type = "edit";
+            try {
+                Map<String, String[]> presetExamMap = testService.getPresetExamQuestions(examIds);
+                if (presetExamMap != null) {
+                    questionIds = presetExamMap.remove("all");
+                    model.addAttribute("presetExamMap", presetExamMap);
+                }
+                type = "edit";
+            }catch(CustomRuntimeException e){
+                log.error("CustomRuntimeException", e);
+                throw e;
+            }catch(Exception e){
+                log.error("Exception", e);
+                throw e;
+            }
         }
 
         //json 파싱
