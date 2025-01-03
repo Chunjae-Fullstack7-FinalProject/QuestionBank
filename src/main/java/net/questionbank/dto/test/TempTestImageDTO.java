@@ -20,6 +20,7 @@ public class TempTestImageDTO {
     private List<QuestionImageApiDTO> questions;
     private Map<String, Integer> code;
     private Map<String,List<String>> imageList;
+    private List<String> imageHtml;
     private String descriptive;
 
     public String getDescriptive() {

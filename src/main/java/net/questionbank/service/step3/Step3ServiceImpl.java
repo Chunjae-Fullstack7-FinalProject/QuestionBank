@@ -57,7 +57,8 @@ public class Step3ServiceImpl implements Step3Service {
         return TempTestImageDTO.builder()
                 .questions(questionsFromApi)
                 .textbookApiDTO(getTextBookFromApi(subjectId))
-                .imageList(testPdfImageList(questionsFromApi))
+//                .imageList(testPdfImageList(questionsFromApi))
+                .imageHtml(testPdfImageStringList(questionsFromApi))
                 .build();
     }
 
@@ -142,7 +143,7 @@ public class Step3ServiceImpl implements Step3Service {
         // 전송 실패했을 때 어떻게 할지 정해야함
         // 일단 로그만 찍음
         // 서술형 있으면 제외
-        if(testSaveDTO.isDescriptive()) {
+        if (testSaveDTO.isDescriptive()) {
             return;
         }
         try {
@@ -155,7 +156,7 @@ public class Step3ServiceImpl implements Step3Service {
                     .subjectName(testSaveDTO.getSubjectName())
                     .build()
             );
-            if(!b) {
+            if (!b) {
                 log.error("전송 실패");
             }
         } catch (IllegalStateException e) {
@@ -273,100 +274,90 @@ public class Step3ServiceImpl implements Step3Service {
     }
 
     @Override
-    public Map<String, String> testPdfImageStringList(List<QuestionImageApiDTO> questionsFromApi) {
+    public List<String> testPdfImageStringList(List<QuestionImageApiDTO> questionsFromApi) {
 
-//        if (questionsFromApi == null || questionsFromApi.isEmpty()) return null;
-//
-//        Map<String, String> map = new HashMap<>();
-//
-//        StringBuilder all = new StringBuilder();
-//        StringBuilder questions = new StringBuilder();
-//        StringBuilder answers = new StringBuilder();
-//
-//        int startNo = 0;
-//        int passageIndex = 0;
-//        Long cpid = 0L;
-//
-//        try {
-//            QuestionImageApiDTO question = null;
-//
-//            for (QuestionImageApiDTO questionApiDTO : questionsFromApi) {
-//                question = questionApiDTO;
-//
-//                if (!cpid.equals(question.getPassageId())) {
-//                    if (startNo > 0 && startNo < question.getItemNo() - 1) {
-//                        all.set(passageIndex, "[" + startNo + "-" + (question.getItemNo() - 1) + "]");
-//                    }
-//                    passageIndex = all.size();
-//                    all.add("");
-//                    all.add(question.getPassageUrl());
-//                    startNo = question.getItemNo();
-//                }
-//
-//                cpid = question.getPassageId() != null ? question.getPassageId() : 0L;
-//
-//                all.add(question.getItemNo() + ".");
-//                all.add(question.getQuestionUrl());
-//                all.add("(답)");
-//                all.add(question.getAnswerUrl());
-//                all.add("(해설)");
-//                all.add(question.getExplainUrl());
-//
-//            }
-//
-//            cpid = 0L;
-//            if (!cpid.equals(question.getPassageId())) {
-//                if (startNo > 0 && startNo < question.getItemNo()) {
-//                    all.set(passageIndex, "[" + startNo + "-" + (question.getItemNo()) + "]");
-//                }
-//            }
-//
-//            List<String> questions = all.stream().filter(str -> {
-//                if (str.startsWith("(")) {
-//                    return false;
-//                }
-//                if (str.contains("answer")) {
-//                    return false;
-//                }
-//                if (str.contains("explain")) {
-//                    return false;
-//                }
-//                return true;
-//            }).toList();
-//
-//            List<String> answers = all.stream().filter(str -> {
-//                if (str.startsWith("(")) {
-//                    return true;
-//                }
-//                if (str.contains("answer")) {
-//                    return true;
-//                }
-//                if (str.contains("explain")) {
-//                    return true;
-//                }
-//                if (str.endsWith(".")) {
-//                    return true;
-//                }
-//                if (str.contains("question")) {
-//                    return true;
-//                }
-//                return false;
-//            }).map(str -> {
-//                if (str.contains("question")) return "";
-//                return str;
-//            }).toList();
-//
-//
-//            map.put("all", all);
-//            map.put("questions", questions);
-//            map.put("answers", answers);
-//
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
+        if (questionsFromApi == null || questionsFromApi.isEmpty()) return null;
 
-//        return map;
-        return null;
+        List<String> all = new ArrayList<>();
+
+        int startNo = 0;
+        int passageIndex = 0;
+        Long prevId = 0L;
+
+
+        String passage = """
+                <div class="pdf-item pdf-passage">
+                   <div class="pdf-txt pdf-txt-no">TEXT</div>
+                   <img class="pdf-img" src="URL" />
+                </div>
+                """;
+        String question = """
+                <div class="pdf-item pdf-question pdf-question-grid">
+                   <div class="pdf-txt pdf-txt-no">TEXT</div>
+                   <div><img class="pdf-img" src="URL" /></div>
+                </div>
+                """;
+        String answer = """
+                <div class="pdf-item pdf-answer">
+                   <div class="pdf-txt pdf-txt-no pdf-display-none">NO</div>
+                   <div class="pdf-txt pdf-txt-title">TEXT</div>
+                   <img class="pdf-img" src="URL" />
+                </div>
+                """;
+        String explain = """
+                <div class="pdf-item pdf-explain">
+                   <div class="pdf-txt pdf-txt-title">TEXT</div>
+                   <img class="pdf-img" src="URL" />
+                </div>
+                """;
+        try {
+            QuestionImageApiDTO questionInfo = null;
+
+            for (QuestionImageApiDTO questionApiDTO : questionsFromApi) {
+                questionInfo = questionApiDTO;
+
+                if (questionInfo.getPassageId() != null && !questionInfo.getPassageId().equals(0L)) {
+                    if (prevId == null || prevId == 0) {
+                        passageIndex = all.size();
+                        all.add(passage.replace("URL", questionInfo.getPassageUrl()));
+                        startNo = questionInfo.getItemNo();
+                    } else if (!prevId.equals(questionInfo.getPassageId())) {
+
+
+                        if (startNo > 0) {
+                            if (startNo == questionInfo.getItemNo() - 1) {
+                                all.set(passageIndex, all.get(passageIndex).replace("TEXT", ""));
+                            } else {
+                                all.set(passageIndex, all.get(passageIndex).replace("TEXT", "[" + startNo + "-" + (questionInfo.getItemNo() - 1) + "]"));
+                            }
+                        }
+                        startNo = questionInfo.getItemNo();
+                        passageIndex = all.size();
+                        all.add(passage.replace("URL", questionInfo.getPassageUrl()));
+                    }
+                } else {
+                    startNo = questionInfo.getItemNo();
+                }
+
+                prevId = questionInfo.getPassageId();
+
+                all.add(question.replace("TEXT", String.valueOf(questionInfo.getItemNo()+".&nbsp;")).replace("URL", questionInfo.getQuestionUrl()));
+                all.add(answer.replace("NO", String.valueOf(questionInfo.getItemNo()+".&nbsp;")).replace("TEXT", "(답)").replace("URL", questionInfo.getAnswerUrl()));
+                all.add(explain.replace("TEXT", "(해설)").replace("URL", questionInfo.getExplainUrl()));
+            }
+
+            if (startNo != questionsFromApi.size()) {
+                all.set(passageIndex, all.get(passageIndex).replace("TEXT", "[" + startNo + "-" + questionsFromApi.size() + "]"));
+            }
+            else {
+                all.set(passageIndex, all.get(passageIndex).replace("TEXT", ""));
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return all;
     }
 
     @Override
@@ -471,7 +462,7 @@ public class Step3ServiceImpl implements Step3Service {
 //                    );
                 }
 
-                if(!sb.isEmpty()){
+                if (!sb.isEmpty()) {
                     sb.append("</div>");
                     all.add(sb.toString());
                 }
@@ -544,9 +535,9 @@ public class Step3ServiceImpl implements Step3Service {
                     questions.append(question.getPassageHtml());
                 }
 
-                all.append(question.getItemNo() +". <br/>");
-                questions.append(question.getItemNo() +". <br/>");
-                answers.append(question.getItemNo() +". <br/>");
+                all.append(question.getItemNo() + ". <br/>");
+                questions.append(question.getItemNo() + ". <br/>");
+                answers.append(question.getItemNo() + ". <br/>");
 
                 all.append(question.getQuestionHtml());
                 questions.append(question.getQuestionHtml());
@@ -577,7 +568,7 @@ public class Step3ServiceImpl implements Step3Service {
 
                 }
 
-                if(!sb.isEmpty()){
+                if (!sb.isEmpty()) {
                     all.append(sb.toString());
                     questions.append(sb.toString());
                 }
@@ -588,7 +579,7 @@ public class Step3ServiceImpl implements Step3Service {
                 answers.append(question.getAnswerHtml().replaceFirst("<span class=\"txt \">"
                         , "<span class=\"txt pdf-answer\">(답)<br></span><span class=\"txt \">"));
                 all.append(question.getExplainHtml().replaceFirst("<span class=\"txt \">"
-                                , "<span class=\"txt pdf-answer\">(해설)<br></span><span class=\"txt \">"));
+                        , "<span class=\"txt pdf-answer\">(해설)<br></span><span class=\"txt \">"));
                 answers.append(question.getExplainHtml().replaceFirst("<span class=\"txt \">"
                         , "<span class=\"txt pdf-answer\">(해설)<br></span><span class=\"txt \">"));
 
@@ -636,7 +627,6 @@ public class Step3ServiceImpl implements Step3Service {
     }
 
 
-
     @Override
     public ResponseEntity<byte[]> HtmlToPdfExample(String html, String title) {
 
@@ -647,54 +637,54 @@ public class Step3ServiceImpl implements Step3Service {
 
         String htmlContent =
                 "<html lang=\"ko\">" +
-                "<head>\n" +
-                "    <meta charset=\"UTF-8\" />\n" +
-                "    <title>Title</title>\n" +
-                "    <link rel=\"stylesheet\" href=\"./inc/css/pdf.css\"></link>\n" +
-                "  <style>\n" +
-                "body {\n" +
-                "    margin: 0;\n" +
-                "    padding: 0;\n" +
-                "    font-family: \"Malgun Gothic\", sans-serif;\n" +
-                "}\n" +
-                "    @page {\n" +
-                "      margin: 10mm;\n" +
-                "      size: A4;\n" +
-                "    }\n" +
-                "    .header {\n" +
-                "    }\n" +
-                "    .content {\n" +
-                "      column-count: 2;\n" +
-                "      column-gap: 10mm;\n" +
-                "    }\n" +
-                ".content table, tr, td {\n" +
-                "  /* 컬럼 내부에서 분할을 허용 */\n" +
-                "  break-inside: auto !important;\n" +
-                "  -webkit-column-break-inside: auto !important;\n" +
-                "  page-break-inside: auto !important;\n" +
-                "}\n" +
-                "    span.txt {\n" +
-                "      break-inside: avoid !important;\n" +
-                "    }\n" +
-                "</style>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "<div class=\"header\">\n" +
-                "  <table class=\"pdf-title-table\">\n" +
-                "    <tr>\n" +
-                "      <td rowspan=\"2\" class=\"pdf-td-title\">"+title+"</td>\n" +
-                "      <td class=\"pdf-td-grade\"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>\n" +
-                "    </tr>\n" +
-                "    <tr>\n" +
-                "      <td class=\"pdf-td-name\">이름:</td>\n" +
-                "    </tr>\n" +
-                "  </table>\n" +
-                "</div>\n" +
-                "<div class=\"content\">\n" +
-                html +
-                "</div>\n" +
-                "</body>\n" +
-                "</html>";
+                        "<head>\n" +
+                        "    <meta charset=\"UTF-8\" />\n" +
+                        "    <title>Title</title>\n" +
+                        "    <link rel=\"stylesheet\" href=\"./inc/css/pdf.css\"></link>\n" +
+                        "  <style>\n" +
+                        "body {\n" +
+                        "    margin: 0;\n" +
+                        "    padding: 0;\n" +
+                        "    font-family: \"Malgun Gothic\", sans-serif;\n" +
+                        "}\n" +
+                        "    @page {\n" +
+                        "      margin: 10mm;\n" +
+                        "      size: A4;\n" +
+                        "    }\n" +
+                        "    .header {\n" +
+                        "    }\n" +
+                        "    .content {\n" +
+                        "      column-count: 2;\n" +
+                        "      column-gap: 10mm;\n" +
+                        "    }\n" +
+                        ".content table, tr, td {\n" +
+                        "  /* 컬럼 내부에서 분할을 허용 */\n" +
+                        "  break-inside: auto !important;\n" +
+                        "  -webkit-column-break-inside: auto !important;\n" +
+                        "  page-break-inside: auto !important;\n" +
+                        "}\n" +
+                        "    span.txt {\n" +
+                        "      break-inside: avoid !important;\n" +
+                        "    }\n" +
+                        "</style>\n" +
+                        "</head>\n" +
+                        "<body>\n" +
+                        "<div class=\"header\">\n" +
+                        "  <table class=\"pdf-title-table\">\n" +
+                        "    <tr>\n" +
+                        "      <td rowspan=\"2\" class=\"pdf-td-title\">" + title + "</td>\n" +
+                        "      <td class=\"pdf-td-grade\"> &nbsp;&nbsp;&nbsp; 학년 &nbsp;&nbsp;반 &nbsp;&nbsp;번</td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "      <td class=\"pdf-td-name\">이름:</td>\n" +
+                        "    </tr>\n" +
+                        "  </table>\n" +
+                        "</div>\n" +
+                        "<div class=\"content\">\n" +
+                        html +
+                        "</div>\n" +
+                        "</body>\n" +
+                        "</html>";
 
         System.out.println("header = " + htmlContent);
 
@@ -702,12 +692,10 @@ public class Step3ServiceImpl implements Step3Service {
             PdfRendererBuilder builder = new PdfRendererBuilder();
 
 
-
             builder.withHtmlContent(convertTableToDiv(htmlContent.replace("type=\"text\">", "type=\"text\"/>")
                     .replace("<col style=\"width: 100%\">", "<col style=\"width: 100%\"/>")
                     .replace("&nbsp;", " ")
                     .replace("<br>", "<br/>")), "file:///D:/java7/QuestionBank/src/main/resources/static/");
-
 
 
             builder.toStream(baos);

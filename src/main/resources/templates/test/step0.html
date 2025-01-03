@@ -266,10 +266,17 @@
             return;
         }
         const container = document.getElementById(type);
-        const pdfHtmlMap = await getPdfHtml(examId);
-        const itemList = pdfHtmlMap[type];
+        const itemList = await getPdfHtml(examId);
         itemList.forEach((item,index)=>{
-            if(type==='answers' && index%2==0) container.innerHTML += `<div class="pdf-item">${index/2+1}.</div>`;
+            if(type==='questions' && (item.includes("pdf-answer") || item.includes("pdf-explain"))) {
+                return;
+            }
+            if(type==='answers' && (item.includes("pdf-passage") || item.includes("pdf-passage"))) {
+                return;
+            }
+            if(type==='answers') {
+                item = item.replace(" pdf-display-none", "");
+            }
             container.innerHTML += item;
         });
 
@@ -277,7 +284,7 @@
             MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
             // console.log('MathJax rendered');
         }
-        await page(examName, type);
+        await pagenation(type, examName);
         console.log("pdf examName : " + examName + ", type : " + type);
         await savePdf1(examName, type);
     }

@@ -1,11 +1,10 @@
 // 개별 svg -> png
-async function convertImgToPng(url, maxHeight) {
+async function convertImgToPng(url) {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.src = url;
 
         img.onload = () => {
-            if(img.height >= maxHeight)
             const canvas = document.createElement('canvas');
             canvas.width = img.width;
             canvas.height = img.height;
@@ -26,7 +25,6 @@ async function convertImgToPng(url, maxHeight) {
 //사용할 이미지 png로 변환
 async function replaceSvgWithPng(imageClassName) {
     const svgImages = document.querySelectorAll(imageClassName);
-    const toPx = document.querySelector(".example").offsetHeight/10;
 
     for (const svgImg of svgImages) {
         const svgUrl = "/api/customExam/proxy?url=" + svgImg.src; // cors 문제 피하기 위해 서버 우회
@@ -37,6 +35,18 @@ async function replaceSvgWithPng(imageClassName) {
             console.error(`SVG 변환 실패: ${svgUrl}`, error);
         }
     }
+
+}
+
+//이미지 png로 변환
+async function replaceSvgWithPng2(element) {
+    const svgUrl = "/api/customExam/proxy?url=" + element.src; // cors 문제 피하기 위해 서버 우회
+    try {
+        element.src = await convertImgToPng(svgUrl); // png로 교체
+    } catch (error) {
+        console.error(`SVG 변환 실패: ${svgUrl}`, error);
+    }
+
 
 }
 
@@ -257,22 +267,29 @@ async function page(title, classname) {
 }
 
 //이미지 시험지 레이아웃
-function pagenation(itemclass, title) {
-    const items = document.querySelectorAll(".pdf-item-"+itemclass);
+async function pagenation(itemclass, title) {
+    const items = document.getElementById(itemclass).querySelectorAll(".pdf-item");
     const content = document.getElementById("pdf-content");
 
     content.innerHTML = containerLayout;
+    document.querySelector(".pdf-td-title").innerHTML = title;
 
     const toPx = document.querySelector(".pdf-title-table").offsetWidth / 180.0;
 
-    let currentHeight = 15*toPx;
+    let currentHeight = 0;
     let gridArea = document.getElementById("left-1");
     let page = 1;
-    let maxHeight = 240 * toPx;
+    let maxHeight = 235 * toPx;
     let currentArea = 0;
 
-    items.forEach(value => {
-        const height = value.offsetHeight;
+    for (const value of items) {
+        let height = value.offsetHeight;
+        if (height > maxHeight) {
+            value.querySelector("img").style.height = (maxHeight/toPx - 15) +"mm";
+            height = value.offsetHeight;
+        }
+
+        await replaceSvgWithPng2(value.querySelector("img"));
 
         if (currentHeight + height > maxHeight) {
             if (currentArea === 1) {
@@ -288,7 +305,7 @@ function pagenation(itemclass, title) {
                                 </div>
                                 <div class="page-no">${page}</div>
                             </div>
-            `
+                `
                 gridArea = document.getElementById("left-" + page);
             } else {
                 currentArea = 1;
@@ -298,6 +315,6 @@ function pagenation(itemclass, title) {
         }
         currentHeight = currentHeight + height + 5 * toPx;
         gridArea.appendChild(value);
-    });
+    }
 
 }

@@ -22,7 +22,7 @@ public interface Step3Service {
     boolean sendTestInfo(TestDataDTO testDataDto);
     Map<String, List<String>> testPdfImageList(List<QuestionImageApiDTO> questionsFromApi);
 
-    Map<String, String> testPdfImageStringList(List<QuestionImageApiDTO> questionsFromApi);
+    List<String> testPdfImageStringList(List<QuestionImageApiDTO> questionsFromApi);
 
     Map<String, List<String>> testPdfHtmlList(List<QuestionHtmlApiDTO> questionsFromApi);
 

@@ -24,9 +24,9 @@
     padding: 0;
 }
 
-.paragraph {
-    font-size: 9pt;
-}
+/*.paragraph {*/
+/*    font-size: 9pt;*/
+/*}*/
 
 .pdf-title-table {
     box-sizing: border-box;
@@ -76,9 +76,9 @@
     height: 255mm;
 }
 
-.pdf-item-container table {
-    border-color: dimgray;
-}
+/*.pdf-item-container table {*/
+/*    border-color: dimgray;*/
+/*}*/
 
 .pdf-item-container-left {
     box-sizing: border-box;
@@ -103,20 +103,34 @@
     grid-template-columns: 1fr auto;
 }
 
-.pdf-number {
+.pdf-display-none {
+    display: none;
+}
+
+/*.pdf-number {*/
+/*    box-sizing: border-box;*/
+/*    margin-right: 3mm;*/
+/*}*/
+
+.pdf-txt-no {
     box-sizing: border-box;
     margin-right: 3mm;
 }
 
-.pdf-answer {
+/*.pdf-answer {*/
+/*    box-sizing: border-box;*/
+/*    color: green;*/
+/*}*/
+
+.pdf-txt-title {
     box-sizing: border-box;
     color: green;
 }
 
-.pdf-div {
-    box-sizing: border-box;
-    margin-bottom: 1mm;
-}
+/*.pdf-div {*/
+/*    box-sizing: border-box;*/
+/*    margin-bottom: 1mm;*/
+/*}*/
 
 .page {
     box-sizing: border-box;
@@ -132,37 +146,37 @@
     box-sizing: border-box;
     width: 75mm;
     padding: 1mm;
-    max-height: 210mm;
+    /*max-height: 210mm;*/
     /*width: 100%;*/
 }
 
-.img-box {
-    padding-top: 1mm;
-    padding-bottom: 1mm;
-}
+/*.img-box {*/
+/*    padding-top: 1mm;*/
+/*    padding-bottom: 1mm;*/
+/*}*/
 
-.pdf-item-table {
-    box-sizing: border-box;
-    border-collapse: collapse;
+/*.pdf-item-table {*/
+/*    box-sizing: border-box;*/
+/*    border-collapse: collapse;*/
 
-    width: 100%;
-    margin: 5mm 0;
-    padding: 0;
-}
+/*    width: 100%;*/
+/*    margin: 5mm 0;*/
+/*    padding: 0;*/
+/*}*/
 
-.pdf-item-table td {
-    border: 0.5mm solid black;
-    padding: 2mm;
-}
+/*.pdf-item-table td {*/
+/*    border: 0.5mm solid black;*/
+/*    padding: 2mm;*/
+/*}*/
 
-td {
-    padding: 2mm;
-}
+/*td {*/
+/*    padding: 2mm;*/
+/*}*/
 
-.cell {
-    display: inline-block;
-    width: 100%;
-}
+/*.cell {*/
+/*    display: inline-block;*/
+/*    width: 100%;*/
+/*}*/
 
 .example {
     padding: 0;
