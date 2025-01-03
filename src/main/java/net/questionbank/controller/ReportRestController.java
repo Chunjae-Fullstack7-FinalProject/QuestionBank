@@ -3,6 +3,7 @@ package net.questionbank.controller;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import net.questionbank.domain.Report;
 import net.questionbank.dto.report.ReportRegisterDTO;
 import net.questionbank.service.report.ReportServiceIf;
@@ -19,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/reports")
+@Log4j2
 public class ReportRestController {
     private final ReportServiceIf reportService;
     @PostMapping
@@ -35,7 +37,7 @@ public class ReportRestController {
             Report report = reportService.register(registerDTO);
             return ResponseEntity.ok(ApiResponseUtil.success("등록 성공", report));
         }catch(Exception e){
-            e.printStackTrace();
+            log.error(e.getMessage());
             return ResponseEntity.internalServerError().body(ApiResponseUtil.error(e.getMessage()));
         }
     }

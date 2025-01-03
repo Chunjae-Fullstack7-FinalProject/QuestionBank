@@ -555,6 +555,7 @@
 							<th>오류 내용</th>
 							<td>
 								<textarea name="description" id="errorContent" cols="30" rows="4" placeholder="오류내용을 간단히 적어주세요. (최대 50자)"></textarea>
+
 							</td>
 						</tr>
 						</tbody>
@@ -1932,9 +1933,15 @@
 		e.stopPropagation();
 		file.click();
 	})
+	const ALLOWED_REPORT_EXTENSIONS = ["hwp","jpg","png","jpeg"];
 	file.addEventListener("change",(e)=>{
 		const selectedFile = file.files[0];
 		console.log("selectedFile : " + selectedFile.name);
+		const fileExt = selectedFile.name.substring(selectedFile.name.lastIndexOf("."));
+		if(!ALLOWED_REPORT_EXTENSIONS.includes(fileExt)){
+			alert("허용되지 않는 파일 확장자 입니다.");
+			return;
+		}
 		if(selectedFile.size > 100*1024*1024){
 			alert("100MB 이하의 파일만 등록 가능합니다.");
 			return;
@@ -1953,6 +1960,10 @@
 		const allowed_type = ["question", "answer", "explain", "image", "etc"];
 		if(!allowed_type.includes(reportForm.errorType.value)){
 			alert("잘못된 오류 유형입니다.");
+			return;
+		}
+		if(!ALLOWED_REPORT_EXTENSIONS.includes(fileExt)){
+			alert("허용되지 않는 파일 확장자 입니다.");
 			return;
 		}
 		reportForm.enctype="multipart/form-data";
